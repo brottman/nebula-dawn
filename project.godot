@@ -8,7 +8,7 @@ config_version=5
 config/name="Nebula Dawn"
 config/description="Vertical scrolling space shooter — campaign first, endless later."
 run/main_scene="res://scenes/ui/main_menu.tscn"
-config/features=PackedStringArray("4.3", "Forward Plus")
+config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -73,5 +73,8 @@ ui_cancel={
 
 [rendering]
 
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
 textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.04, 0.05, 0.12, 1)
