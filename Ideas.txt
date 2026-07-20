@@ -1,3 +1,3 @@
-godot --path "/home/brian/Nebula Dawn"
+godot --path /home/brian/nebula-dawn/
 
 /home/brian/nebula-dawn/scripts/build_apk.sh

@@ -1,15 +1,19 @@
 extends Node
-## SFX via generated tones + looping OGG music tracks.
+## SFX via generated tones + looping music (menu OGG, level MP3s).
 
-enum MusicTrack { NONE, MENU, GAME }
+const MENU_MUSIC := "res://assets/audio/menu_theme.ogg"
+const MISSION_MUSIC := [
+	"res://assets/audio/Seven_Moons_Drifting.mp3", # Dawn Patrol
+	"res://assets/audio/Iron_Hull_Protocol.mp3", # Debris Field
+	"res://assets/audio/Last_Stand_at_Orion.mp3", # Nebula Core
+]
+const ENDLESS_MUSIC := "res://assets/audio/Oxygen_Critical.mp3"
 
 var _players: Array[AudioStreamPlayer] = []
 var _music: AudioStreamPlayer
-var _current_track: MusicTrack = MusicTrack.NONE
+var _current_path: String = ""
+var _stream_cache: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
-
-var _menu_stream: AudioStream
-var _game_stream: AudioStream
 
 
 func _ready() -> void:
@@ -22,11 +26,41 @@ func _ready() -> void:
 	_music = AudioStreamPlayer.new()
 	_music.bus = "Master"
 	add_child(_music)
-	_menu_stream = _load_looping("res://assets/audio/menu_theme.ogg")
-	_game_stream = _load_looping("res://assets/audio/game_theme.ogg")
 
 
-func _load_looping(path: String) -> AudioStream:
+func play_menu_music() -> void:
+	_play_path(MENU_MUSIC, -16.0)
+
+
+func play_game_music() -> void:
+	if GameState.mode == GameState.Mode.ENDLESS:
+		_play_path(ENDLESS_MUSIC, -12.0)
+		return
+	var idx := clampi(GameState.current_mission_index, 0, MISSION_MUSIC.size() - 1)
+	_play_path(MISSION_MUSIC[idx], -12.0)
+
+
+func stop_music() -> void:
+	_current_path = ""
+	if _music:
+		_music.stop()
+
+
+func _play_path(path: String, volume_db: float) -> void:
+	if path == _current_path and _music.playing:
+		return
+	var stream := _get_looping_stream(path)
+	if stream == null:
+		return
+	_current_path = path
+	_music.stream = stream
+	_music.volume_db = volume_db
+	_music.play()
+
+
+func _get_looping_stream(path: String) -> AudioStream:
+	if _stream_cache.has(path):
+		return _stream_cache[path]
 	var stream := load(path) as AudioStream
 	if stream == null:
 		push_warning("Missing music: %s" % path)
@@ -34,32 +68,10 @@ func _load_looping(path: String) -> AudioStream:
 	var copy := stream.duplicate()
 	if copy is AudioStreamOggVorbis:
 		(copy as AudioStreamOggVorbis).loop = true
+	elif copy is AudioStreamMP3:
+		(copy as AudioStreamMP3).loop = true
+	_stream_cache[path] = copy
 	return copy
-
-
-func play_menu_music() -> void:
-	_set_music(MusicTrack.MENU, _menu_stream, -16.0)
-
-
-func play_game_music() -> void:
-	_set_music(MusicTrack.GAME, _game_stream, -14.0)
-
-
-func stop_music() -> void:
-	_current_track = MusicTrack.NONE
-	if _music:
-		_music.stop()
-
-
-func _set_music(track: MusicTrack, stream: AudioStream, volume_db: float) -> void:
-	if stream == null:
-		return
-	if _current_track == track and _music.playing:
-		return
-	_current_track = track
-	_music.stream = stream
-	_music.volume_db = volume_db
-	_music.play()
 
 
 func play_shoot() -> void:
