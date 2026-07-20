@@ -1,7 +1,10 @@
 extends CharacterBody2D
-## Player strike craft — 8-way move, hold-to-fire, power-ups.
+## Player strike craft — touch-drag or 8-way move, auto-fire, power-ups.
 
 const PLAYFIELD_MARGIN := 24.0
+## Keep the ship above the finger so the craft stays visible.
+const TOUCH_OFFSET := Vector2(0, -56)
+const TOUCH_FOLLOW := 22.0
 
 @export var move_speed: float = 280.0
 @export var max_hp: int = 5
@@ -20,6 +23,10 @@ var dead: bool = false
 
 var projectile_pool: ProjectilePool
 
+var _touch_active: bool = false
+var _touch_index: int = -1
+var _touch_world: Vector2 = Vector2.ZERO
+
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _shield_visual: Polygon2D = $ShieldVisual
 @onready var _engine: GPUParticles2D = $EngineParticles
@@ -34,6 +41,31 @@ func _ready() -> void:
 
 func setup(pool: ProjectilePool) -> void:
 	projectile_pool = pool
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if dead:
+		return
+	if event is InputEventScreenTouch:
+		var touch := event as InputEventScreenTouch
+		if touch.pressed:
+			_touch_active = true
+			_touch_index = touch.index
+			_touch_world = _screen_to_world(touch.position)
+			get_viewport().set_input_as_handled()
+		elif touch.index == _touch_index:
+			_touch_active = false
+			_touch_index = -1
+			get_viewport().set_input_as_handled()
+	elif event is InputEventScreenDrag:
+		var drag := event as InputEventScreenDrag
+		if _touch_active and drag.index == _touch_index:
+			_touch_world = _screen_to_world(drag.position)
+			get_viewport().set_input_as_handled()
+
+
+func _screen_to_world(screen_pos: Vector2) -> Vector2:
+	return get_canvas_transform().affine_inverse() * screen_pos
 
 
 func _physics_process(delta: float) -> void:
@@ -61,11 +93,16 @@ func _update_timers(delta: float) -> void:
 		_flash_timer -= delta
 
 
-func _handle_movement(_delta: float) -> void:
-	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = dir * move_speed
-	move_and_slide()
+func _handle_movement(delta: float) -> void:
 	var vp := get_viewport_rect().size
+	if _touch_active:
+		var target := _touch_world + TOUCH_OFFSET
+		global_position = global_position.lerp(target, 1.0 - exp(-TOUCH_FOLLOW * delta))
+		velocity = Vector2.ZERO
+	else:
+		var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		velocity = dir * move_speed
+		move_and_slide()
 	global_position.x = clampf(global_position.x, PLAYFIELD_MARGIN, vp.x - PLAYFIELD_MARGIN)
 	global_position.y = clampf(global_position.y, PLAYFIELD_MARGIN, vp.y - PLAYFIELD_MARGIN)
 
@@ -114,6 +151,8 @@ func take_damage(amount: int) -> void:
 
 func _die() -> void:
 	dead = true
+	_touch_active = false
+	_touch_index = -1
 	visible = false
 	set_physics_process(false)
 	AudioBus.play_explode()

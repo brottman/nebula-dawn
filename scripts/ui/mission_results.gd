@@ -15,6 +15,7 @@ func _ready() -> void:
 	menu_btn.pressed.connect(_on_menu)
 	_populate()
 	again_btn.grab_focus()
+	AudioBus.play_menu_music()
 
 
 func _populate() -> void:

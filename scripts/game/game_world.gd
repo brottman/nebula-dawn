@@ -28,7 +28,23 @@ func _ready() -> void:
 	EventBus.screen_shake.connect(_on_shake)
 	if pause_menu.has_method("hide_menu"):
 		pause_menu.hide_menu()
+	get_viewport().size_changed.connect(_fit_playfield)
+	_fit_playfield()
+	AudioBus.play_game_music()
 	_start_mode()
+
+
+func _fit_playfield() -> void:
+	var vp := get_viewport_rect().size
+	camera.position = vp * 0.5
+	if _ending or not is_instance_valid(player) or player.dead:
+		return
+	var margin := 24.0
+	player.global_position.x = clampf(player.global_position.x, margin, vp.x - margin)
+	player.global_position.y = clampf(player.global_position.y, margin, vp.y - margin)
+	# First fit: place near bottom-center if still at the editor default.
+	if player.global_position.distance_to(Vector2(240, 600)) < 2.0:
+		player.global_position = Vector2(vp.x * 0.5, vp.y * 0.83)
 
 
 func _start_mode() -> void:

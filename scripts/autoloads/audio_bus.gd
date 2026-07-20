@@ -1,8 +1,15 @@
 extends Node
-## Lightweight SFX via generated tones — no external audio files required for MVP.
+## SFX via generated tones + looping OGG music tracks.
+
+enum MusicTrack { NONE, MENU, GAME }
 
 var _players: Array[AudioStreamPlayer] = []
+var _music: AudioStreamPlayer
+var _current_track: MusicTrack = MusicTrack.NONE
 var _rng := RandomNumberGenerator.new()
+
+var _menu_stream: AudioStream
+var _game_stream: AudioStream
 
 
 func _ready() -> void:
@@ -12,6 +19,47 @@ func _ready() -> void:
 		p.bus = "Master"
 		add_child(p)
 		_players.append(p)
+	_music = AudioStreamPlayer.new()
+	_music.bus = "Master"
+	add_child(_music)
+	_menu_stream = _load_looping("res://assets/audio/menu_theme.ogg")
+	_game_stream = _load_looping("res://assets/audio/game_theme.ogg")
+
+
+func _load_looping(path: String) -> AudioStream:
+	var stream := load(path) as AudioStream
+	if stream == null:
+		push_warning("Missing music: %s" % path)
+		return null
+	var copy := stream.duplicate()
+	if copy is AudioStreamOggVorbis:
+		(copy as AudioStreamOggVorbis).loop = true
+	return copy
+
+
+func play_menu_music() -> void:
+	_set_music(MusicTrack.MENU, _menu_stream, -16.0)
+
+
+func play_game_music() -> void:
+	_set_music(MusicTrack.GAME, _game_stream, -14.0)
+
+
+func stop_music() -> void:
+	_current_track = MusicTrack.NONE
+	if _music:
+		_music.stop()
+
+
+func _set_music(track: MusicTrack, stream: AudioStream, volume_db: float) -> void:
+	if stream == null:
+		return
+	if _current_track == track and _music.playing:
+		return
+	_current_track = track
+	_music.stream = stream
+	_music.volume_db = volume_db
+	_music.play()
 
 
 func play_shoot() -> void:

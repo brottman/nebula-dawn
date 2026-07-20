@@ -13,11 +13,11 @@ godot --path .
 
 ## Controls
 
-| Action | Keyboard | Gamepad |
-|--------|----------|---------|
-| Move | WASD / Arrows | Left stick / D-pad |
-| Fire | Auto | — |
-| Pause | Esc | Start |
+| Action | Touch | Keyboard | Gamepad |
+|--------|-------|----------|---------|
+| Move | Drag finger — ship follows | WASD / Arrows | Left stick / D-pad |
+| Fire | Auto | Auto | Auto |
+| Pause | — | Esc | Start |
 
 ## Campaign
 

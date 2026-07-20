@@ -13,6 +13,7 @@ func _ready() -> void:
 	quit_btn.pressed.connect(_on_quit)
 	high_score.text = "ENDLESS BEST  %06d" % GameState.endless_high_score
 	campaign_btn.grab_focus()
+	AudioBus.play_menu_music()
 
 
 func _on_campaign() -> void:

@@ -13,6 +13,7 @@ const TITLES := [
 
 func _ready() -> void:
 	back_btn.pressed.connect(_on_back)
+	AudioBus.play_menu_music()
 	for i in TITLES.size():
 		var btn := Button.new()
 		btn.text = TITLES[i]
