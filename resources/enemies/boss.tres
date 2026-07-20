@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_jlmjw"]
+
+[resource]
+script = ExtResource("1_jlmjw")
+enemy_id = &"boss"
+display_name = "Nebula Core"
+max_hp = 80.0
+move_speed = 60.0
+score_value = 5000
+fire_interval = 1.1
+projectile_speed = 260.0
+contact_damage = 2
+color = Color(1, 0.35, 0.55, 1)
+size = Vector2(90, 70)
+is_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"

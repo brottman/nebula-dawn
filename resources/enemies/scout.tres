@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_5q4mm"]
+
+[resource]
+script = ExtResource("1_5q4mm")
+move_speed = 140.0
+size = Vector2(26, 26)
+scene_path = "res://scenes/entities/enemy_base.tscn"

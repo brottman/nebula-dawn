@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_tv12l"]
+
+[resource]
+script = ExtResource("1_tv12l")
+enemy_id = &"asteroid"
+display_name = "Asteroid"
+max_hp = 4.0
+move_speed = 90.0
+score_value = 50
+color = Color(0.55, 0.5, 0.48, 1)
+size = Vector2(36, 36)
+is_hazard = true
+scene_path = "res://scenes/entities/enemy_base.tscn"

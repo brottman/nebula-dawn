@@ -1,0 +1,109 @@
+[gd_scene load_steps=2 format=3 uid="uid://mainmenu001"]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.05, 0.12, 1)
+
+[node name="NebulaA" type="ColorRect" parent="."]
+modulate = Color(0.35, 0.45, 0.9, 0.2)
+layout_mode = 0
+offset_left = -40.0
+offset_top = 80.0
+offset_right = 260.0
+offset_bottom = 380.0
+rotation = -0.2
+
+[node name="NebulaB" type="ColorRect" parent="."]
+modulate = Color(0.9, 0.4, 0.35, 0.15)
+layout_mode = 0
+offset_left = 220.0
+offset_top = 300.0
+offset_right = 520.0
+offset_bottom = 620.0
+rotation = 0.15
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 42
+text = "NEBULA DAWN"
+horizontal_alignment = 1
+
+[node name="Tagline" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.9, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "Strike through the dying light"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Center/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="CampaignButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Campaign"
+
+[node name="EndlessButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Endless"
+
+[node name="QuitButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Quit"
+
+[node name="HighScore" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.65, 0.85, 1)
+theme_override_font_sizes/font_size = 12
+text = "ENDLESS BEST  000000"
+horizontal_alignment = 1
+
+[node name="Controls" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -48.0
+offset_right = 200.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.5, 0.55, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "WASD / Stick move · Auto-fire · Esc pause"
+horizontal_alignment = 1
