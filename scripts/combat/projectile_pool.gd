@@ -31,15 +31,15 @@ func _warm(pool: Array[Node], scene: PackedScene, count: int) -> void:
 		pool.append(proj)
 
 
-func spawn_player(pos: Vector2, velocity: Vector2, damage: float = 1.0) -> Node:
-	return _spawn(_player_pool, player_projectile_scene, pos, velocity, damage, true)
+func spawn_player(pos: Vector2, velocity: Vector2, damage: float = 1.0, opts: Dictionary = {}) -> Node:
+	return _spawn(_player_pool, player_projectile_scene, pos, velocity, damage, true, opts)
 
 
-func spawn_enemy(pos: Vector2, velocity: Vector2, damage: float = 1.0) -> Node:
-	return _spawn(_enemy_pool, enemy_projectile_scene, pos, velocity, damage, false)
+func spawn_enemy(pos: Vector2, velocity: Vector2, damage: float = 1.0, opts: Dictionary = {}) -> Node:
+	return _spawn(_enemy_pool, enemy_projectile_scene, pos, velocity, damage, false, opts)
 
 
-func _spawn(pool: Array[Node], scene: PackedScene, pos: Vector2, velocity: Vector2, damage: float, from_player: bool) -> Node:
+func _spawn(pool: Array[Node], scene: PackedScene, pos: Vector2, velocity: Vector2, damage: float, from_player: bool, opts: Dictionary) -> Node:
 	var proj: Node = null
 	for p in pool:
 		if p.has_method("is_active") and not p.is_active():
@@ -52,5 +52,5 @@ func _spawn(pool: Array[Node], scene: PackedScene, pos: Vector2, velocity: Vecto
 		_container.add_child(proj)
 		pool.append(proj)
 	if proj.has_method("activate"):
-		proj.activate(pos, velocity, damage, from_player)
+		proj.activate(pos, velocity, damage, from_player, opts)
 	return proj

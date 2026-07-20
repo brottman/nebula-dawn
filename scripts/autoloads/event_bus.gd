@@ -12,4 +12,5 @@ signal boss_spawned(boss: Node)
 signal boss_hp_changed(current: float, maximum: float)
 signal boss_defeated
 signal pickup_collected(kind: String)
+signal weapon_changed(weapon_name: String)
 signal screen_shake(amount: float, duration: float)

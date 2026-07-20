@@ -217,7 +217,7 @@ func _spawn_pickup() -> void:
 	parent.add_child(p)
 	p.global_position = pos
 	if p.has_method("setup"):
-		var kinds := ["spread", "rapid", "shield", "heal"]
+		var kinds := ["spread", "railgun", "homing", "wave", "flak", "power", "power", "rapid", "shield", "heal"]
 		p.setup(kinds[randi() % kinds.size()])
 
 

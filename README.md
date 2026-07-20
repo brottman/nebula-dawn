@@ -24,6 +24,9 @@ godot --path .
 1. **Dawn Patrol** — intro scouts and strafers  
 2. **Debris Field** — asteroids + mixed fighters  
 3. **Nebula Core** — elites, then the boss  
+4. **Solar Flare** — fast strafer assaults in the burning winds  
+5. **Frozen Belt** — dense ice-asteroid slalom  
+6. **Event Horizon** — the Void Maw awaits  
 
 Missions and enemy stats live under `resources/` as `.tres` files. Regenerate with:
 

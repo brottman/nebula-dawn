@@ -7,6 +7,7 @@ extends CanvasLayer
 @onready var boss_bar: ProgressBar = $Root/BossBar
 @onready var boss_label: Label = $Root/BossLabel
 @onready var pickup_toast: Label = $Root/PickupToast
+@onready var weapon_label: Label = $Root/WeaponLabel
 
 
 func _ready() -> void:
@@ -20,6 +21,7 @@ func _ready() -> void:
 	EventBus.boss_hp_changed.connect(_on_boss_hp)
 	EventBus.boss_defeated.connect(_on_boss_defeated)
 	EventBus.pickup_collected.connect(_on_pickup)
+	EventBus.weapon_changed.connect(_on_weapon_changed)
 	_on_score(GameState.session_score)
 	_on_hp(5, 5)
 	if GameState.mode == GameState.Mode.ENDLESS:
@@ -38,10 +40,14 @@ func _on_wave(index: int, total: int) -> void:
 	wave_label.text = "WAVE  %d / %d" % [index + 1, total]
 
 
-func _on_boss_spawned(_boss: Node) -> void:
+func _on_boss_spawned(boss: Node) -> void:
 	boss_bar.visible = true
 	boss_label.visible = true
-	boss_label.text = "NEBULA CORE"
+	var stats: EnemyStats = boss.get("stats")
+	if stats:
+		boss_label.text = stats.display_name.to_upper()
+	else:
+		boss_label.text = "WARNING"
 	wave_label.text = "BOSS"
 
 
@@ -53,6 +59,11 @@ func _on_boss_hp(current: float, maximum: float) -> void:
 func _on_boss_defeated() -> void:
 	boss_bar.visible = false
 	boss_label.visible = false
+
+
+func _on_weapon_changed(weapon_name: String) -> void:
+	weapon_label.visible = weapon_name != ""
+	weapon_label.text = weapon_name
 
 
 func _on_pickup(kind: String) -> void:

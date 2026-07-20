@@ -17,16 +17,24 @@ func _init() -> void:
 	boss.is_boss = true
 	boss.projectile_speed = 260.0
 	boss.contact_damage = 2
+	var boss_elite := _enemy(&"boss", "Void Maw", 140.0, 70.0, 8000, 0.9, Color(0.75, 0.3, 1.0), Vector2(100, 78))
+	boss_elite.is_boss = true
+	boss_elite.projectile_speed = 300.0
+	boss_elite.contact_damage = 2
 
 	_save(scout, "res://resources/enemies/scout.tres")
 	_save(strafer, "res://resources/enemies/strafer.tres")
 	_save(drone, "res://resources/enemies/drone.tres")
 	_save(asteroid, "res://resources/enemies/asteroid.tres")
 	_save(boss, "res://resources/enemies/boss.tres")
+	_save(boss_elite, "res://resources/enemies/boss_elite.tres")
 
 	_save(_mission_01(scout, strafer), "res://resources/missions/mission_01_dawn_patrol.tres")
 	_save(_mission_02(scout, strafer, asteroid, drone), "res://resources/missions/mission_02_debris_field.tres")
 	_save(_mission_03(scout, strafer, drone, boss), "res://resources/missions/mission_03_nebula_core.tres")
+	_save(_mission_04(scout, strafer, drone), "res://resources/missions/mission_04_solar_flare.tres")
+	_save(_mission_05(scout, strafer, asteroid, drone), "res://resources/missions/mission_05_frozen_belt.tres")
+	_save(_mission_06(scout, strafer, asteroid, drone, boss_elite), "res://resources/missions/mission_06_event_horizon.tres")
 
 	print("Nebula Dawn resources generated.")
 	quit()
@@ -161,6 +169,118 @@ func _mission_03(scout: EnemyStats, strafer: EnemyStats, drone: EnemyStats, boss
 			_entry(drone, 0.6, Vector2(180, -40)),
 			_entry(drone, 0.2, Vector2(340, -40)),
 			_entry(strafer, 0.5, Vector2(240, -40), 2, Vector2(90, 0)),
+		]),
+	]
+	return m
+
+
+func _mission_04(scout: EnemyStats, strafer: EnemyStats, drone: EnemyStats) -> MissionData:
+	var m := MissionData.new()
+	m.mission_id = &"mission_04"
+	m.title = "Solar Flare"
+	m.subtitle = "Ride the burning stellar winds."
+	m.scroll_speed = 65.0
+	m.background_tint = Color(0.5, 0.2, 0.08)
+	m.waves = [
+		_wave("Ignition", 0.7, [
+			_entry(strafer, 0.0, Vector2(140, -40)),
+			_entry(strafer, 0.4, Vector2(340, -40)),
+			_entry(scout, 0.8, Vector2(240, -40), 3, Vector2(60, 0)),
+		]),
+		_wave("Flare Jets", 0.5, [
+			_entry(strafer, 0.0, Vector2(80, -40), 3, Vector2(0, 40)),
+			_entry(strafer, 0.3, Vector2(400, -40), 3, Vector2(0, 40)),
+			_entry(scout, 0.9, Vector2(240, -60), 2, Vector2(80, 0)),
+		]),
+		_wave("Corona", 0.5, [
+			_entry(drone, 0.0, Vector2(240, -40)),
+			_entry(drone, 0.5, Vector2(140, -50)),
+			_entry(drone, 0.3, Vector2(340, -50)),
+			_entry(scout, 0.6, Vector2(120, -40), 3, Vector2(120, 10)),
+		]),
+		_wave("Sunstorm", 0.4, [
+			_entry(strafer, 0.0, Vector2(100, -40), 2, Vector2(60, 0)),
+			_entry(strafer, 0.4, Vector2(380, -40), 2, Vector2(-60, 0)),
+			_entry(drone, 0.8, Vector2(240, -40)),
+			_entry(scout, 0.6, Vector2(240, -80), 4, Vector2(45, 0)),
+		]),
+		_wave("Superflare", 0.4, [
+			_entry(drone, 0.0, Vector2(180, -40)),
+			_entry(drone, 0.2, Vector2(300, -40)),
+			_entry(strafer, 0.5, Vector2(90, -40), 3, Vector2(0, 35)),
+			_entry(strafer, 0.5, Vector2(390, -40), 3, Vector2(0, 35)),
+			_entry(scout, 1.0, Vector2(240, -40), 5, Vector2(55, 8)),
+		]),
+	]
+	return m
+
+
+func _mission_05(scout: EnemyStats, strafer: EnemyStats, asteroid: EnemyStats, drone: EnemyStats) -> MissionData:
+	var m := MissionData.new()
+	m.mission_id = &"mission_05"
+	m.title = "Frozen Belt"
+	m.subtitle = "Drift through the silent ice field."
+	m.scroll_speed = 28.0
+	m.background_tint = Color(0.12, 0.3, 0.45)
+	m.waves = [
+		_wave("Ice Shards", 0.7, [
+			_entry(asteroid, 0.0, Vector2(120, -40)),
+			_entry(asteroid, 0.3, Vector2(280, -50)),
+			_entry(asteroid, 0.3, Vector2(400, -30)),
+			_entry(scout, 0.8, Vector2(200, -40), 2, Vector2(90, 0)),
+		]),
+		_wave("Glacier Wall", 0.5, [
+			_entry(asteroid, 0.0, Vector2(90, -40), 2, Vector2(30, 25)),
+			_entry(asteroid, 0.2, Vector2(390, -40), 2, Vector2(-30, 25)),
+			_entry(strafer, 0.7, Vector2(240, -40)),
+		]),
+		_wave("Deep Freeze", 0.5, [
+			_entry(drone, 0.0, Vector2(240, -40)),
+			_entry(asteroid, 0.4, Vector2(140, -50)),
+			_entry(asteroid, 0.4, Vector2(340, -50)),
+			_entry(scout, 0.8, Vector2(240, -70), 3, Vector2(70, 0)),
+		]),
+		_wave("Avalanche", 0.4, [
+			_entry(asteroid, 0.0, Vector2(100, -40), 4, Vector2(95, 15)),
+			_entry(asteroid, 0.6, Vector2(60, -60), 2, Vector2(60, 20)),
+			_entry(strafer, 0.9, Vector2(200, -40), 2, Vector2(90, 0)),
+		]),
+		_wave("Whiteout", 0.4, [
+			_entry(asteroid, 0.0, Vector2(80, -40), 3, Vector2(120, 10)),
+			_entry(drone, 0.5, Vector2(240, -50)),
+			_entry(asteroid, 0.5, Vector2(200, -70), 3, Vector2(80, 20)),
+			_entry(scout, 1.0, Vector2(240, -40), 4, Vector2(60, 0)),
+		]),
+	]
+	return m
+
+
+func _mission_06(scout: EnemyStats, strafer: EnemyStats, asteroid: EnemyStats, drone: EnemyStats, boss_elite: EnemyStats) -> MissionData:
+	var m := MissionData.new()
+	m.mission_id = &"mission_06"
+	m.title = "Event Horizon"
+	m.subtitle = "Escape the pull of the void."
+	m.scroll_speed = 60.0
+	m.background_tint = Color(0.2, 0.06, 0.35)
+	m.boss = boss_elite
+	m.boss_intro_delay = 2.0
+	m.waves = [
+		_wave("Accretion Disk", 0.7, [
+			_entry(strafer, 0.0, Vector2(120, -40), 2, Vector2(80, 0)),
+			_entry(drone, 0.4, Vector2(320, -40)),
+			_entry(scout, 0.6, Vector2(200, -40), 3, Vector2(55, 0)),
+		]),
+		_wave("Tidal Forces", 0.5, [
+			_entry(strafer, 0.0, Vector2(80, -40), 3, Vector2(0, 35)),
+			_entry(strafer, 0.2, Vector2(400, -40), 3, Vector2(0, 35)),
+			_entry(drone, 0.8, Vector2(240, -40), 2, Vector2(100, 0)),
+		]),
+		_wave("Photon Sphere", 0.5, [
+			_entry(drone, 0.0, Vector2(180, -40)),
+			_entry(drone, 0.3, Vector2(300, -40)),
+			_entry(strafer, 0.6, Vector2(240, -60), 2, Vector2(90, 0)),
+			_entry(scout, 0.9, Vector2(100, -40), 5, Vector2(60, 8)),
+			_entry(asteroid, 0.4, Vector2(240, -30), 2, Vector2(150, 0)),
 		]),
 	]
 	return m

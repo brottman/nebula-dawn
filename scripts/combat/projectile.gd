@@ -1,12 +1,31 @@
 extends Area2D
-## Pooled bullet used by both sides.
+## Pooled bullet used by both sides. Player shots can request extra behaviors
+## via the opts Dictionary in activate():
+##   pierce (int)     — pass through this many extra targets
+##   homing (float)   — steering strength toward the nearest enemy
+##   wave_amp (float) — perpendicular sine oscillation amplitude (px)
+##   wave_freq (float)— oscillation speed
+##   lifetime (float) — seconds before despawn (default 3.0)
+##   scale (float)    — visual/collision scale multiplier
+##   color (Color)    — player-shot tint override
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 1.0
 var from_player: bool = true
+var pierce_left: int = 0
+var homing: float = 0.0
+var wave_amp: float = 0.0
+var wave_freq: float = 8.0
+
 var _active: bool = false
 var _lifetime: float = 3.0
 var _age: float = 0.0
+var _base_pos: Vector2 = Vector2.ZERO
+var _perp: Vector2 = Vector2.RIGHT
+var _wave_phase: float = 0.0
+var _hit_ids: Dictionary = {}
+var _target: Node2D = null
+var _retarget_timer: float = 0.0
 
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -22,13 +41,27 @@ func is_active() -> bool:
 	return _active
 
 
-func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool) -> void:
+func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: Dictionary = {}) -> void:
 	global_position = pos
+	_base_pos = pos
 	velocity = vel
 	damage = dmg
 	from_player = player_shot
 	_active = true
 	_age = 0.0
+	_wave_phase = 0.0
+	_hit_ids.clear()
+	_target = null
+	_retarget_timer = 0.0
+	pierce_left = int(opts.get("pierce", 0))
+	homing = float(opts.get("homing", 0.0))
+	wave_amp = float(opts.get("wave_amp", 0.0))
+	wave_freq = float(opts.get("wave_freq", 8.0))
+	_lifetime = float(opts.get("lifetime", 3.0))
+	scale = Vector2.ONE * float(opts.get("scale", 1.0))
+	if velocity.length() > 0.001:
+		_perp = Vector2(-velocity.y, velocity.x).normalized()
+		rotation = velocity.angle() + PI * 0.5
 	visible = true
 	set_process(true)
 	set_physics_process(true)
@@ -41,7 +74,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool) -> void
 		collision_layer = 2
 		collision_mask = 4 | 32
 		if _poly:
-			_poly.color = Color(0.55, 0.9, 1.0)
+			_poly.color = opts.get("color", Color(0.55, 0.9, 1.0))
 	else:
 		collision_layer = 8
 		collision_mask = 1
@@ -55,6 +88,7 @@ func deactivate() -> void:
 	set_process(false)
 	set_physics_process(false)
 	velocity = Vector2.ZERO
+	_target = null
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	if _collision:
@@ -64,12 +98,48 @@ func deactivate() -> void:
 func _physics_process(delta: float) -> void:
 	if not _active:
 		return
-	global_position += velocity * delta
 	_age += delta
+	if homing > 0.0:
+		_steer_homing(delta)
+	_base_pos += velocity * delta
+	if wave_amp != 0.0:
+		_wave_phase += delta * wave_freq
+		global_position = _base_pos + _perp * sin(_wave_phase) * wave_amp
+	else:
+		global_position = _base_pos
 	var vp := get_viewport_rect().size
-	if _age > _lifetime or global_position.y < -40.0 or global_position.y > vp.y + 40.0 \
-			or global_position.x < -40.0 or global_position.x > vp.x + 40.0:
+	if _age > _lifetime or global_position.y < -60.0 or global_position.y > vp.y + 60.0 \
+			or global_position.x < -60.0 or global_position.x > vp.x + 60.0:
 		deactivate()
+
+
+func _steer_homing(delta: float) -> void:
+	_retarget_timer -= delta
+	if _retarget_timer <= 0.0 or not is_instance_valid(_target):
+		_retarget_timer = 0.12
+		_target = _nearest_enemy()
+	if _target == null or not is_instance_valid(_target):
+		return
+	var speed := velocity.length()
+	if speed < 0.001:
+		return
+	var desired := (_target.global_position - global_position).normalized() * speed
+	velocity = velocity.lerp(desired, clampf(homing * delta, 0.0, 1.0))
+	rotation = velocity.angle() + PI * 0.5
+
+
+func _nearest_enemy() -> Node2D:
+	var best: Node2D = null
+	var best_d := INF
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var node := e as Node2D
+		if node == null or node.get("alive") == false:
+			continue
+		var d := global_position.distance_squared_to(node.global_position)
+		if d < best_d:
+			best_d = d
+			best = node
+	return best
 
 
 func _on_body_entered(body: Node) -> void:
@@ -85,9 +155,16 @@ func _try_hit(target: Node) -> void:
 		return
 	if from_player:
 		if (target.is_in_group("enemies") or target.is_in_group("hazards")) and target.has_method("take_damage"):
+			var id := target.get_instance_id()
+			if _hit_ids.has(id):
+				return
+			_hit_ids[id] = true
 			target.take_damage(damage)
 			AudioBus.play_hit()
-			deactivate()
+			if pierce_left > 0:
+				pierce_left -= 1
+			else:
+				deactivate()
 	else:
 		if target.is_in_group("player") and target.has_method("take_damage"):
 			target.take_damage(int(damage))

@@ -22,6 +22,21 @@ func setup(k: String) -> void:
 		"spread":
 			_poly.color = Color(0.4, 1.0, 0.6)
 			_label.text = "S"
+		"railgun":
+			_poly.color = Color(0.75, 1.0, 1.0)
+			_label.text = "P"
+		"homing":
+			_poly.color = Color(1.0, 0.7, 0.25)
+			_label.text = "H"
+		"wave":
+			_poly.color = Color(0.8, 0.5, 1.0)
+			_label.text = "W"
+		"flak":
+			_poly.color = Color(1.0, 0.45, 0.35)
+			_label.text = "F"
+		"power":
+			_poly.color = Color(1.0, 1.0, 0.85)
+			_label.text = "^"
 		"rapid":
 			_poly.color = Color(1.0, 0.85, 0.3)
 			_label.text = "R"

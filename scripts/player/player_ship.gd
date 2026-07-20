@@ -1,10 +1,33 @@
 extends CharacterBody2D
 ## Player strike craft — touch-drag or 8-way move, auto-fire, power-ups.
+## Picked-up weapons persist until the ship takes hull damage; POWER pickups
+## raise the current weapon's level (max MAX_WEAPON_LEVEL) — even the blaster.
 
 const PLAYFIELD_MARGIN := 24.0
 ## Keep the ship above the finger so the craft stays visible.
 const TOUCH_OFFSET := Vector2(0, -56)
 const TOUCH_FOLLOW := 22.0
+## Highest power level any weapon (including the blaster) can reach.
+const MAX_WEAPON_LEVEL := 3
+
+enum Weapon { BLASTER, SPREAD, RAILGUN, HOMING, WAVE, FLAK }
+
+const WEAPON_NAMES := {
+	Weapon.BLASTER: "BLASTER",
+	Weapon.SPREAD: "SPREAD",
+	Weapon.RAILGUN: "RAILGUN",
+	Weapon.HOMING: "HOMING",
+	Weapon.WAVE: "WAVE",
+	Weapon.FLAK: "FLAK",
+}
+const WEAPON_COOLDOWNS := {
+	Weapon.BLASTER: 0.18,
+	Weapon.SPREAD: 0.24,
+	Weapon.RAILGUN: 0.55,
+	Weapon.HOMING: 0.40,
+	Weapon.WAVE: 0.30,
+	Weapon.FLAK: 0.50,
+}
 
 @export var move_speed: float = 280.0
 @export var max_hp: int = 5
@@ -16,7 +39,8 @@ var hp: int = 5
 var invuln_time: float = 0.0
 var shield_time: float = 0.0
 var rapid_time: float = 0.0
-var spread_time: float = 0.0
+var weapon: int = Weapon.BLASTER
+var weapon_level: int = 1
 var _fire_timer: float = 0.0
 var _flash_timer: float = 0.0
 var dead: bool = false
@@ -87,8 +111,6 @@ func _update_timers(delta: float) -> void:
 		_shield_visual.visible = false
 	if rapid_time > 0.0:
 		rapid_time -= delta
-	if spread_time > 0.0:
-		spread_time -= delta
 	if _flash_timer > 0.0:
 		_flash_timer -= delta
 
@@ -110,23 +132,94 @@ func _handle_movement(delta: float) -> void:
 func _handle_fire(delta: float) -> void:
 	_fire_timer -= delta
 	# Auto-fire; hold also works (same path)
-	var cd := fire_cooldown * (0.45 if rapid_time > 0.0 else 1.0)
 	if _fire_timer > 0.0:
 		return
+	var cd: float = WEAPON_COOLDOWNS.get(weapon, fire_cooldown)
+	cd *= 0.45 if rapid_time > 0.0 else 1.0
 	_fire_timer = cd
 	_shoot()
+
+
+func _set_weapon(w: int) -> void:
+	weapon = w
+	weapon_level = 1
+	_emit_weapon_changed()
+
+
+func _power_up() -> void:
+	if weapon_level >= MAX_WEAPON_LEVEL:
+		# Already maxed — convert the pickup into score instead.
+		GameState.add_score(100)
+		return
+	weapon_level += 1
+	_emit_weapon_changed()
+
+
+## Losing hull integrity knocks the ship back to the stock blaster.
+func _reset_weapon() -> void:
+	if weapon == Weapon.BLASTER and weapon_level == 1:
+		return
+	weapon = Weapon.BLASTER
+	weapon_level = 1
+	EventBus.weapon_changed.emit("")
+
+
+func _emit_weapon_changed() -> void:
+	if weapon == Weapon.BLASTER and weapon_level == 1:
+		EventBus.weapon_changed.emit("")
+		return
+	var text: String = WEAPON_NAMES[weapon]
+	if weapon_level > 1:
+		text += " Lv%d" % weapon_level
+	EventBus.weapon_changed.emit(text)
 
 
 func _shoot() -> void:
 	if projectile_pool == null:
 		return
 	var origin := global_position + Vector2(0, -18)
-	var shots: Array[Vector2] = [Vector2(0, -1)]
-	if spread_time > 0.0:
-		shots = [Vector2(-0.35, -1).normalized(), Vector2(0, -1), Vector2(0.35, -1).normalized()]
-	for dir in shots:
-		projectile_pool.spawn_player(origin, dir * bullet_speed, bullet_damage)
-	AudioBus.play_shoot()
+	match weapon:
+		Weapon.SPREAD:
+			# Widening fan: 5 / 7 / 9 bolts by level.
+			var count := 3 + weapon_level * 2
+			for i in count:
+				var dir := Vector2(-0.7 + 1.4 * i / float(count - 1), -1.0).normalized()
+				projectile_pool.spawn_player(origin, dir * bullet_speed, bullet_damage)
+			AudioBus.play_shoot(720.0)
+		Weapon.RAILGUN:
+			# Slow, heavy bolt that pierces everything in its lane.
+			projectile_pool.spawn_player(origin, Vector2(0, -900.0), 2.0 + 2.0 * weapon_level, {
+				"pierce": 99, "scale": 1.5 + 0.3 * weapon_level, "color": Color(0.8, 1.0, 1.0)})
+			AudioBus.play_shoot(1250.0)
+		Weapon.HOMING:
+			# Seeking missiles: 2 / 3 / 4 by level.
+			var count := 1 + weapon_level
+			for i in count:
+				var dir := Vector2((i - (count - 1) * 0.5) * 0.3, -1.0).normalized()
+				projectile_pool.spawn_player(origin, dir * 380.0, 1.0 + 0.5 * weapon_level, {
+					"homing": 7.0, "scale": 1.1, "color": Color(1.0, 0.75, 0.3)})
+			AudioBus.play_shoot(600.0)
+		Weapon.WAVE:
+			# Paired orbs weaving mirrored sine paths; damage and pierce grow with level.
+			for side in [-1.0, 1.0]:
+				projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(0, -340.0), 1.0 + weapon_level, {
+					"wave_amp": side * 55.0, "wave_freq": 9.0, "pierce": weapon_level,
+					"scale": 1.4, "color": Color(0.85, 0.5, 1.0)})
+			AudioBus.play_shoot(500.0)
+		Weapon.FLAK:
+			# Close-range shotgun burst: 6 / 8 / 10 pellets, longer reach per level.
+			var count := 4 + weapon_level * 2
+			for i in count:
+				var dir := Vector2(randf_range(-0.55, 0.55), -1.0).normalized()
+				projectile_pool.spawn_player(origin, dir * randf_range(480.0, 640.0), 1.0, {
+					"lifetime": 0.3 + 0.1 * weapon_level, "scale": 0.8, "color": Color(1.0, 0.5, 0.4)})
+			AudioBus.play_shoot(300.0)
+		_:
+			# Blaster: 1 / 2 / 3 parallel bolts by level.
+			for i in weapon_level:
+				var offset := (i - (weapon_level - 1) * 0.5) * 12.0
+				projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -bullet_speed), bullet_damage)
+			AudioBus.play_shoot()
 
 
 func take_damage(amount: int) -> void:
@@ -140,6 +233,7 @@ func take_damage(amount: int) -> void:
 		EventBus.screen_shake.emit(4.0, 0.12)
 		return
 	hp = maxi(0, hp - amount)
+	_reset_weapon()
 	invuln_time = 1.0
 	_flash_timer = 0.2
 	AudioBus.play_player_hurt()
@@ -162,7 +256,17 @@ func _die() -> void:
 func apply_pickup(kind: String) -> void:
 	match kind:
 		"spread":
-			spread_time = 8.0
+			_set_weapon(Weapon.SPREAD)
+		"railgun":
+			_set_weapon(Weapon.RAILGUN)
+		"homing":
+			_set_weapon(Weapon.HOMING)
+		"wave":
+			_set_weapon(Weapon.WAVE)
+		"flak":
+			_set_weapon(Weapon.FLAK)
+		"power":
+			_power_up()
 		"rapid":
 			rapid_time = 8.0
 		"shield":

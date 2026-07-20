@@ -1,0 +1,195 @@
+[gd_resource type="Resource" script_class="MissionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/mission_data.gd" id="1_m"]
+[ext_resource type="Script" path="res://scripts/mission/wave_def.gd" id="2_w"]
+[ext_resource type="Script" path="res://scripts/mission/spawn_entry.gd" id="3_s"]
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="4_e"]
+
+[sub_resource type="Resource" id="Resource_e01"]
+script = ExtResource("4_e")
+enemy_id = &"strafer"
+display_name = "Strafer"
+max_hp = 3.0
+move_speed = 110.0
+score_value = 150
+fire_interval = 1.4
+projectile_speed = 240.0
+contact_damage = 1
+color = Color(1, 0.7, 0.35, 1)
+size = Vector2(30, 24)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_s02"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e01")
+delay = 0.0
+position = Vector2(120, -40)
+count = 2
+spacing = Vector2(80, 0)
+
+[sub_resource type="Resource" id="Resource_e03"]
+script = ExtResource("4_e")
+enemy_id = &"drone"
+display_name = "Drone"
+max_hp = 6.0
+move_speed = 70.0
+score_value = 200
+fire_interval = 1.8
+projectile_speed = 200.0
+contact_damage = 1
+color = Color(0.7, 0.4, 1, 1)
+size = Vector2(34, 34)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_s04"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e03")
+delay = 0.4
+position = Vector2(320, -40)
+count = 1
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_e05"]
+script = ExtResource("4_e")
+enemy_id = &"scout"
+display_name = "Scout"
+max_hp = 2.0
+move_speed = 140.0
+score_value = 100
+fire_interval = 0.0
+projectile_speed = 220.0
+contact_damage = 1
+color = Color(1, 0.45, 0.45, 1)
+size = Vector2(26, 26)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_s06"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e05")
+delay = 0.6
+position = Vector2(200, -40)
+count = 3
+spacing = Vector2(55, 0)
+
+[sub_resource type="Resource" id="Resource_w07"]
+script = ExtResource("2_w")
+label = "Accretion Disk"
+start_delay = 0.7
+entries = Array[ExtResource("3_s")]([SubResource("Resource_s02"), SubResource("Resource_s04"), SubResource("Resource_s06")])
+
+[sub_resource type="Resource" id="Resource_s08"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e01")
+delay = 0.0
+position = Vector2(80, -40)
+count = 3
+spacing = Vector2(0, 35)
+
+[sub_resource type="Resource" id="Resource_s09"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e01")
+delay = 0.2
+position = Vector2(400, -40)
+count = 3
+spacing = Vector2(0, 35)
+
+[sub_resource type="Resource" id="Resource_s10"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e03")
+delay = 0.8
+position = Vector2(240, -40)
+count = 2
+spacing = Vector2(100, 0)
+
+[sub_resource type="Resource" id="Resource_w11"]
+script = ExtResource("2_w")
+label = "Tidal Forces"
+start_delay = 0.5
+entries = Array[ExtResource("3_s")]([SubResource("Resource_s08"), SubResource("Resource_s09"), SubResource("Resource_s10")])
+
+[sub_resource type="Resource" id="Resource_s12"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e03")
+delay = 0.0
+position = Vector2(180, -40)
+count = 1
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_s13"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e03")
+delay = 0.3
+position = Vector2(300, -40)
+count = 1
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_s14"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e01")
+delay = 0.6
+position = Vector2(240, -60)
+count = 2
+spacing = Vector2(90, 0)
+
+[sub_resource type="Resource" id="Resource_s15"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e05")
+delay = 0.9
+position = Vector2(100, -40)
+count = 5
+spacing = Vector2(60, 8)
+
+[sub_resource type="Resource" id="Resource_e16"]
+script = ExtResource("4_e")
+enemy_id = &"asteroid"
+display_name = "Asteroid"
+max_hp = 4.0
+move_speed = 90.0
+score_value = 50
+fire_interval = 0.0
+projectile_speed = 220.0
+contact_damage = 1
+color = Color(0.55, 0.5, 0.48, 1)
+size = Vector2(36, 36)
+is_hazard = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_s17"]
+script = ExtResource("3_s")
+enemy = SubResource("Resource_e16")
+delay = 0.4
+position = Vector2(240, -30)
+count = 2
+spacing = Vector2(150, 0)
+
+[sub_resource type="Resource" id="Resource_w18"]
+script = ExtResource("2_w")
+label = "Photon Sphere"
+start_delay = 0.5
+entries = Array[ExtResource("3_s")]([SubResource("Resource_s12"), SubResource("Resource_s13"), SubResource("Resource_s14"), SubResource("Resource_s15"), SubResource("Resource_s17")])
+
+[sub_resource type="Resource" id="Resource_e19"]
+script = ExtResource("4_e")
+enemy_id = &"boss"
+display_name = "Void Maw"
+max_hp = 140.0
+move_speed = 70.0
+score_value = 8000
+fire_interval = 0.9
+projectile_speed = 300.0
+contact_damage = 2
+color = Color(0.75, 0.3, 1, 1)
+size = Vector2(100, 78)
+is_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[resource]
+script = ExtResource("1_m")
+mission_id = &"mission_06"
+title = "Event Horizon"
+subtitle = "Escape the pull of the void."
+scroll_speed = 60.0
+waves = Array[ExtResource("2_w")]([SubResource("Resource_w07"), SubResource("Resource_w11"), SubResource("Resource_w18")])
+boss = SubResource("Resource_e19")
+boss_intro_delay = 2.0
+background_tint = Color(0.2, 0.06, 0.35, 1)

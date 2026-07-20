@@ -36,7 +36,8 @@ func play_game_music() -> void:
 	if GameState.mode == GameState.Mode.ENDLESS:
 		_play_path(ENDLESS_MUSIC, -12.0)
 		return
-	var idx := clampi(GameState.current_mission_index, 0, MISSION_MUSIC.size() - 1)
+	# Three tracks rotate across the campaign.
+	var idx := GameState.current_mission_index % MISSION_MUSIC.size()
 	_play_path(MISSION_MUSIC[idx], -12.0)
 
 
@@ -74,8 +75,8 @@ func _get_looping_stream(path: String) -> AudioStream:
 	return copy
 
 
-func play_shoot() -> void:
-	_play_blip(880.0, 0.04, -12.0)
+func play_shoot(freq: float = 880.0) -> void:
+	_play_blip(freq, 0.04, -12.0)
 
 
 func play_enemy_shoot() -> void:
