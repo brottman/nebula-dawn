@@ -53,6 +53,23 @@ You are a strike craft punching through enemy-held space: low orbit, debris fiel
 - **Mid-boss:** Twin Ace Lead (paired pressure).
 - **Boss:** Omega Engine — peak density; gravity still in play.
 
+## Screen layout
+
+```
+TOP HUD BAR (static)     HP/Lives  |  Weapon badge + LV + 5 chip segments  |  Score
+PLAYFIELD                Active action zone (no chrome)
+BOTTOM TOUCH             Bomb button (tap) — bottom-left corner
+```
+
+Top-center weapon module:
+
+```
+[RED] SPREAD BEAM              [ LV 2 ]
+[■][■][■][□][□]           3/5 P-CHIPS
+```
+
+Badge color = weapon family. Segments show chips banked toward the next tier (instant “I need 2 more”).
+
 ## Color weapons + universal power
 
 Weapon type and power level are independent:
@@ -63,7 +80,7 @@ Weapon type and power level are independent:
 | **Blue** | Laser | Single beam | Dual beams + armor pierce | Mega beam + melt ticks |
 | **Green** | Homing | 2 slow rockets | 4 fast micro-missiles | 6 rapid + splash |
 
-**Gold P-Chips** raise a shared tier from Lv1 → Lv2 → Lv3. Grabbing a different color keeps that tier (Lv3 Spread + Blue = Lv3 Laser). Same-color pickups also power up. Hull hits drop you to Blaster Lv1.
+**Gold P-Chips** fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX). Color swaps keep tier + chip bank. Same-color pickups also bank a chip. Hull hits drop you to Blaster.
 
 ### Recovery on death
 

@@ -10,6 +10,8 @@ const PLAYFIELD_MARGIN := 24.0
 const TOUCH_FOLLOW := 28.0
 ## Shared power tier for every color weapon (Lv1–Lv3).
 const MAX_WEAPON_LEVEL := 3
+## P-Chips needed to climb one tier (segmented HUD bar).
+const CHIPS_PER_LEVEL := 5
 const MAX_BITS := 2
 const MAX_SPEED_STACKS := 3
 const SPEED_STACK_BONUS := 0.12 ## +12% move speed per stack
@@ -21,6 +23,12 @@ const WEAPON_NAMES := {
 	Weapon.VULCAN: "SPREAD",
 	Weapon.LASER: "LASER",
 	Weapon.HOMING: "HOMING",
+}
+const WEAPON_TITLES := {
+	Weapon.BLASTER: "BLASTER",
+	Weapon.VULCAN: "SPREAD BEAM",
+	Weapon.LASER: "FOCUSED LASER",
+	Weapon.HOMING: "HOMING MISS",
 }
 ## Base cooldowns; per-level modifiers applied in _weapon_cooldown().
 const WEAPON_COOLDOWNS := {
@@ -57,10 +65,12 @@ var rapid_time: float = 0.0
 var energy_time: float = 0.0
 var weapon: int = Weapon.BLASTER
 var weapon_level: int = 1
+## P-Chips banked toward the next tier (0 … CHIPS_PER_LEVEL-1).
+var chip_progress: int = 0
 ## Peak loadout this life — volcano orbs rebuild toward this.
 var _life_peak_weapon: int = Weapon.BLASTER
 var _life_peak_level: int = 1
-var _orb_frac: float = 0.0
+var _life_peak_chips: int = 0
 var _death_bomb_time: float = 0.0
 var _respawning: bool = false
 ## Stackable sub-systems (persist through hull hits; cleared on death / new run).
@@ -110,6 +120,7 @@ func _ready() -> void:
 	EventBus.player_hp_changed.emit(hp, max_hp)
 	EventBus.player_lives_changed.emit(lives)
 	EventBus.bomb_stock_changed.emit(bomb_stock)
+	_emit_weapon_changed()
 
 
 func _visual() -> CanvasItem:
@@ -297,15 +308,13 @@ func _handle_fire(delta: float) -> void:
 
 
 func _set_weapon(w: int) -> void:
-	## Color swap — type changes, universal power level is kept.
+	## Color swap — type changes, universal power level + chip bank are kept.
 	## Same color again acts as a free P-Chip (classic arcade feel).
 	if weapon == w and weapon != Weapon.BLASTER:
 		_power_up()
 		return
 	var prev_level := weapon_level
 	weapon = w
-	# Picking a color while on Blaster still keeps any residual tier
-	# (normally Blaster is Lv1 after a hull hit).
 	weapon_level = clampi(prev_level, 1, MAX_WEAPON_LEVEL)
 	_note_peak_loadout()
 	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
@@ -314,23 +323,51 @@ func _set_weapon(w: int) -> void:
 
 
 func _power_up() -> void:
-	## Gold P-Chip — raises the shared power tier for whatever color is active.
-	if weapon_level >= MAX_WEAPON_LEVEL:
-		GameState.add_score(150)
-		EventBus.gimmick_toast.emit("POWER MAX")
+	## Gold P-Chip — fills one segment toward the next tier.
+	_add_chips(1)
+
+
+func _add_chips(count: int) -> void:
+	if count <= 0:
 		return
-	weapon_level += 1
+	if weapon == Weapon.BLASTER:
+		# Stock blaster ignores chips until a color is equipped.
+		GameState.add_score(40 * count)
+		EventBus.gimmick_toast.emit("NEED COLOR")
+		return
+	if weapon_level >= MAX_WEAPON_LEVEL:
+		chip_progress = CHIPS_PER_LEVEL
+		GameState.add_score(150 * count)
+		EventBus.gimmick_toast.emit("POWER MAX")
+		_emit_weapon_changed()
+		return
+	for _i in count:
+		chip_progress += 1
+		if chip_progress >= CHIPS_PER_LEVEL:
+			chip_progress = 0
+			weapon_level = mini(MAX_WEAPON_LEVEL, weapon_level + 1)
+			_note_peak_loadout()
+			GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
+			if weapon_level >= MAX_WEAPON_LEVEL:
+				chip_progress = CHIPS_PER_LEVEL
+				EventBus.gimmick_toast.emit("POWER  MAX")
+				break
+			EventBus.gimmick_toast.emit("POWER  Lv%d" % weapon_level)
+		else:
+			EventBus.gimmick_toast.emit("P-CHIP  %d/%d" % [chip_progress, CHIPS_PER_LEVEL])
 	_note_peak_loadout()
-	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
 	_emit_weapon_changed()
-	EventBus.gimmick_toast.emit("POWER  Lv%d" % weapon_level)
 
 
 func _note_peak_loadout() -> void:
 	if weapon == Weapon.BLASTER:
 		return
 	_life_peak_weapon = weapon
-	_life_peak_level = maxi(_life_peak_level, weapon_level)
+	if weapon_level > _life_peak_level:
+		_life_peak_level = weapon_level
+		_life_peak_chips = chip_progress
+	elif weapon_level == _life_peak_level:
+		_life_peak_chips = maxi(_life_peak_chips, chip_progress)
 
 
 func _add_bit() -> void:
@@ -376,24 +413,35 @@ func _clear_bits() -> void:
 ## Losing hull integrity knocks the ship back to the stock blaster (power tier resets).
 ## Bits and speed stacks are sub-systems and persist.
 func _reset_weapon() -> void:
-	if weapon == Weapon.BLASTER and weapon_level == 1:
+	if weapon == Weapon.BLASTER and weapon_level == 1 and chip_progress == 0:
 		return
 	weapon = Weapon.BLASTER
 	weapon_level = 1
+	chip_progress = 0
 	_emit_weapon_changed()
 
 
 func _emit_weapon_changed() -> void:
+	var slot: String = WEAPON_NAMES.get(weapon, "BLASTER")
 	var parts: PackedStringArray = []
 	if weapon != Weapon.BLASTER:
-		parts.append("%s Lv%d" % [WEAPON_NAMES[weapon], weapon_level])
+		parts.append("%s Lv%d" % [slot, weapon_level])
 	elif weapon_level > 1:
 		parts.append("BLASTER Lv%d" % weapon_level)
+	var extras_parts: PackedStringArray = []
 	if bit_count > 0:
-		parts.append("BIT×%d" % bit_count)
+		extras_parts.append("BIT×%d" % bit_count)
 	if speed_stacks > 0:
-		parts.append("SPD×%d" % speed_stacks)
+		extras_parts.append("SPD×%d" % speed_stacks)
+	parts.append_array(extras_parts)
 	EventBus.weapon_changed.emit("  ".join(parts))
+	var chips := chip_progress
+	var needed := CHIPS_PER_LEVEL
+	if weapon_level >= MAX_WEAPON_LEVEL:
+		chips = CHIPS_PER_LEVEL
+	elif weapon == Weapon.BLASTER:
+		chips = 0
+	EventBus.weapon_tier_changed.emit(slot, weapon_level, chips, needed, "  ".join(extras_parts))
 
 
 func _shoot() -> void:
@@ -657,12 +705,14 @@ func _respawn() -> void:
 	_respawning = false
 	hp = max_hp
 	invuln_time = RESPAWN_INVULN
-	_orb_frac = 0.0
+	chip_progress = 0
 	# Floor leveling — stage baseline power.
 	var floor_lv := GameState.get_power_floor()
 	if _life_peak_weapon != Weapon.BLASTER:
 		weapon = _life_peak_weapon
 		weapon_level = floor_lv
+		if weapon_level >= MAX_WEAPON_LEVEL:
+			chip_progress = CHIPS_PER_LEVEL
 	else:
 		weapon = Weapon.BLASTER
 		weapon_level = 1
@@ -682,7 +732,7 @@ func _respawn() -> void:
 
 
 func _spawn_volcano_drop() -> void:
-	## Eject 3–4 large Power Orbs that rebuild 50–75% of lost peak power.
+	## Eject 3–4 large Power Orbs that rebuild 50–75% of lost peak power (in P-Chips).
 	var parent := get_parent()
 	if parent == null:
 		return
@@ -692,47 +742,47 @@ func _spawn_volcano_drop() -> void:
 	if scene == null:
 		return
 	var floor_lv := GameState.get_power_floor()
-	var peak := maxi(_life_peak_level, weapon_level)
-	var lost := maxi(0, peak - floor_lv)
-	var restore_pool := maxf(0.35, float(lost) * randf_range(0.50, 0.75))
+	var peak_chips := (_life_peak_level - 1) * CHIPS_PER_LEVEL + _life_peak_chips
+	var floor_chips := (floor_lv - 1) * CHIPS_PER_LEVEL
+	var lost := maxi(0, peak_chips - floor_chips)
+	var restore_pool := maxi(2, int(round(float(lost) * randf_range(0.50, 0.75))))
 	var count := randi_range(3, 4)
-	var per_orb := restore_pool / float(count)
+	var base := restore_pool / count
+	var rem := restore_pool % count
 	for i in count:
 		var p: Node = scene.instantiate()
 		host.add_child(p)
 		var ang := -PI * 0.5 + lerpf(-0.85, 0.85, float(i) / float(maxi(count - 1, 1)))
 		var burst := Vector2(cos(ang), sin(ang)) * randf_range(36.0, 68.0)
 		p.global_position = global_position + burst
-		if "orb_restore" in p:
-			p.orb_restore = per_orb
+		var chips_here := float(base + (1 if i < rem else 0))
 		if p.has_method("set_volcano"):
 			p.set_volcano(true)
 		if p.has_method("setup"):
 			p.setup("power_orb")
-		p.orb_restore = per_orb
+		p.orb_restore = maxf(1.0, chips_here)
 		p.fall_speed = 38.0
 
 
 func apply_power_orb(amount: float) -> void:
-	## Volcano recovery — rebuild toward this life's peak loadout.
+	## Volcano recovery — each orb grants P-Chip segments toward peak power.
 	if amount <= 0.0:
 		return
 	if weapon == Weapon.BLASTER and _life_peak_weapon != Weapon.BLASTER:
 		weapon = _life_peak_weapon
 		weapon_level = maxi(weapon_level, GameState.get_power_floor())
-	_orb_frac += amount
-	var cap := maxi(_life_peak_level, GameState.get_power_floor())
-	while _orb_frac >= 1.0 and weapon_level < mini(MAX_WEAPON_LEVEL, cap):
-		_orb_frac -= 1.0
-		weapon_level += 1
-	# Leftover fraction can still nudge a near-cap level visually via toast.
-	if weapon_level >= cap and _orb_frac > 0.0:
-		_orb_frac = 0.0
+		chip_progress = 0
+	var chips := maxi(1, int(round(amount)))
+	# Cap rebuild at this life's peak (level + chips).
+	var peak_total := (_life_peak_level - 1) * CHIPS_PER_LEVEL + _life_peak_chips
+	var cur_chips := chip_progress if weapon_level < MAX_WEAPON_LEVEL else CHIPS_PER_LEVEL
+	var cur_total := (weapon_level - 1) * CHIPS_PER_LEVEL + cur_chips
+	var room := maxi(0, peak_total - cur_total)
+	if room <= 0:
 		GameState.add_score(80)
-	_note_peak_loadout()
-	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
-	_emit_weapon_changed()
-	EventBus.gimmick_toast.emit("POWER  Lv%d" % weapon_level)
+		_emit_weapon_changed()
+		return
+	_add_chips(mini(chips, room))
 
 
 ## Victory outro: drift to screen center, hover, then streak off the top.
@@ -786,7 +836,7 @@ func apply_pickup(kind: String) -> void:
 		"power", "pchip", "p-chip", "gold":
 			_power_up()
 		"power_orb", "orb":
-			apply_power_orb(0.5) ## fallback if orb_restore wasn't set
+			apply_power_orb(2.0) ## fallback chips if orb_restore wasn't set
 		"option", "bit", "drone":
 			_add_bit()
 		"speed":

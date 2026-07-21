@@ -94,7 +94,7 @@ Weapon **type** and **power level** are tracked separately.
 | **Blue** | Laser | Focused beam | Lv1 single → Lv2 dual + armor pierce → Lv3 mega beam + melt ticks |
 | **Green** | Homing | Seeking missiles | Lv1 2 slow → Lv2 4 fast micro → Lv3 6 rapid + splash |
 
-**Gold P-Chips** raise a shared power tier (**Lv1 → Lv2 → Lv3**). Swapping color keeps the tier: a Lv3 Spread that grabs Blue becomes a **Lv3 Laser**. Grabbing the same color again also powers up. Taking **hull** damage resets you to Blaster Lv1 (tier lost) but keeps Bits and Speed.
+**Gold P-Chips** fill a **5-segment** bar toward the next shared tier (**Lv1 → Lv2 → Lv3 / MAX**). Swapping color keeps both tier and chip progress. Same color again also banks a chip. Hull damage resets to Blaster (tier + chips lost) but keeps Bits and Speed.
 
 ### Recovery (deaths)
 

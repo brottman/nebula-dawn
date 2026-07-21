@@ -15,100 +15,197 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HPLabel" type="Label" parent="Root"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 12.0
-offset_right = 280.0
-offset_bottom = 36.0
-theme_override_colors/font_color = Color(0.75, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "HP  ◆◆◆◆◆"
-
-[node name="WeaponLabel" type="Label" parent="Root"]
-visible = false
-layout_mode = 0
-offset_left = 16.0
-offset_top = 34.0
-offset_right = 280.0
-offset_bottom = 56.0
-theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
-theme_override_font_sizes/font_size = 14
-text = "SPREAD"
-
-[node name="ScoreLabel" type="Label" parent="Root"]
-layout_mode = 0
-anchors_preset = 1
-anchor_left = 1.0
+[node name="TopBar" type="Control" parent="Root"]
+layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
-offset_left = -180.0
-offset_top = 12.0
-offset_right = -16.0
-offset_bottom = 36.0
-grow_horizontal = 0
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "SCORE  000000"
-horizontal_alignment = 2
+offset_bottom = 72.0
+grow_horizontal = 2
+mouse_filter = 2
 
-[node name="WaveLabel" type="Label" parent="Root"]
+[node name="TopDim" type="ColorRect" parent="Root/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.04, 0.08, 0.55)
+
+[node name="HPLivesLabel" type="Label" parent="Root/TopBar"]
 layout_mode = 0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 160.0
+offset_bottom = 62.0
+theme_override_colors/font_color = Color(1, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 15
+text = "❤❤❤
+▲▲▲"
+vertical_alignment = 1
+
+[node name="WeaponModule" type="PanelContainer" parent="Root/TopBar"]
+layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -80.0
-offset_top = 12.0
-offset_right = 80.0
-offset_bottom = 36.0
+offset_left = -148.0
+offset_top = 6.0
+offset_right = 148.0
+offset_bottom = 66.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.7, 0.8, 1, 0.85)
-theme_override_font_sizes/font_size = 14
-text = "WAVE  1 / 4"
+mouse_filter = 2
+
+[node name="ModuleMargin" type="MarginContainer" parent="Root/TopBar/WeaponModule"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 5
+
+[node name="ModuleVBox" type="VBoxContainer" parent="Root/TopBar/WeaponModule/ModuleMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TopRow" type="HBoxContainer" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WeaponBadge" type="PanelContainer" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/TopRow"]
+custom_minimum_size = Vector2(42, 22)
+layout_mode = 2
+
+[node name="BadgeLabel" type="Label" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/TopRow/WeaponBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "—"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeaponTitle" type="Label" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "BLASTER"
+vertical_alignment = 1
+
+[node name="WeaponLevelLabel" type="Label" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/TopRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
+theme_override_font_sizes/font_size = 16
+text = "LV 1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ChipRow" type="HBoxContainer" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ChipSegments" type="HBoxContainer" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/ChipRow"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="ChipCountLabel" type="Label" parent="Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/ChipRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "0/5 P-CHIPS"
+vertical_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="Root/TopBar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -170.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = 58.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="WaveLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -120.0
+offset_top = 76.0
+offset_right = 120.0
+offset_bottom = 96.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 1, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "WAVE"
 horizontal_alignment = 1
 
 [node name="BossLabel" type="Label" parent="Root"]
 visible = false
-layout_mode = 0
+layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -100.0
-offset_top = 44.0
-offset_right = 100.0
-offset_bottom = 64.0
+offset_left = -120.0
+offset_top = 96.0
+offset_right = 120.0
+offset_bottom = 114.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.55, 0.4, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "NEBULA CORE"
 horizontal_alignment = 1
 
 [node name="BossBar" type="ProgressBar" parent="Root"]
 visible = false
-layout_mode = 0
+layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -140.0
-offset_top = 66.0
+offset_top = 116.0
 offset_right = 140.0
-offset_bottom = 82.0
+offset_bottom = 130.0
 grow_horizontal = 2
 max_value = 100.0
 value = 100.0
 show_percentage = false
 
+[node name="BombButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -96.0
+offset_right = 118.0
+offset_bottom = -18.0
+grow_vertical = 0
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.92, 0.88, 1)
+theme_override_font_sizes/font_size = 15
+text = "BOMB
+x0"
+
 [node name="PickupToast" type="Label" parent="Root"]
 visible = false
-layout_mode = 0
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -60.0
-offset_top = -80.0
-offset_right = 60.0
-offset_bottom = -50.0
+offset_left = -90.0
+offset_top = -140.0
+offset_right = 90.0
+offset_bottom = -108.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
@@ -118,7 +215,7 @@ horizontal_alignment = 1
 
 [node name="OverdriveBar" type="ProgressBar" parent="Root"]
 visible = false
-layout_mode = 0
+layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
