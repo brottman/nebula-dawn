@@ -21,8 +21,18 @@ var _origin_x: float = 0.0
 var _teleport_cd: float = 0.0
 var _armor_angle: float = 0.0
 
+@onready var _sprite: Sprite2D = $Sprite2D
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
+
+const SPRITE_PATHS := {
+	"scout": "res://assets/sprites/enemy_scout.png",
+	"strafer": "res://assets/sprites/enemy_strafer.png",
+	"drone": "res://assets/sprites/enemy_drone.png",
+	"asteroid": "res://assets/sprites/enemy_asteroid.png",
+	"boss": "res://assets/sprites/enemy_boss.png",
+	"mid_boss": "res://assets/sprites/enemy_mid_boss.png",
+}
 
 
 func _ready() -> void:
@@ -75,43 +85,78 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 
 
 func _apply_visuals() -> void:
-	if stats == null or _poly == null:
+	if stats == null:
 		return
-	_poly.color = stats.color
-	var half := stats.size * 0.5
-	match String(stats.enemy_id):
-		"scout":
-			_poly.polygon = PackedVector2Array([
-				Vector2(0, half.y), Vector2(-half.x, -half.y), Vector2(half.x, -half.y)
-			])
-		"strafer":
-			_poly.polygon = PackedVector2Array([
-				Vector2(-half.x, 0), Vector2(0, -half.y), Vector2(half.x, 0), Vector2(0, half.y)
-			])
-		"drone":
-			_poly.polygon = PackedVector2Array([
-				Vector2(-half.x, -half.y), Vector2(half.x, -half.y),
-				Vector2(half.x, half.y), Vector2(-half.x, half.y)
-			])
-		"asteroid":
-			_poly.polygon = PackedVector2Array([
-				Vector2(-half.x * 0.6, -half.y), Vector2(half.x, -half.y * 0.4),
-				Vector2(half.x * 0.7, half.y), Vector2(-half.x, half.y * 0.5),
-				Vector2(-half.x * 0.9, -half.y * 0.2)
-			])
-		"boss":
-			_poly.polygon = PackedVector2Array([
-				Vector2(0, half.y), Vector2(-half.x, half.y * 0.2),
-				Vector2(-half.x * 0.7, -half.y), Vector2(half.x * 0.7, -half.y),
-				Vector2(half.x, half.y * 0.2)
-			])
-		_:
-			_poly.polygon = PackedVector2Array([
-				Vector2(-half.x, -half.y), Vector2(half.x, -half.y),
-				Vector2(half.x, half.y), Vector2(-half.x, half.y)
-			])
+	var path := _sprite_path_for(stats)
+	var tex: Texture2D = load(path) if path != "" else null
+	if _sprite and tex:
+		_sprite.texture = tex
+		_sprite.visible = true
+		# Soft tint so mission variants keep identity without washing out art.
+		_sprite.modulate = Color(
+			clampf(0.55 + stats.color.r * 0.55, 0.4, 1.2),
+			clampf(0.55 + stats.color.g * 0.55, 0.4, 1.2),
+			clampf(0.55 + stats.color.b * 0.55, 0.4, 1.2),
+			1.0
+		)
+		var target := maxf(stats.size.x, stats.size.y)
+		var tex_size := maxf(tex.get_width(), tex.get_height())
+		if tex_size > 0.0:
+			var s := target / tex_size
+			# Bosses read larger than their collision box.
+			if stats.is_boss:
+				s *= 1.15 if stats.is_mid_boss else 1.35
+			_sprite.scale = Vector2(s, s)
+		if _poly:
+			_poly.visible = false
+	elif _poly:
+		_poly.visible = true
+		_poly.color = stats.color
+		var half := stats.size * 0.5
+		match String(stats.enemy_id):
+			"scout":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, half.y), Vector2(-half.x, -half.y), Vector2(half.x, -half.y)
+				])
+			"strafer":
+				_poly.polygon = PackedVector2Array([
+					Vector2(-half.x, 0), Vector2(0, -half.y), Vector2(half.x, 0), Vector2(0, half.y)
+				])
+			"drone":
+				_poly.polygon = PackedVector2Array([
+					Vector2(-half.x, -half.y), Vector2(half.x, -half.y),
+					Vector2(half.x, half.y), Vector2(-half.x, half.y)
+				])
+			"asteroid":
+				_poly.polygon = PackedVector2Array([
+					Vector2(-half.x * 0.6, -half.y), Vector2(half.x, -half.y * 0.4),
+					Vector2(half.x * 0.7, half.y), Vector2(-half.x, half.y * 0.5),
+					Vector2(-half.x * 0.9, -half.y * 0.2)
+				])
+			"boss":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, half.y), Vector2(-half.x, half.y * 0.2),
+					Vector2(-half.x * 0.7, -half.y), Vector2(half.x * 0.7, -half.y),
+					Vector2(half.x, half.y * 0.2)
+				])
+			_:
+				_poly.polygon = PackedVector2Array([
+					Vector2(-half.x, -half.y), Vector2(half.x, -half.y),
+					Vector2(half.x, half.y), Vector2(-half.x, half.y)
+				])
 	if _collision and _collision.shape is RectangleShape2D:
 		(_collision.shape as RectangleShape2D).size = stats.size
+
+
+func _sprite_path_for(s: EnemyStats) -> String:
+	if s.is_boss and s.is_mid_boss:
+		return SPRITE_PATHS["mid_boss"]
+	if s.is_boss:
+		return SPRITE_PATHS["boss"]
+	var key := String(s.enemy_id)
+	if SPRITE_PATHS.has(key):
+		return SPRITE_PATHS[key]
+	return SPRITE_PATHS["scout"]
 
 
 func _physics_process(delta: float) -> void:
@@ -234,15 +279,34 @@ func take_damage(amount: float) -> void:
 				amount *= 0.35
 				EventBus.gimmick_toast.emit("ARMORED")
 	hp -= amount
-	_poly.modulate = Color(2.0, 2.0, 2.0)
+	_flash_hit()
 	get_tree().create_timer(0.05).timeout.connect(func() -> void:
 		if is_instance_valid(self) and alive:
-			_poly.modulate = Color.WHITE
+			_clear_flash()
 	)
 	if stats and stats.is_boss:
 		EventBus.boss_hp_changed.emit(maxi(0.0, hp), stats.max_hp)
 	if hp <= 0.0:
 		_die()
+
+
+func _flash_hit() -> void:
+	if _sprite and _sprite.visible:
+		_sprite.modulate = Color(2.0, 2.0, 2.0)
+	if _poly:
+		_poly.modulate = Color(2.0, 2.0, 2.0)
+
+
+func _clear_flash() -> void:
+	if _sprite and _sprite.visible and stats:
+		_sprite.modulate = Color(
+			clampf(0.55 + stats.color.r * 0.55, 0.4, 1.2),
+			clampf(0.55 + stats.color.g * 0.55, 0.4, 1.2),
+			clampf(0.55 + stats.color.b * 0.55, 0.4, 1.2),
+			1.0
+		)
+	if _poly:
+		_poly.modulate = Color.WHITE
 
 
 func absorb_bullet(amount: float = 1.0) -> void:

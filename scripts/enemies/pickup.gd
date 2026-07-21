@@ -4,6 +4,19 @@ extends Area2D
 var kind: String = "spread"
 var fall_speed: float = 70.0
 
+const SPRITE_PATHS := {
+	"spread": "res://assets/sprites/pickup_spread.png",
+	"railgun": "res://assets/sprites/pickup_railgun.png",
+	"homing": "res://assets/sprites/pickup_homing.png",
+	"wave": "res://assets/sprites/pickup_wave.png",
+	"flak": "res://assets/sprites/pickup_flak.png",
+	"power": "res://assets/sprites/pickup_power.png",
+	"rapid": "res://assets/sprites/pickup_rapid.png",
+	"shield": "res://assets/sprites/pickup_shield.png",
+	"heal": "res://assets/sprites/pickup_heal.png",
+}
+
+@onready var _sprite: Sprite2D = $Sprite2D
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _label: Label = $Label
 
@@ -18,6 +31,22 @@ func _ready() -> void:
 
 func setup(k: String) -> void:
 	kind = k
+	var path: String = SPRITE_PATHS.get(kind, "")
+	var tex: Texture2D = load(path) if path != "" else null
+	if _sprite and tex:
+		_sprite.texture = tex
+		_sprite.visible = true
+		_sprite.scale = Vector2(0.9, 0.9)
+		if _poly:
+			_poly.visible = false
+		if _label:
+			_label.visible = false
+		return
+	# Fallback polygons if a sprite is missing.
+	if _poly:
+		_poly.visible = true
+	if _label:
+		_label.visible = true
 	match kind:
 		"spread":
 			_poly.color = Color(0.4, 1.0, 0.6)
@@ -53,7 +82,10 @@ func setup(k: String) -> void:
 
 func _physics_process(delta: float) -> void:
 	global_position.y += fall_speed * delta
-	rotation += delta
+	rotation += delta * 0.6
+	# Gentle bob so icons stay readable while spinning.
+	if _sprite:
+		_sprite.scale = Vector2.ONE * (0.88 + 0.06 * sin(Time.get_ticks_msec() * 0.008))
 	if global_position.y > get_viewport_rect().size.y + 40.0:
 		queue_free()
 
