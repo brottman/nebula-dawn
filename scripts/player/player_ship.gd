@@ -41,12 +41,28 @@ var invuln_time: float = 0.0
 ## Hit-based barrier (rare Shield drops). Absorbs 1–2 hits.
 var shield_charges: int = 0
 const MAX_SHIELD_CHARGES := 2
+## Stocked smart bombs (pickup adds stock; B / bomb button spends one).
+var bomb_stock: int = 0
+const MAX_BOMB_STOCK := 3
+## Lives remaining (including the current ship).
+var lives: int = 3
+const START_LIVES := 3
+## Death-bomb panic window (seconds).
+const DEATH_BOMB_WINDOW := 0.25
+## Post-respawn invulnerability for volcano recovery sweeps.
+const RESPAWN_INVULN := 2.5
 ## Timed fire-rate buff (Energy / temporary Overdrive pickup).
 var rapid_time: float = 0.0
 ## Timed invulnerability window from Energy pickup (stacks with rapid).
 var energy_time: float = 0.0
 var weapon: int = Weapon.BLASTER
 var weapon_level: int = 1
+## Peak loadout this life — volcano orbs rebuild toward this.
+var _life_peak_weapon: int = Weapon.BLASTER
+var _life_peak_level: int = 1
+var _orb_frac: float = 0.0
+var _death_bomb_time: float = 0.0
+var _respawning: bool = false
 ## Stackable sub-systems (persist through hull hits; cleared on death / new run).
 var bit_count: int = 0
 var speed_stacks: int = 0
@@ -86,10 +102,14 @@ const _SHIP_FLASH := Color(1.6, 1.6, 1.6, 1.0)
 func _ready() -> void:
 	add_to_group("player")
 	hp = max_hp
+	lives = START_LIVES
+	bomb_stock = 0
 	_shield_visual.visible = false
 	if _sprite and _sprite.texture:
 		_poly.visible = false
 	EventBus.player_hp_changed.emit(hp, max_hp)
+	EventBus.player_lives_changed.emit(lives)
+	EventBus.bomb_stock_changed.emit(bomb_stock)
 
 
 func _visual() -> CanvasItem:
@@ -104,7 +124,18 @@ func setup(pool: ProjectilePool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if dead or _cinematic:
+	if _cinematic:
+		return
+	# Death-bomb window still accepts bomb even while "dying".
+	if _death_bomb_time > 0.0 and _is_bomb_press(event):
+		_try_death_bomb()
+		get_viewport().set_input_as_handled()
+		return
+	if dead:
+		return
+	if _is_bomb_press(event):
+		try_use_bomb()
+		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
@@ -126,16 +157,34 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
+func _is_bomb_press(event: InputEvent) -> bool:
+	if event.is_action_pressed("bomb"):
+		return true
+	return false
+
+
 func _screen_to_world(screen_pos: Vector2) -> Vector2:
 	return get_canvas_transform().affine_inverse() * screen_pos
 
 
 func _physics_process(delta: float) -> void:
-	if dead or _cinematic:
+	if _cinematic:
+		return
+	if _death_bomb_time > 0.0:
+		_death_bomb_time -= delta
+		if Input.is_action_just_pressed("bomb"):
+			_try_death_bomb()
+			return
+		if _death_bomb_time <= 0.0:
+			_confirm_death()
+		return
+	if dead:
 		return
 	_update_timers(delta)
 	_handle_movement(delta)
 	_handle_fire(delta)
+	if Input.is_action_just_pressed("bomb"):
+		try_use_bomb()
 	_update_visuals(delta)
 
 
@@ -258,6 +307,7 @@ func _set_weapon(w: int) -> void:
 	# Picking a color while on Blaster still keeps any residual tier
 	# (normally Blaster is Lv1 after a hull hit).
 	weapon_level = clampi(prev_level, 1, MAX_WEAPON_LEVEL)
+	_note_peak_loadout()
 	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
 	_emit_weapon_changed()
 	EventBus.gimmick_toast.emit("%s  Lv%d" % [WEAPON_NAMES[weapon], weapon_level])
@@ -270,9 +320,17 @@ func _power_up() -> void:
 		EventBus.gimmick_toast.emit("POWER MAX")
 		return
 	weapon_level += 1
+	_note_peak_loadout()
 	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
 	_emit_weapon_changed()
 	EventBus.gimmick_toast.emit("POWER  Lv%d" % weapon_level)
+
+
+func _note_peak_loadout() -> void:
+	if weapon == Weapon.BLASTER:
+		return
+	_life_peak_weapon = weapon
+	_life_peak_level = maxi(_life_peak_level, weapon_level)
 
 
 func _add_bit() -> void:
@@ -443,7 +501,9 @@ func _shoot_homing(origin: Vector2) -> void:
 
 
 func take_damage(amount: int) -> void:
-	if dead or _cinematic or invuln_time > 0.0 or energy_time > 0.0:
+	if dead or _cinematic or _respawning or invuln_time > 0.0 or energy_time > 0.0:
+		return
+	if _death_bomb_time > 0.0:
 		return
 	if shield_charges > 0:
 		shield_charges -= 1
@@ -453,6 +513,20 @@ func take_damage(amount: int) -> void:
 		EventBus.screen_shake.emit(4.0, 0.12)
 		EventBus.gimmick_toast.emit("SHIELD BREAK" if shield_charges <= 0 else "SHIELD  ×%d" % shield_charges)
 		return
+	# Lethal hit → brief death-bomb window if a bomb is stocked.
+	if hp - amount <= 0:
+		if bomb_stock > 0:
+			hp = 0
+			EventBus.player_hp_changed.emit(hp, max_hp)
+			_death_bomb_time = DEATH_BOMB_WINDOW
+			invuln_time = DEATH_BOMB_WINDOW
+			EventBus.gimmick_toast.emit("DEATH BOMB!")
+			EventBus.screen_shake.emit(6.0, 0.1)
+			return
+		hp = 0
+		EventBus.player_hp_changed.emit(hp, max_hp)
+		_confirm_death()
+		return
 	hp = maxi(0, hp - amount)
 	_reset_weapon()
 	invuln_time = 1.35
@@ -461,14 +535,42 @@ func take_damage(amount: int) -> void:
 	AudioBus.play_player_hurt()
 	EventBus.screen_shake.emit(8.0, 0.18)
 	EventBus.player_hp_changed.emit(hp, max_hp)
-	if hp <= 0:
-		_die()
 
 
 func add_shield(charges: int = 2) -> void:
 	shield_charges = mini(MAX_SHIELD_CHARGES, shield_charges + charges)
 	_shield_visual.visible = true
 	EventBus.gimmick_toast.emit("SHIELD  ×%d" % shield_charges)
+
+
+func add_bomb(count: int = 1) -> void:
+	bomb_stock = mini(MAX_BOMB_STOCK, bomb_stock + count)
+	EventBus.bomb_stock_changed.emit(bomb_stock)
+	EventBus.gimmick_toast.emit("BOMB  ×%d" % bomb_stock)
+
+
+func try_use_bomb() -> bool:
+	if dead or _cinematic or bomb_stock <= 0:
+		return false
+	bomb_stock -= 1
+	EventBus.bomb_stock_changed.emit(bomb_stock)
+	activate_bomb()
+	invuln_time = maxf(invuln_time, 0.85)
+	return true
+
+
+func _try_death_bomb() -> void:
+	if _death_bomb_time <= 0.0 or bomb_stock <= 0:
+		return
+	_death_bomb_time = 0.0
+	bomb_stock -= 1
+	EventBus.bomb_stock_changed.emit(bomb_stock)
+	hp = 1
+	EventBus.player_hp_changed.emit(hp, max_hp)
+	activate_bomb()
+	invuln_time = 1.6
+	EventBus.gimmick_toast.emit("SAVED!")
+	# Keep current loadout — panic save does not strip power.
 
 
 func activate_energy(duration: float = 4.0) -> void:
@@ -506,11 +608,19 @@ func activate_bomb() -> void:
 			n.take_damage(6.0)
 
 
+func _confirm_death() -> void:
+	_death_bomb_time = 0.0
+	_die()
+
+
 func _die() -> void:
+	if dead or _respawning:
+		return
 	dead = true
 	_cinematic = false
 	_touch_active = false
 	_touch_index = -1
+	_spawn_volcano_drop()
 	_clear_bits()
 	speed_stacks = 0
 	shield_charges = 0
@@ -518,9 +628,111 @@ func _die() -> void:
 	energy_time = 0.0
 	clear_zone_effects()
 	visible = false
-	set_physics_process(false)
+	set_physics_process(true) ## keep process for respawn scheduling via await
 	AudioBus.play_explode()
-	EventBus.player_died.emit()
+	EventBus.screen_shake.emit(12.0, 0.28)
+	lives -= 1
+	EventBus.player_lives_changed.emit(lives)
+	if lives <= 0:
+		EventBus.player_died.emit()
+		set_physics_process(false)
+		return
+	EventBus.gimmick_toast.emit("%d SHIP%s LEFT" % [lives, "S" if lives != 1 else ""])
+	_respawn_after_delay()
+
+
+func _respawn_after_delay() -> void:
+	_respawning = true
+	await get_tree().create_timer(1.05).timeout
+	if not is_inside_tree() or lives <= 0:
+		_respawning = false
+		return
+	_respawn()
+
+
+func _respawn() -> void:
+	var vp := get_viewport_rect().size
+	global_position = Vector2(vp.x * 0.5, vp.y * 0.83)
+	dead = false
+	_respawning = false
+	hp = max_hp
+	invuln_time = RESPAWN_INVULN
+	_orb_frac = 0.0
+	# Floor leveling — stage baseline power.
+	var floor_lv := GameState.get_power_floor()
+	if _life_peak_weapon != Weapon.BLASTER:
+		weapon = _life_peak_weapon
+		weapon_level = floor_lv
+	else:
+		weapon = Weapon.BLASTER
+		weapon_level = 1
+	# EX stages: guaranteed utility charge on respawn.
+	if GameState.is_ex_stage():
+		if randf() < 0.5:
+			add_bomb(1)
+		else:
+			add_shield(1)
+	visible = true
+	scale = Vector2.ONE
+	var vis := _visual()
+	vis.modulate = _SHIP_TINT
+	EventBus.player_hp_changed.emit(hp, max_hp)
+	_emit_weapon_changed()
+	EventBus.gimmick_toast.emit("RESPAWN  Lv%d" % weapon_level)
+
+
+func _spawn_volcano_drop() -> void:
+	## Eject 3–4 large Power Orbs that rebuild 50–75% of lost peak power.
+	var parent := get_parent()
+	if parent == null:
+		return
+	var entities := parent.get_node_or_null("Entities")
+	var host: Node = entities if entities else parent
+	var scene: PackedScene = load("res://scenes/entities/pickup.tscn")
+	if scene == null:
+		return
+	var floor_lv := GameState.get_power_floor()
+	var peak := maxi(_life_peak_level, weapon_level)
+	var lost := maxi(0, peak - floor_lv)
+	var restore_pool := maxf(0.35, float(lost) * randf_range(0.50, 0.75))
+	var count := randi_range(3, 4)
+	var per_orb := restore_pool / float(count)
+	for i in count:
+		var p: Node = scene.instantiate()
+		host.add_child(p)
+		var ang := -PI * 0.5 + lerpf(-0.85, 0.85, float(i) / float(maxi(count - 1, 1)))
+		var burst := Vector2(cos(ang), sin(ang)) * randf_range(36.0, 68.0)
+		p.global_position = global_position + burst
+		if "orb_restore" in p:
+			p.orb_restore = per_orb
+		if p.has_method("set_volcano"):
+			p.set_volcano(true)
+		if p.has_method("setup"):
+			p.setup("power_orb")
+		p.orb_restore = per_orb
+		p.fall_speed = 38.0
+
+
+func apply_power_orb(amount: float) -> void:
+	## Volcano recovery — rebuild toward this life's peak loadout.
+	if amount <= 0.0:
+		return
+	if weapon == Weapon.BLASTER and _life_peak_weapon != Weapon.BLASTER:
+		weapon = _life_peak_weapon
+		weapon_level = maxi(weapon_level, GameState.get_power_floor())
+	_orb_frac += amount
+	var cap := maxi(_life_peak_level, GameState.get_power_floor())
+	while _orb_frac >= 1.0 and weapon_level < mini(MAX_WEAPON_LEVEL, cap):
+		_orb_frac -= 1.0
+		weapon_level += 1
+	# Leftover fraction can still nudge a near-cap level visually via toast.
+	if weapon_level >= cap and _orb_frac > 0.0:
+		_orb_frac = 0.0
+		GameState.add_score(80)
+	_note_peak_loadout()
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
+	_emit_weapon_changed()
+	EventBus.gimmick_toast.emit("POWER  Lv%d" % weapon_level)
 
 
 ## Victory outro: drift to screen center, hover, then streak off the top.
@@ -573,6 +785,8 @@ func apply_pickup(kind: String) -> void:
 			_set_weapon(Weapon.HOMING)
 		"power", "pchip", "p-chip", "gold":
 			_power_up()
+		"power_orb", "orb":
+			apply_power_orb(0.5) ## fallback if orb_restore wasn't set
 		"option", "bit", "drone":
 			_add_bit()
 		"speed":
@@ -580,7 +794,7 @@ func apply_pickup(kind: String) -> void:
 		"shield", "barrier":
 			add_shield(2)
 		"bomb", "cleaver":
-			activate_bomb()
+			add_bomb(1)
 		"energy", "overdrive_pickup", "rapid":
 			activate_energy(4.0)
 		"heal":

@@ -94,6 +94,28 @@ func _reset_run_stats() -> void:
 	run_bosses_defeated = 0
 
 
+func get_power_floor(mission_index: int = -1) -> int:
+	## Minimum weapon tier on respawn. Stages are 1-based in design docs;
+	## mission_index is 0-based (0–4 = Sector 1 stages 1–5).
+	var i := current_mission_index if mission_index < 0 else mission_index
+	if mode == Mode.ENDLESS:
+		# Endless ramps like late Sector 1.
+		return 2 if run_elapsed > 90.0 else 1
+	if i < 0:
+		return 1
+	if i <= 2:
+		return 1 ## Stages 1–3
+	if i <= 4:
+		return 2 ## Stages 4–5
+	# EX Stages 6–10 (future): Lv2 floor + utility on respawn.
+	return 2
+
+
+func is_ex_stage(mission_index: int = -1) -> bool:
+	var i := current_mission_index if mission_index < 0 else mission_index
+	return mode == Mode.CAMPAIGN and i >= 5
+
+
 func get_mission_path(index: int = -1) -> String:
 	var i := current_mission_index if index < 0 else index
 	if i < 0 or i >= MISSION_PATHS.size():

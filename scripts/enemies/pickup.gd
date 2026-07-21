@@ -4,6 +4,9 @@ extends Area2D
 
 var kind: String = "spread"
 var fall_speed: float = 70.0
+## Volcano Power Orb — fractional levels restored on collect.
+var orb_restore: float = 0.5
+var _volcano: bool = false
 
 const SPRITE_PATHS := {
 	"spread": "res://assets/sprites/pickup_spread.png",
@@ -19,6 +22,8 @@ const SPRITE_PATHS := {
 	"pchip": "res://assets/sprites/pickup_power.png",
 	"p-chip": "res://assets/sprites/pickup_power.png",
 	"gold": "res://assets/sprites/pickup_power.png",
+	"power_orb": "res://assets/sprites/pickup_power.png",
+	"orb": "res://assets/sprites/pickup_power.png",
 	"option": "res://assets/sprites/pickup_option.png",
 	"bit": "res://assets/sprites/pickup_option.png",
 	"drone": "res://assets/sprites/pickup_option.png",
@@ -47,6 +52,8 @@ const TOAST_NAMES := {
 	"pchip": "P-CHIP",
 	"p-chip": "P-CHIP",
 	"gold": "P-CHIP",
+	"power_orb": "POWER ORB",
+	"orb": "POWER ORB",
 	"option": "BIT",
 	"bit": "BIT",
 	"drone": "BIT",
@@ -81,7 +88,7 @@ func setup(k: String) -> void:
 	if _sprite and tex:
 		_sprite.texture = tex
 		_sprite.visible = true
-		_sprite.scale = Vector2(0.9, 0.9)
+		_sprite.scale = Vector2(1.35, 1.35) if _volcano or kind == "power_orb" else Vector2(0.9, 0.9)
 		if _poly:
 			_poly.visible = false
 		if _label:
@@ -102,7 +109,7 @@ func setup(k: String) -> void:
 		"homing", "missiles", "green":
 			_poly.color = Color(0.3, 0.95, 0.4)
 			_label.text = "G"
-		"power", "pchip", "p-chip", "gold":
+		"power", "pchip", "p-chip", "gold", "power_orb", "orb":
 			_poly.color = Color(1.0, 0.85, 0.25)
 			_label.text = "P"
 		"option", "bit", "drone":
@@ -128,12 +135,20 @@ func setup(k: String) -> void:
 			_label.text = "?"
 
 
+func set_volcano(enabled: bool = true) -> void:
+	_volcano = enabled
+	fall_speed = 38.0 if enabled else 70.0
+	if _sprite and _sprite.visible:
+		_sprite.scale = Vector2(1.45, 1.45) if enabled else Vector2(0.9, 0.9)
+
+
 func _physics_process(delta: float) -> void:
 	global_position.y += fall_speed * delta
-	rotation += delta * 0.6
+	rotation += delta * (0.35 if _volcano else 0.6)
 	# Gentle bob so icons stay readable while spinning.
 	if _sprite and _sprite.visible:
-		_sprite.scale = Vector2.ONE * (0.88 + 0.06 * sin(Time.get_ticks_msec() * 0.008))
+		var base := 1.4 if _volcano or kind == "power_orb" else 0.88
+		_sprite.scale = Vector2.ONE * (base + 0.06 * sin(Time.get_ticks_msec() * 0.008))
 	if global_position.y > get_viewport_rect().size.y + 40.0:
 		queue_free()
 
@@ -147,6 +162,15 @@ func _on_area_entered(area: Area2D) -> void:
 
 
 func _try_collect(target: Node) -> void:
-	if target.is_in_group("player") and target.has_method("apply_pickup"):
+	if not target.is_in_group("player"):
+		return
+	if kind == "power_orb" or kind == "orb":
+		if target.has_method("apply_power_orb"):
+			target.apply_power_orb(orb_restore)
+			AudioBus.play_pickup()
+			EventBus.pickup_collected.emit(kind)
+			queue_free()
+			return
+	if target.has_method("apply_pickup"):
 		target.apply_pickup(kind)
 		queue_free()

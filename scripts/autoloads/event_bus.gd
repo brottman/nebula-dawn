@@ -20,3 +20,5 @@ signal formation_cleared(center: Vector2, size: int)
 signal overdrive_changed(current: float, maximum: float)
 signal overdrive_activated
 signal gimmick_toast(text: String)
+signal player_lives_changed(lives: int)
+signal bomb_stock_changed(bombs: int)

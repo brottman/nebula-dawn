@@ -65,6 +65,12 @@ Weapon type and power level are independent:
 
 **Gold P-Chips** raise a shared tier from Lv1 → Lv2 → Lv3. Grabbing a different color keeps that tier (Lv3 Spread + Blue = Lv3 Laser). Same-color pickups also power up. Hull hits drop you to Blaster Lv1.
 
+### Recovery on death
+
+- **Volcano Drop:** 3–4 large Power Orbs scatter on ship loss; collect during respawn invuln to rebuild ~50–75% of peak power.
+- **Power Floor:** Stages 1–3 → respawn Lv1; 4–5 → Lv2; EX 6–10 → Lv2 + Bomb or Shield charge.
+- **Death-Bomb:** ~0.25s panic window on lethal damage — spend a stocked bomb to cancel death and clear the screen.
+
 ## Rare defensive / utility drops
 
 Common fodder only drops weapons and stackables (P-Chip / Bit / Speed). Defensive utilities stay rare:

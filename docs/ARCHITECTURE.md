@@ -94,9 +94,11 @@ Player bullets hit enemies + hazards. Enemy bullets hit player + hazards (rocks 
 - Auto-fire weapon system: stock Blaster + color weapons (Red Spread / Blue Laser / Green Homing)
 - Universal power tier (Lv1–3) shared across colors; Gold P-Chips raise it; color swaps keep it
 - Stackable sub-systems: Bits (≤2 orbiting drones), Speed (≤3 stacks)
-- Rare utilities: hit-based Shield (≤2 charges), Bomb (screen clear + burst), Energy (~4s fire-rate + invuln)
+- Rare utilities: hit-based Shield (≤2 charges), stocked Bombs (≤3), Energy (~4s fire-rate + invuln)
+- Recovery: volcano Power Orbs on death, stage power floor on respawn, death-bomb panic window
 - Plasma zone flags, Overdrive meter
 - `play_victory_exit()` cinematic on stage clear
+- 3 ships per run; Bomb input: B / Shift / on-screen button
 
 ## UI
 

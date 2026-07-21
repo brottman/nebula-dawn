@@ -96,6 +96,16 @@ Weapon **type** and **power level** are tracked separately.
 
 **Gold P-Chips** raise a shared power tier (**Lv1 → Lv2 → Lv3**). Swapping color keeps the tier: a Lv3 Spread that grabs Blue becomes a **Lv3 Laser**. Grabbing the same color again also powers up. Taking **hull** damage resets you to Blaster Lv1 (tier lost) but keeps Bits and Speed.
 
+### Recovery (deaths)
+
+| Mechanic | Effect |
+|----------|--------|
+| **Volcano Drop** | On ship loss, 3–4 large Power Orbs scatter and drift down. Sweep them during ~2.5s respawn invuln to rebuild ~50–75% of peak power. |
+| **Power Floor** | Stages 1–3 respawn at Lv1; stages 4–5 at Lv2; EX (6–10) at Lv2 + a free Bomb or Shield. |
+| **Death-Bomb** | If you hold a bomb, ~0.25s after a lethal hit you can press Bomb to cancel death, wipe the screen, and survive at 1 HP. |
+
+You start with **3 ships**. Bombs are stocked (max 3) from Bomb pickups — press **B** / **Shift** or the on-screen BOMB button.
+
 ### Sub-system upgrades
 
 | Pickup | Effect | Cap |
