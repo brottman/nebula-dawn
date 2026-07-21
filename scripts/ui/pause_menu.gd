@@ -14,6 +14,7 @@ func _ready() -> void:
 
 
 func show_menu() -> void:
+	Engine.time_scale = 1.0
 	root.visible = true
 	resume_btn.grab_focus()
 
@@ -30,5 +31,6 @@ func _on_resume() -> void:
 
 func _on_menu() -> void:
 	AudioBus.play_ui()
+	Engine.time_scale = 1.0
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")

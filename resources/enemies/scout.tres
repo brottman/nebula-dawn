@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_5q4mm")
-move_speed = 140.0
+display_name = "Interceptor"
+move_speed = 150.0
 size = Vector2(26, 26)
 scene_path = "res://scenes/entities/enemy_base.tscn"

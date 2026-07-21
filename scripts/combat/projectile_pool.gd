@@ -39,6 +39,28 @@ func spawn_enemy(pos: Vector2, velocity: Vector2, damage: float = 1.0, opts: Dic
 	return _spawn(_enemy_pool, enemy_projectile_scene, pos, velocity, damage, false, opts)
 
 
+## Cancel enemy bullets inside a radius (formation chain-reaction / terminal reward).
+func clear_enemy_in_radius(center: Vector2, radius: float) -> int:
+	var cleared := 0
+	var r2 := radius * radius
+	for p in _enemy_pool:
+		if p == null or not p.has_method("is_active") or not p.is_active():
+			continue
+		if p.global_position.distance_squared_to(center) <= r2:
+			if p.has_method("deactivate"):
+				p.deactivate()
+				cleared += 1
+	return cleared
+
+
+func get_active_enemy_projectiles() -> Array[Node]:
+	var out: Array[Node] = []
+	for p in _enemy_pool:
+		if p != null and p.has_method("is_active") and p.is_active():
+			out.append(p)
+	return out
+
+
 func _spawn(pool: Array[Node], scene: PackedScene, pos: Vector2, velocity: Vector2, damage: float, from_player: bool, opts: Dictionary) -> Node:
 	var proj: Node = null
 	for p in pool:

@@ -10,12 +10,16 @@ var pattern: Pattern = Pattern.DIVE
 var scroll_speed: float = 40.0
 var projectile_pool: ProjectilePool
 var alive: bool = true
+var formation_id: String = ""
+var asteroid_tier: int = 0 ## 0=small 1=med 2=large
 
 var _fire_timer: float = 0.0
 var _strafe_dir: float = 1.0
 var _t: float = 0.0
 var _boss_phase: int = 0
 var _origin_x: float = 0.0
+var _teleport_cd: float = 0.0
+var _armor_angle: float = 0.0
 
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -26,11 +30,14 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 
-func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float) -> void:
+func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: String = "") -> void:
 	stats = s
 	projectile_pool = pool
 	scroll_speed = world_scroll
+	formation_id = form_id
 	hp = s.max_hp
+	if s.is_hazard and String(s.enemy_id) == "asteroid":
+		asteroid_tier = 2 if s.size.x >= 34.0 else (1 if s.size.x >= 22.0 else 0)
 	_apply_visuals()
 	_origin_x = global_position.x
 	_fire_timer = s.fire_interval * 0.5
@@ -38,6 +45,8 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float) -> void:
 		pattern = Pattern.BOSS
 		add_to_group("enemies")
 		add_to_group("boss")
+		if s.is_mid_boss:
+			add_to_group("mid_boss")
 		collision_layer = 4
 		collision_mask = 2 | 1
 		EventBus.boss_spawned.emit(self)
@@ -46,7 +55,7 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float) -> void:
 		pattern = Pattern.DRIFT
 		add_to_group("hazards")
 		collision_layer = 32
-		collision_mask = 1 | 2
+		collision_mask = 1 | 2 | 8
 	else:
 		match String(s.enemy_id):
 			"strafer":
@@ -59,6 +68,10 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float) -> void:
 		collision_layer = 4
 		collision_mask = 1 | 2
 	_strafe_dir = 1.0 if randf() > 0.5 else -1.0
+	if formation_id != "":
+		var tracker := get_tree().get_first_node_in_group("formation_tracker")
+		if tracker and tracker.has_method("register"):
+			tracker.register(self, formation_id)
 
 
 func _apply_visuals() -> void:
@@ -116,7 +129,9 @@ func _move(delta: float) -> void:
 	var speed := stats.move_speed if stats else 120.0
 	match pattern:
 		Pattern.DIVE:
+			# Mild sweep so popcorn reads as predictable arcs, not straight drops.
 			global_position.y += (speed + scroll_speed) * delta
+			global_position.x += sin(_t * 2.6 + _origin_x * 0.02) * 70.0 * delta
 		Pattern.STRAFE:
 			global_position.y += (speed * 0.35 + scroll_speed) * delta
 			global_position.x += _strafe_dir * speed * delta
@@ -129,11 +144,27 @@ func _move(delta: float) -> void:
 			global_position.x += sin(_t * 2.0) * 40.0 * delta
 			rotation += delta * 0.8 if stats and stats.is_hazard else 0.0
 		Pattern.BOSS:
+			_armor_angle += delta * 1.4
+			var name_l := String(stats.display_name).to_lower() if stats else ""
+			# Quantum Stalker: teleport periodically.
+			if "stalker" in name_l or "quantum" in name_l:
+				_teleport_cd -= delta
+				if _teleport_cd <= 0.0:
+					_teleport_cd = randf_range(2.2, 3.4)
+					var vp2 := get_viewport_rect().size
+					global_position = Vector2(randf_range(80.0, vp2.x - 80.0), randf_range(80.0, 200.0))
+					_origin_x = global_position.x
+					EventBus.gimmick_toast.emit("RELOCATING")
 			var target_y := 120.0
+			if "megalith" in name_l or "dreadnought" in name_l:
+				target_y = 100.0
 			if global_position.y < target_y:
 				global_position.y += speed * delta
 			else:
-				global_position.x = _origin_x + sin(_t * 0.8) * 140.0
+				var sway := 140.0
+				if "platform" in name_l or "orbital" in name_l:
+					sway = 100.0
+				global_position.x = _origin_x + sin(_t * 0.8) * sway
 				global_position.x = clampf(global_position.x, 60.0, get_viewport_rect().size.x - 60.0)
 
 
@@ -170,11 +201,38 @@ func _boss_fire() -> void:
 	for d in dirs:
 		projectile_pool.spawn_enemy(global_position + Vector2(0, 24), d * stats.projectile_speed, float(stats.contact_damage))
 	AudioBus.play_enemy_shoot()
+	# Fabrication Matrix: assemble sub-drones during the fight.
+	var name_l := String(stats.display_name).to_lower() if stats else ""
+	if ("matrix" in name_l or "fabrication" in name_l) and randf() < 0.35:
+		_spawn_fabricated_drone()
+
+
+func _spawn_fabricated_drone() -> void:
+	var parent := get_parent()
+	if parent == null or projectile_pool == null:
+		return
+	var scene: PackedScene = load("res://scenes/entities/enemy_base.tscn")
+	var stats_drone: EnemyStats = load("res://resources/enemies/drone.tres")
+	if scene == null or stats_drone == null:
+		return
+	var e: Node = scene.instantiate()
+	parent.add_child(e)
+	e.global_position = global_position + Vector2(randf_range(-60.0, 60.0), 40.0)
+	if e.has_method("setup"):
+		e.setup(stats_drone, projectile_pool, scroll_speed)
 
 
 func take_damage(amount: float) -> void:
 	if not alive:
 		return
+	# Orbital Defense Platform: rotating plating reduces frontal hits.
+	if stats and stats.is_boss and not stats.is_mid_boss:
+		var name_l := String(stats.display_name).to_lower()
+		if "platform" in name_l or "orbital" in name_l:
+			var facing := absf(sin(_armor_angle))
+			if facing > 0.65:
+				amount *= 0.35
+				EventBus.gimmick_toast.emit("ARMORED")
 	hp -= amount
 	_poly.modulate = Color(2.0, 2.0, 2.0)
 	get_tree().create_timer(0.05).timeout.connect(func() -> void:
@@ -187,39 +245,89 @@ func take_damage(amount: float) -> void:
 		_die()
 
 
+func absorb_bullet(amount: float = 1.0) -> void:
+	## Enemy bullets blocked by this hazard still chip large rocks.
+	if stats and stats.is_hazard and asteroid_tier >= 1:
+		take_damage(amount * 0.35)
+
+
 func _die() -> void:
 	alive = false
 	var score := stats.score_value if stats else 50
 	GameState.add_score(score)
 	AudioBus.play_explode()
 	EventBus.screen_shake.emit(3.0 if not (stats and stats.is_boss) else 12.0, 0.15)
+	if formation_id != "":
+		var tracker := get_tree().get_first_node_in_group("formation_tracker")
+		if tracker and tracker.has_method("notify_killed"):
+			tracker.notify_killed(self, formation_id)
 	if stats and stats.is_boss:
 		EventBus.boss_defeated.emit()
-	# Chance to drop pickup (deferred — may die mid physics query)
-	if not (stats and stats.is_hazard) and randf() < (0.35 if not (stats and stats.is_boss) else 1.0):
+	if stats and stats.is_hazard and String(stats.enemy_id) == "asteroid" and asteroid_tier >= 1:
+		call_deferred("_split_asteroid")
+	if stats and stats.is_mid_boss:
+		call_deferred("_spawn_major_reward")
+	elif not (stats and stats.is_hazard) and randf() < (0.35 if not (stats and stats.is_boss) else 1.0):
 		call_deferred("_spawn_pickup")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	call_deferred("queue_free")
 
 
+func _split_asteroid() -> void:
+	if not is_inside_tree() or stats == null:
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	var child_tier := asteroid_tier - 1
+	var scale := 0.55 if child_tier == 1 else 0.5
+	for i in 2:
+		var child_stats := stats.duplicate() as EnemyStats
+		child_stats.max_hp = maxf(1.0, stats.max_hp * 0.45)
+		child_stats.size = stats.size * scale
+		child_stats.move_speed = stats.move_speed * (1.25 if child_tier == 0 else 1.1)
+		child_stats.score_value = maxi(25, int(stats.score_value * 0.4))
+		child_stats.is_hazard = true
+		child_stats.enemy_id = &"asteroid"
+		var scene: PackedScene = load("res://scenes/entities/enemy_base.tscn")
+		if scene == null:
+			continue
+		var e: Node = scene.instantiate()
+		parent.add_child(e)
+		e.global_position = global_position + Vector2((-1.0 if i == 0 else 1.0) * 18.0, -8.0)
+		if e.has_method("setup"):
+			e.setup(child_stats, projectile_pool, scroll_speed)
+			e.asteroid_tier = child_tier
+
+
+func _spawn_major_reward() -> void:
+	# Power-up for escalation + shield/heal for the Act 3 breathing room.
+	_spawn_pickup_at(global_position + Vector2(-28, 0), "power")
+	_spawn_pickup_at(global_position + Vector2(28, 0), "shield" if randf() < 0.5 else "heal")
+
+
 func _spawn_pickup() -> void:
+	if not is_inside_tree():
+		return
+	var kinds := ["spread", "railgun", "homing", "wave", "flak", "power", "power", "rapid", "shield", "heal"]
+	_spawn_pickup_at(global_position, kinds[randi() % kinds.size()])
+
+
+func _spawn_pickup_at(pos: Vector2, kind: String) -> void:
 	if not is_inside_tree():
 		return
 	var scene: PackedScene = load("res://scenes/entities/pickup.tscn")
 	if scene == null:
 		return
-	var p: Node = scene.instantiate()
 	var parent := get_parent()
 	if parent == null:
 		return
-	var pos := global_position
+	var p: Node = scene.instantiate()
 	parent.add_child(p)
 	p.global_position = pos
 	if p.has_method("setup"):
-		var kinds := ["spread", "railgun", "homing", "wave", "flak", "power", "power", "rapid", "shield", "heal"]
-		p.setup(kinds[randi() % kinds.size()])
-
+		p.setup(kind)
 
 func _on_area_entered(area: Area2D) -> void:
 	_contact(area)

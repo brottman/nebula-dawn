@@ -1,18 +1,18 @@
 [gd_resource type="Resource" script_class="EnemyStats" format=3]
 
-[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_xv0id"]
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_43wia"]
 
 [resource]
-script = ExtResource("1_xv0id")
+script = ExtResource("1_43wia")
 enemy_id = &"boss"
-display_name = "Void Maw"
-max_hp = 140.0
-move_speed = 70.0
-score_value = 8000
-fire_interval = 0.9
-projectile_speed = 300.0
+display_name = "Omega Engine"
+max_hp = 160.0
+move_speed = 65.0
+score_value = 10000
+fire_interval = 0.85
+projectile_speed = 310.0
 contact_damage = 2
-color = Color(0.75, 0.3, 1, 1)
-size = Vector2(100, 78)
+color = Color(1, 0.35, 0.55, 1)
+size = Vector2(108, 84)
 is_boss = true
 scene_path = "res://scenes/entities/enemy_base.tscn"

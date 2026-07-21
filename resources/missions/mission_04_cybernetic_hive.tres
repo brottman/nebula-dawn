@@ -1,0 +1,256 @@
+[gd_resource type="Resource" script_class="MissionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_a8bvl"]
+[ext_resource type="Script" path="res://scripts/mission/mission_data.gd" id="2_tftjr"]
+[ext_resource type="Script" path="res://scripts/mission/wave_def.gd" id="3_gb51w"]
+[ext_resource type="Script" path="res://scripts/mission/spawn_entry.gd" id="4_ufb2g"]
+
+[sub_resource type="Resource" id="Resource_4los8"]
+script = ExtResource("1_a8bvl")
+enemy_id = &"boss"
+display_name = "Fabrication Matrix"
+max_hp = 130.0
+move_speed = 50.0
+score_value = 8000
+fire_interval = 0.95
+projectile_speed = 280.0
+contact_damage = 2
+color = Color(0.5, 1, 0.7, 1)
+size = Vector2(98, 76)
+is_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_ys75u"]
+script = ExtResource("1_a8bvl")
+enemy_id = &"drone"
+display_name = "Repair Drone"
+max_hp = 4.0
+move_speed = 100.0
+score_value = 160
+fire_interval = 1.6
+color = Color(0.4, 0.95, 0.7, 1)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_mu0mt"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+position = Vector2(160, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_p18a4"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+delay = 0.5
+position = Vector2(320, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_gxu35"]
+script = ExtResource("1_a8bvl")
+display_name = "Interceptor"
+move_speed = 150.0
+size = Vector2(26, 26)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_nykvp"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_gxu35")
+delay = 0.8
+count = 3
+spacing = Vector2(60, 0)
+
+[sub_resource type="Resource" id="Resource_fgouo"]
+script = ExtResource("1_a8bvl")
+enemy_id = &"strafer"
+display_name = "Heavy Turret"
+max_hp = 7.0
+move_speed = 40.0
+score_value = 240
+fire_interval = 1.1
+projectile_speed = 280.0
+color = Color(1, 0.4, 0.5, 1)
+size = Vector2(36, 30)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_vnlig"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 1.0
+position = Vector2(240, -50)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_wrkn4"]
+script = ExtResource("3_gb51w")
+label = "Act 1 — Opener"
+start_delay = 0.6
+entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_mu0mt"), SubResource("Resource_p18a4"), SubResource("Resource_nykvp"), SubResource("Resource_vnlig")])
+
+[sub_resource type="Resource" id="Resource_5tfa8"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+position = Vector2(120, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_ns2cw"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 0.4
+position = Vector2(360, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_jly5w"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+delay = 0.8
+position = Vector2(200, -40)
+count = 2
+spacing = Vector2(90, 0)
+
+[sub_resource type="Resource" id="Resource_e3k5p"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_gxu35")
+delay = 0.7
+position = Vector2(140, -40)
+count = 4
+spacing = Vector2(55, 0)
+
+[sub_resource type="Resource" id="Resource_qfuaa"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 0.9
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_3au5e"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+delay = 0.6
+position = Vector2(100, -40)
+count = 2
+spacing = Vector2(0, 35)
+
+[sub_resource type="Resource" id="Resource_ndhxo"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+delay = 0.2
+position = Vector2(380, -40)
+count = 2
+spacing = Vector2(0, 35)
+
+[sub_resource type="Resource" id="Resource_bfvkh"]
+script = ExtResource("3_gb51w")
+label = "Act 2 — Escalation"
+start_delay = 1.0
+entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_5tfa8"), SubResource("Resource_ns2cw"), SubResource("Resource_jly5w"), SubResource("Resource_e3k5p"), SubResource("Resource_qfuaa"), SubResource("Resource_3au5e"), SubResource("Resource_ndhxo")])
+
+[sub_resource type="Resource" id="Resource_cqxkq"]
+script = ExtResource("1_a8bvl")
+enemy_id = &"boss"
+display_name = "Core Overseer"
+max_hp = 46.0
+move_speed = 60.0
+score_value = 1900
+fire_interval = 1.15
+projectile_speed = 250.0
+color = Color(0.45, 1, 0.75, 1)
+size = Vector2(58, 58)
+is_boss = true
+is_mid_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_t31vk"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_cqxkq")
+position = Vector2(240, -60)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_fexku"]
+script = ExtResource("3_gb51w")
+label = "Act 3 — Mid-Boss"
+start_delay = 2.0
+entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_t31vk")])
+max_clear_time = 0.0
+
+[sub_resource type="Resource" id="Resource_urjph"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+position = Vector2(100, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_f2jno"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 0.3
+position = Vector2(380, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_g4gr5"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+delay = 0.6
+position = Vector2(200, -40)
+count = 3
+spacing = Vector2(50, 0)
+
+[sub_resource type="Resource" id="Resource_p77gm"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_gxu35")
+delay = 0.7
+position = Vector2(120, -40)
+count = 5
+spacing = Vector2(50, 8)
+
+[sub_resource type="Resource" id="Resource_dobij"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 0.8
+position = Vector2(240, -50)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_ouvrm"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+delay = 0.5
+position = Vector2(90, -40)
+count = 2
+spacing = Vector2(0, 40)
+
+[sub_resource type="Resource" id="Resource_akg46"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_ys75u")
+position = Vector2(390, -40)
+count = 2
+spacing = Vector2(0, 40)
+
+[sub_resource type="Resource" id="Resource_20uph"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 0.9
+position = Vector2(180, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_djavh"]
+script = ExtResource("4_ufb2g")
+enemy = SubResource("Resource_fgouo")
+delay = 0.3
+position = Vector2(300, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_pa5xy"]
+script = ExtResource("3_gb51w")
+label = "Act 4 — Climax"
+start_delay = 2.4
+entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_urjph"), SubResource("Resource_f2jno"), SubResource("Resource_g4gr5"), SubResource("Resource_p77gm"), SubResource("Resource_dobij"), SubResource("Resource_ouvrm"), SubResource("Resource_akg46"), SubResource("Resource_20uph"), SubResource("Resource_djavh")])
+max_clear_time = 12.0
+
+[resource]
+script = ExtResource("2_tftjr")
+mission_id = &"mission_04"
+title = "Cybernetic Hive"
+subtitle = "Shoot the terminals. Survive the fences."
+stage = 4
+scroll_speed = 58.0
+waves = Array[ExtResource("3_gb51w")]([SubResource("Resource_wrkn4"), SubResource("Resource_bfvkh"), SubResource("Resource_fexku"), SubResource("Resource_pa5xy")])
+win_on_waves_cleared = false
+boss = SubResource("Resource_4los8")
+boss_intro_delay = 1.7
+background_tint = Color(0.15, 0.35, 0.28, 1)
+gimmick_id = &"hive"

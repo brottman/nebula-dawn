@@ -22,13 +22,19 @@ func _populate() -> void:
 	if GameState.mode == GameState.Mode.ENDLESS:
 		title.text = "RUN OVER"
 		detail.text = "High score  %06d" % GameState.endless_high_score
-		campaign_btn.text = "Campaign"
+		campaign_btn.text = "Sector Select"
 	elif GameState.last_won:
-		title.text = "SECTOR CLEARED"
-		detail.text = "Mission complete"
+		if GameState.is_sector_finale():
+			title.text = "SECTOR 1 CLEARED"
+			detail.text = "Flagship Core destroyed"
+		else:
+			title.text = "STAGE CLEARED"
+			detail.text = "%s complete" % GameState.stage_code()
+		campaign_btn.text = "Sector 1"
 	else:
 		title.text = "SHIP DESTROYED"
-		detail.text = "Try again, pilot"
+		detail.text = "Try again, pilot — %s" % GameState.stage_code()
+		campaign_btn.text = "Sector 1"
 	score.text = "SCORE  %06d" % GameState.last_score
 
 

@@ -1,13 +1,15 @@
 extends Node
-## SFX via generated tones + looping music (menu OGG, level MP3s).
+## SFX via generated tones + looping mission MP3s.
 
-const MENU_MUSIC := "res://assets/audio/menu_theme.ogg"
+const MENU_MUSIC := "res://assets/audio/Menu.mp3"
 const MISSION_MUSIC := [
-	"res://assets/audio/Seven_Moons_Drifting.mp3", # Dawn Patrol
-	"res://assets/audio/Iron_Hull_Protocol.mp3", # Debris Field
-	"res://assets/audio/Last_Stand_at_Orion.mp3", # Nebula Core
+	"res://assets/audio/Interceptor_Run.mp3", # 1-1 Planetary Ascent
+	"res://assets/audio/Against_the_Solar_Wind.mp3", # 1-2 Asteroid Belt
+	"res://assets/audio/Zero_G_Intercept.mp3", # 1-3 Nebula Anomaly
+	"res://assets/audio/Hull_Breach_Protocol.mp3", # 1-4 Cybernetic Hive
+	"res://assets/audio/Gravity_Override.mp3", # 1-5 Flagship Core
 ]
-const ENDLESS_MUSIC := "res://assets/audio/Oxygen_Critical.mp3"
+const ENDLESS_MUSIC := "res://assets/audio/Last_Sector_Approach.mp3"
 
 var _players: Array[AudioStreamPlayer] = []
 var _music: AudioStreamPlayer
@@ -36,8 +38,7 @@ func play_game_music() -> void:
 	if GameState.mode == GameState.Mode.ENDLESS:
 		_play_path(ENDLESS_MUSIC, -12.0)
 		return
-	# Three tracks rotate across the campaign.
-	var idx := GameState.current_mission_index % MISSION_MUSIC.size()
+	var idx := clampi(GameState.current_mission_index, 0, MISSION_MUSIC.size() - 1)
 	_play_path(MISSION_MUSIC[idx], -12.0)
 
 

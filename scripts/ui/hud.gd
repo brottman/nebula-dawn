@@ -22,10 +22,33 @@ func _ready() -> void:
 	EventBus.boss_defeated.connect(_on_boss_defeated)
 	EventBus.pickup_collected.connect(_on_pickup)
 	EventBus.weapon_changed.connect(_on_weapon_changed)
+	EventBus.gimmick_toast.connect(_on_gimmick_toast)
+	EventBus.overdrive_changed.connect(_on_overdrive)
 	_on_score(GameState.session_score)
 	_on_hp(5, 5)
 	if GameState.mode == GameState.Mode.ENDLESS:
 		wave_label.text = "ENDLESS"
+	if has_node("Root/OverdriveBar"):
+		$Root/OverdriveBar.visible = false
+		$Root/OverdriveBar.max_value = 100.0
+		$Root/OverdriveBar.value = 0.0
+
+
+func _on_gimmick_toast(text: String) -> void:
+	pickup_toast.visible = true
+	pickup_toast.text = text
+	await get_tree().create_timer(1.0).timeout
+	if is_instance_valid(pickup_toast):
+		pickup_toast.visible = false
+
+
+func _on_overdrive(current: float, maximum: float) -> void:
+	if not has_node("Root/OverdriveBar"):
+		return
+	var bar: ProgressBar = $Root/OverdriveBar
+	bar.visible = current > 0.0 or GameState.current_mission_index == 4
+	bar.max_value = maximum
+	bar.value = current
 
 
 func _on_hp(current: int, maximum: int) -> void:
@@ -36,19 +59,24 @@ func _on_score(value: int) -> void:
 	score_label.text = "SCORE  %06d" % value
 
 
-func _on_wave(index: int, total: int) -> void:
-	wave_label.text = "WAVE  %d / %d" % [index + 1, total]
+func _on_wave(_index: int, _total: int, label: String = "") -> void:
+	if label != "":
+		wave_label.text = label.to_upper()
+	else:
+		wave_label.text = "WAVE"
 
 
 func _on_boss_spawned(boss: Node) -> void:
 	boss_bar.visible = true
 	boss_label.visible = true
 	var stats: EnemyStats = boss.get("stats")
+	var is_mid := false
 	if stats:
 		boss_label.text = stats.display_name.to_upper()
+		is_mid = stats.is_mid_boss
 	else:
 		boss_label.text = "WARNING"
-	wave_label.text = "BOSS"
+	wave_label.text = "ACT 3 — MID-BOSS" if is_mid else "ACT 5 — STAGE BOSS"
 
 
 func _on_boss_hp(current: float, maximum: float) -> void:

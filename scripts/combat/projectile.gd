@@ -77,7 +77,8 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 			_poly.color = opts.get("color", Color(0.55, 0.9, 1.0))
 	else:
 		collision_layer = 8
-		collision_mask = 1
+		# Hit player + hazards (asteroids block enemy fire).
+		collision_mask = 1 | 32
 		if _poly:
 			_poly.color = Color(1.0, 0.55, 0.35)
 
@@ -169,3 +170,8 @@ func _try_hit(target: Node) -> void:
 		if target.is_in_group("player") and target.has_method("take_damage"):
 			target.take_damage(int(damage))
 			deactivate()
+		elif target.is_in_group("hazards"):
+			# Rocks / barriers absorb enemy fire.
+			deactivate()
+			if target.has_method("absorb_bullet"):
+				target.absorb_bullet(damage)

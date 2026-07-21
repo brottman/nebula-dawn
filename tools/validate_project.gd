@@ -12,14 +12,16 @@ func _init() -> void:
 		"res://scenes/entities/projectile.tscn",
 		"res://scenes/entities/enemy_base.tscn",
 		"res://scenes/entities/pickup.tscn",
-		"res://resources/missions/mission_01_dawn_patrol.tres",
-		"res://resources/missions/mission_02_debris_field.tres",
-		"res://resources/missions/mission_03_nebula_core.tres",
-		"res://resources/missions/mission_04_solar_flare.tres",
-		"res://resources/missions/mission_05_frozen_belt.tres",
-		"res://resources/missions/mission_06_event_horizon.tres",
+		"res://resources/missions/mission_01_planetary_ascent.tres",
+		"res://resources/missions/mission_02_asteroid_belt.tres",
+		"res://resources/missions/mission_03_nebula_anomaly.tres",
+		"res://resources/missions/mission_04_cybernetic_hive.tres",
+		"res://resources/missions/mission_05_flagship_core.tres",
 		"res://resources/enemies/boss.tres",
 		"res://resources/enemies/boss_elite.tres",
+		"res://scenes/stage/barrier.tscn",
+		"res://scenes/stage/terminal.tscn",
+		"res://scenes/stage/singularity.tscn",
 	]
 	var ok := true
 	for p in paths:

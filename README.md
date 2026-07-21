@@ -1,6 +1,6 @@
 # Nebula Dawn
 
-Vertical-scrolling space shooter built with **Godot 4.7** (GDScript). Campaign missions first; Endless mode included.
+Vertical-scrolling space shooter built with **Godot 4.7** (GDScript). Five thematic campaign stages; Endless mode included.
 
 ## Run
 
@@ -19,16 +19,19 @@ godot --path .
 | Fire | Auto | Auto | Auto |
 | Pause | — | Esc | Start |
 
-## Campaign
+## Campaign (Sector 1)
 
-1. **Dawn Patrol** — intro scouts and strafers  
-2. **Debris Field** — asteroids + mixed fighters  
-3. **Nebula Core** — elites, then the boss  
-4. **Solar Flare** — fast strafer assaults in the burning winds  
-5. **Frozen Belt** — dense ice-asteroid slalom  
-6. **Event Horizon** — the Void Maw awaits  
+Five stages from low orbit to the Flagship Core:
 
-Missions and enemy stats live under `resources/` as `.tres` files. Regenerate with:
+1. **1-1 Planetary Ascent** — formation chain-reactions
+2. **1-2 The Asteroid Belt** — splitting rocks that block bullets
+3. **1-3 Nebula Anomaly** — fog + plasma weapon boosts
+4. **1-4 Cybernetic Hive** — laser fences & shootable terminals
+5. **1-5 Flagship Core** — singularities, graze Overdrive
+
+Each stage: Opener → Escalation → Mid-Boss → Climax → Stage Boss.
+
+Regenerate mission data with:
 
 ```bash
 godot --headless --path . --script res://tools/generate_resources.gd
@@ -37,7 +40,7 @@ godot --headless --path . --script res://tools/generate_resources.gd
 ## Project layout
 
 - `scenes/game/` — shared `GameWorld` (campaign + endless)
-- `scenes/ui/` — menus and results
-- `scripts/mission/` — mission data, wave spawner, runner
-- `scripts/combat/` — projectile pooling
-- `resources/missions/` — wave definitions
+- `scenes/stage/` — barriers, terminals, singularities
+- `scripts/stage/` — StageDirector + gimmick entities
+- `scripts/mission/` — mission data, wave spawner, formation tracker
+- `resources/missions/` — five campaign stages

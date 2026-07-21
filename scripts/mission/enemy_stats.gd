@@ -14,4 +14,6 @@ extends Resource
 @export var size: Vector2 = Vector2(28, 28)
 @export var is_hazard: bool = false
 @export var is_boss: bool = false
+## Mid-boss: uses boss HUD/pattern but does not end the mission when defeated.
+@export var is_mid_boss: bool = false
 @export var scene_path: String = "res://scenes/entities/enemy_scout.tscn"

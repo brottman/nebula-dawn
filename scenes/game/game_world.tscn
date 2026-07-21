@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://gameworld001"]
+[gd_scene load_steps=11 format=3 uid="uid://gameworld001"]
 
 [ext_resource type="Script" path="res://scripts/game/game_world.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/game/parallax_bg.tscn" id="2"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/mission/mission_runner.gd" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/game/hud.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/game/pause_menu.tscn" id="8"]
+[ext_resource type="Script" path="res://scripts/mission/formation_tracker.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/stage/stage_director.gd" id="10"]
 
 [node name="GameWorld" type="Node2D"]
 script = ExtResource("1")
@@ -33,6 +35,12 @@ script = ExtResource("5")
 
 [node name="MissionRunner" type="Node" parent="."]
 script = ExtResource("6")
+
+[node name="FormationTracker" type="Node" parent="."]
+script = ExtResource("9")
+
+[node name="StageDirector" type="Node" parent="."]
+script = ExtResource("10")
 
 [node name="HUD" parent="." instance=ExtResource("7")]
 

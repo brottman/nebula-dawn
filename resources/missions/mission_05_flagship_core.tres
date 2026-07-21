@@ -1,0 +1,268 @@
+[gd_resource type="Resource" script_class="MissionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_h02bo"]
+[ext_resource type="Script" path="res://scripts/mission/mission_data.gd" id="2_u0yhy"]
+[ext_resource type="Script" path="res://scripts/mission/wave_def.gd" id="3_83ys1"]
+[ext_resource type="Script" path="res://scripts/mission/spawn_entry.gd" id="4_o74vw"]
+
+[sub_resource type="Resource" id="Resource_y0nxf"]
+script = ExtResource("1_h02bo")
+enemy_id = &"boss"
+display_name = "Omega Engine"
+max_hp = 160.0
+move_speed = 65.0
+score_value = 10000
+fire_interval = 0.85
+projectile_speed = 310.0
+contact_damage = 2
+color = Color(1, 0.35, 0.55, 1)
+size = Vector2(108, 84)
+is_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_nv5fr"]
+script = ExtResource("1_h02bo")
+enemy_id = &"strafer"
+display_name = "Ace Fighter"
+max_hp = 5.0
+move_speed = 160.0
+score_value = 300
+fire_interval = 1.0
+projectile_speed = 300.0
+color = Color(1, 0.85, 0.4, 1)
+size = Vector2(28, 26)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_xofnu"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+position = Vector2(140, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_b3p6r"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 0.5
+position = Vector2(340, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_gxu35"]
+script = ExtResource("1_h02bo")
+display_name = "Interceptor"
+move_speed = 150.0
+size = Vector2(26, 26)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_mkea6"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_gxu35")
+delay = 0.8
+position = Vector2(220, -40)
+count = 3
+spacing = Vector2(55, 0)
+
+[sub_resource type="Resource" id="Resource_blaeo"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 1.0
+count = 2
+spacing = Vector2(100, 0)
+
+[sub_resource type="Resource" id="Resource_rryny"]
+script = ExtResource("3_83ys1")
+label = "Act 1 — Opener"
+start_delay = 0.7
+entries = Array[ExtResource("4_o74vw")]([SubResource("Resource_xofnu"), SubResource("Resource_b3p6r"), SubResource("Resource_mkea6"), SubResource("Resource_blaeo")])
+
+[sub_resource type="Resource" id="Resource_asu33"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+position = Vector2(80, -40)
+count = 2
+spacing = Vector2(0, 40)
+
+[sub_resource type="Resource" id="Resource_51wby"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 0.3
+position = Vector2(400, -40)
+count = 2
+spacing = Vector2(0, 40)
+
+[sub_resource type="Resource" id="Resource_cuuqq"]
+script = ExtResource("1_h02bo")
+enemy_id = &"drone"
+display_name = "Mining Drone"
+max_hp = 6.0
+move_speed = 75.0
+score_value = 200
+fire_interval = 1.7
+projectile_speed = 210.0
+color = Color(0.7, 0.4, 1, 1)
+size = Vector2(34, 34)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_bbd8v"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_cuuqq")
+delay = 0.9
+count = 2
+spacing = Vector2(100, 0)
+
+[sub_resource type="Resource" id="Resource_omorf"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_gxu35")
+delay = 0.6
+position = Vector2(160, -40)
+count = 4
+spacing = Vector2(55, 0)
+
+[sub_resource type="Resource" id="Resource_bx3x6"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 0.8
+position = Vector2(200, -40)
+count = 2
+spacing = Vector2(90, 0)
+
+[sub_resource type="Resource" id="Resource_4cget"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_cuuqq")
+delay = 0.7
+position = Vector2(180, -50)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_kuhxo"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_cuuqq")
+delay = 0.3
+position = Vector2(300, -50)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_a4hfl"]
+script = ExtResource("3_83ys1")
+label = "Act 2 — Escalation"
+start_delay = 1.0
+entries = Array[ExtResource("4_o74vw")]([SubResource("Resource_asu33"), SubResource("Resource_51wby"), SubResource("Resource_bbd8v"), SubResource("Resource_omorf"), SubResource("Resource_bx3x6"), SubResource("Resource_4cget"), SubResource("Resource_kuhxo")])
+
+[sub_resource type="Resource" id="Resource_ohrgb"]
+script = ExtResource("1_h02bo")
+enemy_id = &"boss"
+display_name = "Twin Ace Lead"
+max_hp = 38.0
+move_speed = 100.0
+score_value = 1700
+fire_interval = 0.95
+projectile_speed = 290.0
+color = Color(1, 0.7, 0.3, 1)
+size = Vector2(50, 44)
+is_boss = true
+is_mid_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_477sh"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_ohrgb")
+position = Vector2(180, -60)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_00upy"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_ohrgb")
+delay = 0.4
+position = Vector2(300, -60)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_ru0sw"]
+script = ExtResource("3_83ys1")
+label = "Act 3 — Mid-Boss"
+start_delay = 2.0
+entries = Array[ExtResource("4_o74vw")]([SubResource("Resource_477sh"), SubResource("Resource_00upy")])
+max_clear_time = 0.0
+
+[sub_resource type="Resource" id="Resource_4061n"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+position = Vector2(90, -40)
+count = 3
+spacing = Vector2(0, 35)
+
+[sub_resource type="Resource" id="Resource_wqm1i"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+position = Vector2(390, -40)
+count = 3
+spacing = Vector2(0, 35)
+
+[sub_resource type="Resource" id="Resource_5g1i5"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_cuuqq")
+delay = 0.8
+position = Vector2(200, -40)
+count = 2
+spacing = Vector2(100, 0)
+
+[sub_resource type="Resource" id="Resource_wx5ss"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_gxu35")
+delay = 0.6
+position = Vector2(120, -40)
+count = 5
+spacing = Vector2(50, 8)
+
+[sub_resource type="Resource" id="Resource_c78ce"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 0.7
+count = 2
+spacing = Vector2(90, 0)
+
+[sub_resource type="Resource" id="Resource_rcx0e"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_cuuqq")
+delay = 0.8
+position = Vector2(240, -50)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_8ao0d"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 0.6
+position = Vector2(140, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_5jegc"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_nv5fr")
+delay = 0.3
+position = Vector2(340, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_jug10"]
+script = ExtResource("4_o74vw")
+enemy = SubResource("Resource_gxu35")
+delay = 0.7
+position = Vector2(100, -40)
+count = 5
+spacing = Vector2(55, 0)
+
+[sub_resource type="Resource" id="Resource_kpdio"]
+script = ExtResource("3_83ys1")
+label = "Act 4 — Climax"
+start_delay = 2.5
+entries = Array[ExtResource("4_o74vw")]([SubResource("Resource_4061n"), SubResource("Resource_wqm1i"), SubResource("Resource_5g1i5"), SubResource("Resource_wx5ss"), SubResource("Resource_c78ce"), SubResource("Resource_rcx0e"), SubResource("Resource_8ao0d"), SubResource("Resource_5jegc"), SubResource("Resource_jug10")])
+max_clear_time = 12.0
+
+[resource]
+script = ExtResource("2_u0yhy")
+mission_id = &"mission_05"
+title = "Flagship Core"
+subtitle = "Graze the void. Break the Omega Engine."
+stage = 5
+scroll_speed = 62.0
+waves = Array[ExtResource("3_83ys1")]([SubResource("Resource_rryny"), SubResource("Resource_a4hfl"), SubResource("Resource_ru0sw"), SubResource("Resource_kpdio")])
+win_on_waves_cleared = false
+boss = SubResource("Resource_y0nxf")
+boss_intro_delay = 2.0
+background_tint = Color(0.22, 0.06, 0.28, 1)
+gimmick_id = &"gravity"

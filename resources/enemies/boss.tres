@@ -5,14 +5,14 @@
 [resource]
 script = ExtResource("1_jlmjw")
 enemy_id = &"boss"
-display_name = "Nebula Core"
-max_hp = 80.0
-move_speed = 60.0
-score_value = 5000
+display_name = "Orbital Defense Platform"
+max_hp = 95.0
+move_speed = 50.0
+score_value = 5500
 fire_interval = 1.1
 projectile_speed = 260.0
 contact_damage = 2
-color = Color(1, 0.35, 0.55, 1)
-size = Vector2(90, 70)
+color = Color(0.4, 0.75, 1, 1)
+size = Vector2(96, 72)
 is_boss = true
 scene_path = "res://scenes/entities/enemy_base.tscn"

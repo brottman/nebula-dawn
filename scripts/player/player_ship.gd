@@ -45,11 +45,22 @@ var _fire_timer: float = 0.0
 var _flash_timer: float = 0.0
 var dead: bool = false
 
+## Stage 3 plasma: +50% damage, secondaries disabled.
+var plasma_active: bool = false
+var damage_mult: float = 1.0
+var secondaries_disabled: bool = false
+
+## Stage 5 overdrive (filled by grazing singularities).
+var overdrive: float = 0.0
+const OVERDRIVE_MAX := 100.0
+var overdrive_time: float = 0.0
+
 var projectile_pool: ProjectilePool
 
 var _touch_active: bool = false
 var _touch_index: int = -1
 var _touch_world: Vector2 = Vector2.ZERO
+var _cinematic: bool = false
 
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _shield_visual: Polygon2D = $ShieldVisual
@@ -68,7 +79,7 @@ func setup(pool: ProjectilePool) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if dead:
+	if dead or _cinematic:
 		return
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
@@ -93,7 +104,7 @@ func _screen_to_world(screen_pos: Vector2) -> Vector2:
 
 
 func _physics_process(delta: float) -> void:
-	if dead:
+	if dead or _cinematic:
 		return
 	_update_timers(delta)
 	_handle_movement(delta)
@@ -113,6 +124,49 @@ func _update_timers(delta: float) -> void:
 		rapid_time -= delta
 	if _flash_timer > 0.0:
 		_flash_timer -= delta
+	if overdrive_time > 0.0:
+		overdrive_time -= delta
+		if overdrive_time <= 0.0:
+			Engine.time_scale = 1.0
+			EventBus.gimmick_toast.emit("OVERDRIVE END")
+
+
+func enter_plasma() -> void:
+	plasma_active = true
+	damage_mult = 1.5
+	secondaries_disabled = true
+	EventBus.gimmick_toast.emit("PLASMA BOOST")
+
+
+func exit_plasma() -> void:
+	plasma_active = false
+	damage_mult = 1.0
+	secondaries_disabled = false
+
+
+func clear_zone_effects() -> void:
+	exit_plasma()
+	overdrive_time = 0.0
+	Engine.time_scale = 1.0
+
+
+func add_overdrive(amount: float) -> void:
+	if overdrive_time > 0.0:
+		return
+	overdrive = minf(OVERDRIVE_MAX, overdrive + amount)
+	EventBus.overdrive_changed.emit(overdrive, OVERDRIVE_MAX)
+	if overdrive >= OVERDRIVE_MAX:
+		_activate_overdrive()
+
+
+func _activate_overdrive() -> void:
+	overdrive = 0.0
+	EventBus.overdrive_changed.emit(overdrive, OVERDRIVE_MAX)
+	overdrive_time = 1.6
+	Engine.time_scale = 0.4
+	rapid_time = maxf(rapid_time, 1.6)
+	EventBus.overdrive_activated.emit()
+	EventBus.gimmick_toast.emit("OVERDRIVE")
 
 
 func _handle_movement(delta: float) -> void:
@@ -178,52 +232,50 @@ func _shoot() -> void:
 	if projectile_pool == null:
 		return
 	var origin := global_position + Vector2(0, -18)
-	match weapon:
+	var dmg := bullet_damage * damage_mult
+	var active_weapon := weapon
+	if secondaries_disabled and weapon != Weapon.BLASTER:
+		active_weapon = Weapon.BLASTER
+	match active_weapon:
 		Weapon.SPREAD:
-			# Widening fan: 5 / 7 / 9 bolts by level.
 			var count := 3 + weapon_level * 2
 			for i in count:
 				var dir := Vector2(-0.7 + 1.4 * i / float(count - 1), -1.0).normalized()
-				projectile_pool.spawn_player(origin, dir * bullet_speed, bullet_damage)
+				projectile_pool.spawn_player(origin, dir * bullet_speed, dmg)
 			AudioBus.play_shoot(720.0)
 		Weapon.RAILGUN:
-			# Slow, heavy bolt that pierces everything in its lane.
-			projectile_pool.spawn_player(origin, Vector2(0, -900.0), 2.0 + 2.0 * weapon_level, {
+			projectile_pool.spawn_player(origin, Vector2(0, -900.0), (2.0 + 2.0 * weapon_level) * damage_mult, {
 				"pierce": 99, "scale": 1.5 + 0.3 * weapon_level, "color": Color(0.8, 1.0, 1.0)})
 			AudioBus.play_shoot(1250.0)
 		Weapon.HOMING:
-			# Seeking missiles: 2 / 3 / 4 by level.
 			var count := 1 + weapon_level
 			for i in count:
 				var dir := Vector2((i - (count - 1) * 0.5) * 0.3, -1.0).normalized()
-				projectile_pool.spawn_player(origin, dir * 380.0, 1.0 + 0.5 * weapon_level, {
+				projectile_pool.spawn_player(origin, dir * 380.0, (1.0 + 0.5 * weapon_level) * damage_mult, {
 					"homing": 7.0, "scale": 1.1, "color": Color(1.0, 0.75, 0.3)})
 			AudioBus.play_shoot(600.0)
 		Weapon.WAVE:
-			# Paired orbs weaving mirrored sine paths; damage and pierce grow with level.
 			for side in [-1.0, 1.0]:
-				projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(0, -340.0), 1.0 + weapon_level, {
+				projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(0, -340.0), (1.0 + weapon_level) * damage_mult, {
 					"wave_amp": side * 55.0, "wave_freq": 9.0, "pierce": weapon_level,
 					"scale": 1.4, "color": Color(0.85, 0.5, 1.0)})
 			AudioBus.play_shoot(500.0)
 		Weapon.FLAK:
-			# Close-range shotgun burst: 6 / 8 / 10 pellets, longer reach per level.
 			var count := 4 + weapon_level * 2
 			for i in count:
 				var dir := Vector2(randf_range(-0.55, 0.55), -1.0).normalized()
-				projectile_pool.spawn_player(origin, dir * randf_range(480.0, 640.0), 1.0, {
+				projectile_pool.spawn_player(origin, dir * randf_range(480.0, 640.0), dmg, {
 					"lifetime": 0.3 + 0.1 * weapon_level, "scale": 0.8, "color": Color(1.0, 0.5, 0.4)})
 			AudioBus.play_shoot(300.0)
 		_:
-			# Blaster: 1 / 2 / 3 parallel bolts by level.
 			for i in weapon_level:
 				var offset := (i - (weapon_level - 1) * 0.5) * 12.0
-				projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -bullet_speed), bullet_damage)
+				projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -bullet_speed), dmg)
 			AudioBus.play_shoot()
 
 
 func take_damage(amount: int) -> void:
-	if dead or invuln_time > 0.0:
+	if dead or _cinematic or invuln_time > 0.0:
 		return
 	if shield_time > 0.0:
 		shield_time = 0.0
@@ -245,12 +297,51 @@ func take_damage(amount: int) -> void:
 
 func _die() -> void:
 	dead = true
+	_cinematic = false
 	_touch_active = false
 	_touch_index = -1
+	clear_zone_effects()
 	visible = false
 	set_physics_process(false)
 	AudioBus.play_explode()
 	EventBus.player_died.emit()
+
+
+## Victory outro: drift to screen center, hover, then streak off the top.
+func play_victory_exit() -> void:
+	if dead or not is_inside_tree():
+		return
+	_cinematic = true
+	_touch_active = false
+	_touch_index = -1
+	invuln_time = 999.0
+	velocity = Vector2.ZERO
+	clear_zone_effects()
+	if _engine:
+		_engine.emitting = true
+	_poly.modulate.a = 1.0
+	_poly.color = Color(0.43, 0.78, 1.0)
+
+	var vp := get_viewport_rect().size
+	var center := Vector2(vp.x * 0.5, vp.y * 0.48)
+	var offscreen := Vector2(vp.x * 0.5, -120.0)
+
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# Glide to center.
+	tween.tween_property(self, "global_position", center, 1.15)
+	# Soft hover bob.
+	tween.tween_property(self, "global_position", center + Vector2(0, -10), 0.35)
+	tween.tween_property(self, "global_position", center + Vector2(0, 8), 0.35)
+	tween.tween_property(self, "global_position", center, 0.3)
+	# Brief hold, then accelerate off the top with a slight stretch.
+	tween.tween_interval(0.35)
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "global_position", offscreen, 0.75)
+	tween.parallel().tween_property(self, "scale", Vector2(0.7, 1.45), 0.75)
+	tween.parallel().tween_property(_poly, "modulate:a", 0.0, 0.55).set_delay(0.2)
+	await tween.finished
+	visible = false
 
 
 func apply_pickup(kind: String) -> void:

@@ -1,0 +1,252 @@
+[gd_resource type="Resource" script_class="MissionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_owjit"]
+[ext_resource type="Script" path="res://scripts/mission/mission_data.gd" id="2_vbjrn"]
+[ext_resource type="Script" path="res://scripts/mission/wave_def.gd" id="3_aaocr"]
+[ext_resource type="Script" path="res://scripts/mission/spawn_entry.gd" id="4_84qld"]
+
+[sub_resource type="Resource" id="Resource_jhad0"]
+script = ExtResource("1_owjit")
+enemy_id = &"boss"
+display_name = "Celestial Leviathan"
+max_hp = 120.0
+move_speed = 55.0
+score_value = 7500
+fire_interval = 1.0
+projectile_speed = 270.0
+contact_damage = 2
+color = Color(0.85, 0.45, 1, 1)
+size = Vector2(100, 80)
+is_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_jypca"]
+script = ExtResource("1_owjit")
+display_name = "Stealth Craft"
+max_hp = 3.0
+move_speed = 170.0
+score_value = 180
+color = Color(0.45, 0.35, 0.7, 1)
+size = Vector2(24, 24)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_d6pcj"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+position = Vector2(200, -40)
+count = 3
+spacing = Vector2(55, 0)
+
+[sub_resource type="Resource" id="Resource_gxu35"]
+script = ExtResource("1_owjit")
+display_name = "Interceptor"
+move_speed = 150.0
+size = Vector2(26, 26)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_cjs3c"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_gxu35")
+delay = 0.9
+position = Vector2(120, -40)
+count = 3
+spacing = Vector2(60, 12)
+
+[sub_resource type="Resource" id="Resource_8iseb"]
+script = ExtResource("1_owjit")
+enemy_id = &"drone"
+display_name = "Bio-Ship"
+max_hp = 5.0
+move_speed = 90.0
+score_value = 220
+fire_interval = 1.5
+projectile_speed = 200.0
+color = Color(0.55, 1, 0.75, 1)
+size = Vector2(32, 32)
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_qsvwm"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+delay = 1.0
+position = Vector2(280, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_hcqlk"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+delay = 0.8
+position = Vector2(160, -40)
+count = 3
+spacing = Vector2(70, 0)
+
+[sub_resource type="Resource" id="Resource_4mjww"]
+script = ExtResource("3_aaocr")
+label = "Act 1 — Opener"
+start_delay = 0.7
+entries = Array[ExtResource("4_84qld")]([SubResource("Resource_d6pcj"), SubResource("Resource_cjs3c"), SubResource("Resource_qsvwm"), SubResource("Resource_hcqlk")])
+
+[sub_resource type="Resource" id="Resource_l650n"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+position = Vector2(180, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_51x00"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+delay = 0.4
+position = Vector2(300, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_b3yak"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+delay = 0.8
+position = Vector2(100, -40)
+count = 4
+spacing = Vector2(50, 10)
+
+[sub_resource type="Resource" id="Resource_0sjsg"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+delay = 0.9
+position = Vector2(240, -50)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_65ej4"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_gxu35")
+delay = 0.6
+position = Vector2(140, -40)
+count = 3
+spacing = Vector2(80, 0)
+
+[sub_resource type="Resource" id="Resource_of46v"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+delay = 0.8
+position = Vector2(80, -40)
+count = 3
+spacing = Vector2(0, 30)
+
+[sub_resource type="Resource" id="Resource_1h1ed"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+delay = 0.2
+position = Vector2(400, -40)
+count = 3
+spacing = Vector2(0, 30)
+
+[sub_resource type="Resource" id="Resource_s8jff"]
+script = ExtResource("3_aaocr")
+label = "Act 2 — Escalation"
+start_delay = 1.0
+entries = Array[ExtResource("4_84qld")]([SubResource("Resource_l650n"), SubResource("Resource_51x00"), SubResource("Resource_b3yak"), SubResource("Resource_0sjsg"), SubResource("Resource_65ej4"), SubResource("Resource_of46v"), SubResource("Resource_1h1ed")])
+
+[sub_resource type="Resource" id="Resource_fg61y"]
+script = ExtResource("1_owjit")
+enemy_id = &"boss"
+display_name = "Quantum Stalker"
+max_hp = 42.0
+move_speed = 90.0
+score_value = 1800
+fire_interval = 1.1
+projectile_speed = 260.0
+color = Color(0.7, 0.4, 1, 1)
+size = Vector2(56, 48)
+is_boss = true
+is_mid_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"
+
+[sub_resource type="Resource" id="Resource_7ytqc"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_fg61y")
+position = Vector2(240, -60)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_dpbkt"]
+script = ExtResource("3_aaocr")
+label = "Act 3 — Mid-Boss"
+start_delay = 2.0
+entries = Array[ExtResource("4_84qld")]([SubResource("Resource_7ytqc")])
+max_clear_time = 0.0
+
+[sub_resource type="Resource" id="Resource_bxra7"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+position = Vector2(160, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_5os7m"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+delay = 0.3
+position = Vector2(320, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_jsw34"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+delay = 0.6
+position = Vector2(100, -40)
+count = 5
+spacing = Vector2(55, 8)
+
+[sub_resource type="Resource" id="Resource_8fv2e"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+delay = 0.8
+count = 2
+spacing = Vector2(90, 0)
+
+[sub_resource type="Resource" id="Resource_kyslk"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_gxu35")
+delay = 0.6
+position = Vector2(140, -40)
+count = 4
+spacing = Vector2(65, 0)
+
+[sub_resource type="Resource" id="Resource_1clv8"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+delay = 0.7
+position = Vector2(90, -40)
+count = 2
+spacing = Vector2(0, 40)
+
+[sub_resource type="Resource" id="Resource_71i12"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_jypca")
+position = Vector2(390, -40)
+count = 2
+spacing = Vector2(0, 40)
+
+[sub_resource type="Resource" id="Resource_owiu2"]
+script = ExtResource("4_84qld")
+enemy = SubResource("Resource_8iseb")
+delay = 0.9
+position = Vector2(220, -40)
+spacing = Vector2(48, 0)
+
+[sub_resource type="Resource" id="Resource_axkrt"]
+script = ExtResource("3_aaocr")
+label = "Act 4 — Climax"
+start_delay = 2.5
+entries = Array[ExtResource("4_84qld")]([SubResource("Resource_bxra7"), SubResource("Resource_5os7m"), SubResource("Resource_jsw34"), SubResource("Resource_8fv2e"), SubResource("Resource_kyslk"), SubResource("Resource_1clv8"), SubResource("Resource_71i12"), SubResource("Resource_owiu2")])
+max_clear_time = 12.0
+
+[resource]
+script = ExtResource("2_vbjrn")
+mission_id = &"mission_03"
+title = "Nebula Anomaly"
+subtitle = "Trust the glow — not your eyes."
+stage = 3
+scroll_speed = 52.0
+waves = Array[ExtResource("3_aaocr")]([SubResource("Resource_4mjww"), SubResource("Resource_s8jff"), SubResource("Resource_dpbkt"), SubResource("Resource_axkrt")])
+win_on_waves_cleared = false
+boss = SubResource("Resource_jhad0")
+boss_intro_delay = 1.8
+background_tint = Color(0.4, 0.12, 0.4, 1)
+gimmick_id = &"nebula"

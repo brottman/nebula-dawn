@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage/singularity.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 28.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2"]
+radius = 78.0
+
+[node name="Singularity" type="Area2D"]
+script = ExtResource("1")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+color = Color(0.15, 0.05, 0.25, 0.85)
+
+[node name="GrazeRing" type="Polygon2D" parent="."]
+color = Color(0.7, 0.4, 1, 0.12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
+
+[node name="GrazeSensor" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 8
+monitoring = true
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GrazeSensor"]
+shape = SubResource("CircleShape2D_2")

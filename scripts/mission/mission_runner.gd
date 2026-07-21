@@ -61,6 +61,9 @@ func _on_boss_requested() -> void:
 func _on_boss_defeated() -> void:
 	if _finished:
 		return
+	# Mid-bosses also emit boss_defeated for HUD cleanup; only the stage boss ends the run.
+	if not _boss_alive:
+		return
 	_boss_alive = false
 	_finish(true)
 

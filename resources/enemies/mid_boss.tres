@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_ncofv"]
+
+[resource]
+script = ExtResource("1_ncofv")
+enemy_id = &"boss"
+display_name = "Heavy Transport"
+max_hp = 36.0
+move_speed = 70.0
+score_value = 1400
+fire_interval = 1.25
+projectile_speed = 240.0
+color = Color(0.55, 0.8, 1, 1)
+size = Vector2(64, 48)
+is_boss = true
+is_mid_boss = true
+scene_path = "res://scenes/entities/enemy_base.tscn"

@@ -71,7 +71,7 @@ layout_mode = 2
 [node name="CampaignButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
-text = "Campaign"
+text = "Sector 1"
 
 [node name="EndlessButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 44)

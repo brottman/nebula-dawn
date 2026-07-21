@@ -2,14 +2,16 @@ extends Node
 ## Persistent campaign progress, run mode, and session score.
 
 const SAVE_PATH := "user://nebula_dawn.cfg"
-const MISSION_PATHS := [
-	"res://resources/missions/mission_01_dawn_patrol.tres",
-	"res://resources/missions/mission_02_debris_field.tres",
-	"res://resources/missions/mission_03_nebula_core.tres",
-	"res://resources/missions/mission_04_solar_flare.tres",
-	"res://resources/missions/mission_05_frozen_belt.tres",
-	"res://resources/missions/mission_06_event_horizon.tres",
+## Sector 1 — five stages from Planetary Ascent through Flagship Core.
+const SECTOR_1_PATHS := [
+	"res://resources/missions/mission_01_planetary_ascent.tres",
+	"res://resources/missions/mission_02_asteroid_belt.tres",
+	"res://resources/missions/mission_03_nebula_anomaly.tres",
+	"res://resources/missions/mission_04_cybernetic_hive.tres",
+	"res://resources/missions/mission_05_flagship_core.tres",
 ]
+const MISSION_PATHS := SECTOR_1_PATHS
+const SECTOR_1 := 1
 
 enum Mode { CAMPAIGN, ENDLESS }
 
@@ -87,3 +89,32 @@ func record_mission_result(won: bool) -> void:
 
 func is_mission_unlocked(index: int) -> bool:
 	return index <= highest_unlocked_mission
+
+
+func get_mission_data(index: int = -1) -> MissionData:
+	var path := get_mission_path(index)
+	if path == "":
+		return null
+	return load(path) as MissionData
+
+
+func sector_of(index: int = -1) -> int:
+	var data := get_mission_data(index)
+	return data.sector if data else SECTOR_1
+
+
+func stage_of(index: int = -1) -> int:
+	var data := get_mission_data(index)
+	if data:
+		return data.stage
+	var i := current_mission_index if index < 0 else index
+	return i + 1
+
+
+func is_sector_finale(index: int = -1) -> bool:
+	var i := current_mission_index if index < 0 else index
+	return i == MISSION_PATHS.size() - 1
+
+
+func stage_code(index: int = -1) -> String:
+	return "%d-%d" % [sector_of(index), stage_of(index)]

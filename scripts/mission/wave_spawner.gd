@@ -1,5 +1,6 @@
 extends Node
 ## Spawns waves from MissionData or endless difficulty ramp.
+## Campaign waves use hybrid clear: advance when the wave is destroyed OR max_clear_time expires.
 
 signal wave_started(index: int, total: int)
 signal all_waves_cleared
@@ -14,6 +15,9 @@ var _wave_index: int = -1
 var _spawning: bool = false
 var _waiting_clear: bool = false
 var _active_enemies: int = 0
+var _wave_enemies_alive: int = 0
+var _clear_timer: float = 0.0
+var _max_clear_time: float = 0.0
 var _endless: bool = false
 var _endless_time: float = 0.0
 var _endless_spawn_cd: float = 2.0
@@ -50,6 +54,9 @@ func start_mission(data: MissionData) -> void:
 	_spawning = false
 	_waiting_clear = false
 	_active_enemies = 0
+	_wave_enemies_alive = 0
+	_clear_timer = 0.0
+	_max_clear_time = 0.0
 	scroll_speed = data.scroll_speed if data else 40.0
 	_next_wave()
 
@@ -61,6 +68,8 @@ func start_endless() -> void:
 	_endless_spawn_cd = 2.2
 	_endless_next = 1.0
 	_active_enemies = 0
+	_wave_enemies_alive = 0
+	_waiting_clear = false
 	scroll_speed = 50.0
 
 
@@ -68,16 +77,33 @@ func _process(delta: float) -> void:
 	if _endless:
 		_process_endless(delta)
 		return
-	if _waiting_clear and _active_enemies <= 0 and not _spawning:
-		_waiting_clear = false
-		EventBus.wave_cleared.emit(_wave_index)
-		_next_wave()
+	if not _waiting_clear or _spawning:
+		return
+	# Hybrid: clear this wave's enemies OR hit the max timer.
+	if _wave_enemies_alive <= 0:
+		_advance_from_wave()
+		return
+	if _max_clear_time > 0.0:
+		_clear_timer += delta
+		if _clear_timer >= _max_clear_time:
+			_advance_from_wave()
+
+
+func _advance_from_wave() -> void:
+	if not _waiting_clear:
+		return
+	_waiting_clear = false
+	_clear_timer = 0.0
+	_max_clear_time = 0.0
+	# Stop attributing leftovers to this wave so they can't stall the next one.
+	_wave_enemies_alive = 0
+	EventBus.wave_cleared.emit(_wave_index)
+	_next_wave()
 
 
 func _process_endless(delta: float) -> void:
 	_endless_time += delta
 	_endless_next -= delta
-	# Ramp difficulty
 	var difficulty := 1.0 + _endless_time / 45.0
 	scroll_speed = 50.0 + difficulty * 8.0
 	_endless_spawn_cd = maxf(0.55, 2.2 - difficulty * 0.25)
@@ -93,14 +119,13 @@ func _spawn_endless_group(difficulty: float) -> void:
 	var vp_w := get_viewport().get_visible_rect().size.x
 	for i in count:
 		var stats: EnemyStats = _enemy_catalog[_rng.randi() % _enemy_catalog.size()]
-		# Bias toward harder types as difficulty rises
 		if difficulty > 2.0 and _rng.randf() < 0.4:
 			for s in _enemy_catalog:
 				if s.enemy_id == &"strafer" or s.enemy_id == &"drone":
 					stats = s
 					break
 		var x := _rng.randf_range(40.0, vp_w - 40.0)
-		_spawn_enemy(stats, Vector2(x, -30.0 - i * 28.0))
+		_spawn_enemy(stats, Vector2(x, -30.0 - i * 28.0), false, "")
 
 
 func _next_wave() -> void:
@@ -114,9 +139,11 @@ func _next_wave() -> void:
 			all_waves_cleared.emit()
 		return
 	var wave: WaveDef = mission.waves[_wave_index]
-	EventBus.wave_started.emit(_wave_index, mission.waves.size())
+	var label := wave.label if wave.label != "" else "Wave"
+	EventBus.wave_started.emit(_wave_index, mission.waves.size(), label)
 	wave_started.emit(_wave_index, mission.waves.size())
 	_spawning = true
+	_wave_enemies_alive = 0
 	_run_wave(wave)
 
 
@@ -128,16 +155,19 @@ func _run_wave(wave: WaveDef) -> void:
 		await get_tree().create_timer(entry.delay).timeout
 		for i in entry.count:
 			var pos := entry.position + entry.spacing * float(i)
-			_spawn_enemy(entry.enemy, pos)
+			_spawn_enemy(entry.enemy, pos, true, entry.formation_id)
 	_spawning = false
 	if wave.clear_required:
 		_waiting_clear = true
+		_clear_timer = 0.0
+		_max_clear_time = wave.max_clear_time
+		# If nothing survived spawn (edge case), advance immediately next frame.
 	else:
 		await get_tree().create_timer(0.5).timeout
 		_next_wave()
 
 
-func _spawn_enemy(stats: EnemyStats, pos: Vector2) -> void:
+func _spawn_enemy(stats: EnemyStats, pos: Vector2, count_for_wave: bool = false, formation_id: String = "") -> void:
 	var path := stats.scene_path if stats.scene_path != "" else "res://scenes/entities/enemy_base.tscn"
 	var scene: PackedScene = load(path)
 	if scene == null:
@@ -146,18 +176,27 @@ func _spawn_enemy(stats: EnemyStats, pos: Vector2) -> void:
 	enemy_container.add_child(enemy)
 	enemy.global_position = pos
 	if enemy.has_method("setup"):
-		enemy.setup(stats, projectile_pool, scroll_speed)
+		enemy.setup(stats, projectile_pool, scroll_speed, formation_id)
 	_active_enemies += 1
-	enemy.tree_exited.connect(_on_enemy_exited)
+	if count_for_wave:
+		_wave_enemies_alive += 1
+		enemy.tree_exited.connect(_on_wave_enemy_exited)
+	else:
+		enemy.tree_exited.connect(_on_enemy_exited)
 
 
 func _on_enemy_exited() -> void:
 	_active_enemies = maxi(0, _active_enemies - 1)
 
 
+func _on_wave_enemy_exited() -> void:
+	_active_enemies = maxi(0, _active_enemies - 1)
+	_wave_enemies_alive = maxi(0, _wave_enemies_alive - 1)
+
+
 func spawn_boss(stats: EnemyStats) -> void:
 	var vp := get_viewport().get_visible_rect().size
-	_spawn_enemy(stats, Vector2(vp.x * 0.5, -60.0))
+	_spawn_enemy(stats, Vector2(vp.x * 0.5, -60.0), false, "")
 
 
 func get_active_enemy_count() -> int:
