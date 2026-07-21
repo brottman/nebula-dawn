@@ -6,11 +6,10 @@
 script = ExtResource("1_6cai4")
 enemy_id = &"strafer"
 display_name = "Defense Drone"
-max_hp = 3.0
-move_speed = 115.0
+move_speed = 95.0
 score_value = 150
-fire_interval = 1.35
-projectile_speed = 250.0
+fire_interval = 1.8
+projectile_speed = 200.0
 color = Color(1, 0.7, 0.35, 1)
-size = Vector2(30, 24)
+size = Vector2(46, 38)
 scene_path = "res://scenes/entities/enemy_base.tscn"

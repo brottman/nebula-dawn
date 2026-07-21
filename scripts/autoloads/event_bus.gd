@@ -13,6 +13,8 @@ signal boss_hp_changed(current: float, maximum: float)
 signal boss_defeated
 signal pickup_collected(kind: String)
 signal weapon_changed(weapon_name: String)
+signal enemy_killed(is_hazard: bool, is_boss: bool)
+signal player_hull_hit
 signal screen_shake(amount: float, duration: float)
 signal formation_cleared(center: Vector2, size: int)
 signal overdrive_changed(current: float, maximum: float)

@@ -96,7 +96,20 @@ func _on_weapon_changed(weapon_name: String) -> void:
 
 func _on_pickup(kind: String) -> void:
 	pickup_toast.visible = true
-	pickup_toast.text = kind.to_upper() + "!"
+	var names := {
+		"spread": "SPREAD", "vulcan": "SPREAD", "red": "SPREAD",
+		"laser": "LASER", "beam": "LASER", "blue": "LASER",
+		"homing": "HOMING", "missiles": "HOMING", "green": "HOMING",
+		"power": "P-CHIP", "pchip": "P-CHIP", "p-chip": "P-CHIP", "gold": "P-CHIP",
+		"option": "BIT", "bit": "BIT", "drone": "BIT",
+		"speed": "SPEED",
+		"shield": "SHIELD", "barrier": "SHIELD",
+		"bomb": "BOMB", "cleaver": "BOMB",
+		"energy": "ENERGY", "overdrive_pickup": "ENERGY", "rapid": "ENERGY",
+		"heal": "HEAL",
+	}
+	var toast: String = str(names.get(kind, kind.to_upper()))
+	pickup_toast.text = toast + "!"
 	await get_tree().create_timer(1.2).timeout
 	if is_instance_valid(pickup_toast):
 		pickup_toast.visible = false

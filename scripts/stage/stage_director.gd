@@ -151,9 +151,9 @@ func _spawn_plasma_pool() -> void:
 
 func _tick_hive(_delta: float) -> void:
 	if _pulse <= 0.0:
-		_pulse = _rng.randf_range(5.0, 8.0)
+		_pulse = _rng.randf_range(6.5, 10.0)
 		_spawn_barrier_pair()
-		if _rng.randf() < 0.55:
+		if _rng.randf() < 0.7:
 			_spawn_terminal()
 
 
@@ -163,7 +163,7 @@ func _spawn_barrier_pair() -> void:
 		return
 	var vp := get_viewport().get_visible_rect().size
 	var gap_x := _rng.randf_range(vp.x * 0.25, vp.x * 0.75)
-	var gap_w := 90.0
+	var gap_w := 120.0
 	for side in [-1, 1]:
 		var b: Node = scene.instantiate()
 		entities.add_child(b)
@@ -188,7 +188,7 @@ func _spawn_terminal() -> void:
 
 func _tick_gravity(delta: float) -> void:
 	if _pulse <= 0.0:
-		_pulse = _rng.randf_range(6.0, 10.0)
+		_pulse = _rng.randf_range(8.0, 12.0)
 		_spawn_singularity()
 	# Bend enemy bullets toward singularities.
 	if pool == null:
@@ -197,20 +197,20 @@ func _tick_gravity(delta: float) -> void:
 		if not is_instance_valid(s):
 			continue
 		var center: Vector2 = s.global_position
-		var strength: float = float(s.get("pull_strength")) if s.get("pull_strength") != null else 180.0
+		var strength: float = float(s.get("pull_strength")) if s.get("pull_strength") != null else 120.0
 		for proj in pool.get_active_enemy_projectiles():
 			var to: Vector2 = center - proj.global_position
 			var d2: float = to.length_squared()
-			if d2 < 40.0 or d2 > 220.0 * 220.0:
+			if d2 < 40.0 or d2 > 200.0 * 200.0:
 				continue
-			var pull: Vector2 = to.normalized() * (strength * 60.0 / d2) * delta * 4000.0
+			var pull: Vector2 = to.normalized() * (strength * 50.0 / d2) * delta * 3200.0
 			if "velocity" in proj:
 				proj.velocity += pull
 		if player and is_instance_valid(player) and not player.dead:
 			var to_p: Vector2 = center - player.global_position
 			var pd2: float = to_p.length_squared()
-			if pd2 > 36.0 and pd2 < 200.0 * 200.0:
-				player.global_position += to_p.normalized() * (90.0 / sqrt(pd2)) * delta * 40.0
+			if pd2 > 36.0 and pd2 < 180.0 * 180.0:
+				player.global_position += to_p.normalized() * (70.0 / sqrt(pd2)) * delta * 32.0
 
 
 func _spawn_singularity() -> void:

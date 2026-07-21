@@ -1,19 +1,64 @@
 extends Area2D
 ## Collectible power-up drifting downward.
+## Color weapons: red=Spread, blue=Laser, green=Homing. Gold P-Chip = shared level.
 
 var kind: String = "spread"
 var fall_speed: float = 70.0
 
 const SPRITE_PATHS := {
 	"spread": "res://assets/sprites/pickup_spread.png",
-	"railgun": "res://assets/sprites/pickup_railgun.png",
+	"vulcan": "res://assets/sprites/pickup_spread.png",
+	"red": "res://assets/sprites/pickup_spread.png",
+	"laser": "res://assets/sprites/pickup_laser.png",
+	"beam": "res://assets/sprites/pickup_laser.png",
+	"blue": "res://assets/sprites/pickup_laser.png",
 	"homing": "res://assets/sprites/pickup_homing.png",
-	"wave": "res://assets/sprites/pickup_wave.png",
-	"flak": "res://assets/sprites/pickup_flak.png",
+	"missiles": "res://assets/sprites/pickup_homing.png",
+	"green": "res://assets/sprites/pickup_homing.png",
 	"power": "res://assets/sprites/pickup_power.png",
-	"rapid": "res://assets/sprites/pickup_rapid.png",
+	"pchip": "res://assets/sprites/pickup_power.png",
+	"p-chip": "res://assets/sprites/pickup_power.png",
+	"gold": "res://assets/sprites/pickup_power.png",
+	"option": "res://assets/sprites/pickup_option.png",
+	"bit": "res://assets/sprites/pickup_option.png",
+	"drone": "res://assets/sprites/pickup_option.png",
+	"speed": "res://assets/sprites/pickup_speed.png",
 	"shield": "res://assets/sprites/pickup_shield.png",
+	"barrier": "res://assets/sprites/pickup_shield.png",
+	"bomb": "res://assets/sprites/pickup_bomb.png",
+	"cleaver": "res://assets/sprites/pickup_bomb.png",
+	"energy": "res://assets/sprites/pickup_energy.png",
+	"overdrive_pickup": "res://assets/sprites/pickup_energy.png",
+	"rapid": "res://assets/sprites/pickup_energy.png",
 	"heal": "res://assets/sprites/pickup_heal.png",
+}
+
+const TOAST_NAMES := {
+	"spread": "SPREAD",
+	"vulcan": "SPREAD",
+	"red": "SPREAD",
+	"laser": "LASER",
+	"beam": "LASER",
+	"blue": "LASER",
+	"homing": "HOMING",
+	"missiles": "HOMING",
+	"green": "HOMING",
+	"power": "P-CHIP",
+	"pchip": "P-CHIP",
+	"p-chip": "P-CHIP",
+	"gold": "P-CHIP",
+	"option": "BIT",
+	"bit": "BIT",
+	"drone": "BIT",
+	"speed": "SPEED",
+	"shield": "SHIELD",
+	"barrier": "SHIELD",
+	"bomb": "BOMB",
+	"cleaver": "BOMB",
+	"energy": "ENERGY",
+	"overdrive_pickup": "ENERGY",
+	"rapid": "ENERGY",
+	"heal": "HEAL",
 }
 
 @onready var _sprite: Sprite2D = $Sprite2D
@@ -48,30 +93,33 @@ func setup(k: String) -> void:
 	if _label:
 		_label.visible = true
 	match kind:
-		"spread":
-			_poly.color = Color(0.4, 1.0, 0.6)
-			_label.text = "S"
-		"railgun":
-			_poly.color = Color(0.75, 1.0, 1.0)
-			_label.text = "P"
-		"homing":
-			_poly.color = Color(1.0, 0.7, 0.25)
-			_label.text = "H"
-		"wave":
-			_poly.color = Color(0.8, 0.5, 1.0)
-			_label.text = "W"
-		"flak":
-			_poly.color = Color(1.0, 0.45, 0.35)
-			_label.text = "F"
-		"power":
-			_poly.color = Color(1.0, 1.0, 0.85)
-			_label.text = "^"
-		"rapid":
-			_poly.color = Color(1.0, 0.85, 0.3)
+		"spread", "vulcan", "red":
+			_poly.color = Color(1.0, 0.28, 0.28)
 			_label.text = "R"
-		"shield":
+		"laser", "beam", "blue":
+			_poly.color = Color(0.35, 0.65, 1.0)
+			_label.text = "B"
+		"homing", "missiles", "green":
+			_poly.color = Color(0.3, 0.95, 0.4)
+			_label.text = "G"
+		"power", "pchip", "p-chip", "gold":
+			_poly.color = Color(1.0, 0.85, 0.25)
+			_label.text = "P"
+		"option", "bit", "drone":
+			_poly.color = Color(0.55, 0.95, 1.0)
+			_label.text = "O"
+		"speed":
+			_poly.color = Color(0.55, 1.0, 0.75)
+			_label.text = ">"
+		"shield", "barrier":
 			_poly.color = Color(0.45, 0.75, 1.0)
 			_label.text = "B"
+		"bomb", "cleaver":
+			_poly.color = Color(1.0, 0.35, 0.45)
+			_label.text = "X"
+		"energy", "overdrive_pickup", "rapid":
+			_poly.color = Color(1.0, 0.9, 0.35)
+			_label.text = "E"
 		"heal":
 			_poly.color = Color(1.0, 0.4, 0.55)
 			_label.text = "+"
@@ -84,7 +132,7 @@ func _physics_process(delta: float) -> void:
 	global_position.y += fall_speed * delta
 	rotation += delta * 0.6
 	# Gentle bob so icons stay readable while spinning.
-	if _sprite:
+	if _sprite and _sprite.visible:
 		_sprite.scale = Vector2.ONE * (0.88 + 0.06 * sin(Time.get_ticks_msec() * 0.008))
 	if global_position.y > get_viewport_rect().size.y + 40.0:
 		queue_free()

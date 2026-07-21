@@ -81,15 +81,15 @@ func _process(delta: float) -> void:
 		return
 	# Hybrid: clear this wave's enemies OR hit the max timer.
 	if _wave_enemies_alive <= 0:
-		_advance_from_wave()
+		_advance_from_wave(true)
 		return
 	if _max_clear_time > 0.0:
 		_clear_timer += delta
 		if _clear_timer >= _max_clear_time:
-			_advance_from_wave()
+			_advance_from_wave(false)
 
 
-func _advance_from_wave() -> void:
+func _advance_from_wave(full_clear: bool = false) -> void:
 	if not _waiting_clear:
 		return
 	_waiting_clear = false
@@ -98,7 +98,29 @@ func _advance_from_wave() -> void:
 	# Stop attributing leftovers to this wave so they can't stall the next one.
 	_wave_enemies_alive = 0
 	EventBus.wave_cleared.emit(_wave_index)
+	if full_clear:
+		_try_rare_wave_reward()
 	_next_wave()
+
+
+func _try_rare_wave_reward() -> void:
+	## Full wipe (not a timeout) — sparse defensive / utility drop.
+	if _rng.randf() > 0.40:
+		return
+	if enemy_container == null:
+		return
+	var rares := ["shield", "bomb", "energy"]
+	var kind: String = rares[_rng.randi() % rares.size()]
+	var scene: PackedScene = load("res://scenes/entities/pickup.tscn")
+	if scene == null:
+		return
+	var p: Node = scene.instantiate()
+	enemy_container.add_child(p)
+	var vp := get_viewport().get_visible_rect().size
+	p.global_position = Vector2(vp.x * 0.5, vp.y * 0.28)
+	if p.has_method("setup"):
+		p.setup(kind)
+	EventBus.gimmick_toast.emit("WAVE BONUS")
 
 
 func _process_endless(delta: float) -> void:
@@ -115,17 +137,21 @@ func _process_endless(delta: float) -> void:
 func _spawn_endless_group(difficulty: float) -> void:
 	if _enemy_catalog.is_empty():
 		return
-	var count := mini(1 + int(difficulty), 5)
+	var count := mini(3 + int(difficulty * 0.6), 7)
 	var vp_w := get_viewport().get_visible_rect().size.x
-	for i in count:
-		var stats: EnemyStats = _enemy_catalog[_rng.randi() % _enemy_catalog.size()]
-		if difficulty > 2.0 and _rng.randf() < 0.4:
-			for s in _enemy_catalog:
-				if s.enemy_id == &"strafer" or s.enemy_id == &"drone":
-					stats = s
-					break
-		var x := _rng.randf_range(40.0, vp_w - 40.0)
-		_spawn_enemy(stats, Vector2(x, -30.0 - i * 28.0), false, "")
+	var stats: EnemyStats = _enemy_catalog[_rng.randi() % _enemy_catalog.size()]
+	if difficulty > 2.0 and _rng.randf() < 0.45:
+		for s in _enemy_catalog:
+			if s.enemy_id == &"strafer" or s.enemy_id == &"drone":
+				stats = s
+				break
+	var patterns: Array[StringName] = [&"v", &"arc", &"wave", &"line", &"diamond", &"column"]
+	var pat: StringName = patterns[_rng.randi() % patterns.size()]
+	var origin := Vector2(_rng.randf_range(90.0, vp_w - 90.0), -50.0)
+	var spread := 48.0 + difficulty * 2.0
+	var offs := SpawnEntry.pattern_offsets(pat, count, spread, Vector2(spread, 0))
+	for off in offs:
+		_spawn_enemy(stats, origin + off, false, "")
 
 
 func _next_wave() -> void:
@@ -153,9 +179,9 @@ func _run_wave(wave: WaveDef) -> void:
 		if entry == null or entry.enemy == null:
 			continue
 		await get_tree().create_timer(entry.delay).timeout
-		for i in entry.count:
-			var pos := entry.position + entry.spacing * float(i)
-			_spawn_enemy(entry.enemy, pos, true, entry.formation_id)
+		var offs := entry.offsets()
+		for off in offs:
+			_spawn_enemy(entry.enemy, entry.position + off, true, entry.formation_id)
 	_spawning = false
 	if wave.clear_required:
 		_waiting_clear = true

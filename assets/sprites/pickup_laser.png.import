@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5hu8cy0xrd1f"
-path="res://.godot/imported/pickup_flak.png-6d34ef8f7634aaf7f99701196cec20a8.ctex"
+uid="uid://dyabv2bccl3nc"
+path="res://.godot/imported/pickup_laser.png-dd6992dbaa25a34c4f5b934ba6364b97.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pickup_flak.png"
-dest_files=["res://.godot/imported/pickup_flak.png-6d34ef8f7634aaf7f99701196cec20a8.ctex"]
+source_file="res://assets/sprites/pickup_laser.png"
+dest_files=["res://.godot/imported/pickup_laser.png-dd6992dbaa25a34c4f5b934ba6364b97.ctex"]
 
 [params]
 

@@ -20,6 +20,10 @@ var _boss_phase: int = 0
 var _origin_x: float = 0.0
 var _teleport_cd: float = 0.0
 var _armor_angle: float = 0.0
+## Focused Laser Lv3 melt DoT (damage applied once per tick).
+var _melt_ticks_left: int = 0
+var _melt_dps: float = 0.0
+var _melt_timer: float = 0.0
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _poly: Polygon2D = $Polygon2D
@@ -47,7 +51,7 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	formation_id = form_id
 	hp = s.max_hp
 	if s.is_hazard and String(s.enemy_id) == "asteroid":
-		asteroid_tier = 2 if s.size.x >= 34.0 else (1 if s.size.x >= 22.0 else 0)
+		asteroid_tier = 2 if s.size.x >= 48.0 else (1 if s.size.x >= 30.0 else 0)
 	_apply_visuals()
 	_origin_x = global_position.x
 	_fire_timer = s.fire_interval * 0.5
@@ -103,9 +107,11 @@ func _apply_visuals() -> void:
 		var tex_size := maxf(tex.get_width(), tex.get_height())
 		if tex_size > 0.0:
 			var s := target / tex_size
-			# Bosses read larger than their collision box.
+			# Visual punch: fodder slightly oversized; bosses even more.
 			if stats.is_boss:
-				s *= 1.15 if stats.is_mid_boss else 1.35
+				s *= 1.2 if stats.is_mid_boss else 1.4
+			else:
+				s *= 1.12
 			_sprite.scale = Vector2(s, s)
 		if _poly:
 			_poly.visible = false
@@ -163,11 +169,33 @@ func _physics_process(delta: float) -> void:
 	if not alive:
 		return
 	_t += delta
+	_tick_melt(delta)
 	_move(delta)
 	_try_fire(delta)
 	var vp := get_viewport_rect().size
 	if global_position.y > vp.y + 80.0 and not (stats and stats.is_boss):
 		queue_free()
+
+
+func apply_melt(ticks: int, dps: float) -> void:
+	## Refresh melt so repeated laser hits keep the DoT rolling.
+	_melt_ticks_left = maxi(_melt_ticks_left, ticks)
+	_melt_dps = maxf(_melt_dps, dps)
+	if _melt_timer <= 0.0:
+		_melt_timer = 0.2
+
+
+func _tick_melt(delta: float) -> void:
+	if _melt_ticks_left <= 0:
+		return
+	_melt_timer -= delta
+	if _melt_timer > 0.0:
+		return
+	_melt_timer = 0.2
+	_melt_ticks_left -= 1
+	take_damage(_melt_dps)
+	if _melt_ticks_left <= 0:
+		_melt_dps = 0.0
 
 
 func _move(delta: float) -> void:
@@ -195,7 +223,7 @@ func _move(delta: float) -> void:
 			if "stalker" in name_l or "quantum" in name_l:
 				_teleport_cd -= delta
 				if _teleport_cd <= 0.0:
-					_teleport_cd = randf_range(2.2, 3.4)
+					_teleport_cd = randf_range(3.4, 5.0)
 					var vp2 := get_viewport_rect().size
 					global_position = Vector2(randf_range(80.0, vp2.x - 80.0), randf_range(80.0, 200.0))
 					_origin_x = global_position.x
@@ -235,20 +263,20 @@ func _boss_fire() -> void:
 	var dirs: Array[Vector2] = [Vector2(0, 1)]
 	match _boss_phase:
 		1:
-			dirs = [Vector2(-0.3, 1).normalized(), Vector2(0, 1), Vector2(0.3, 1).normalized()]
-			_fire_timer = stats.fire_interval * 0.7
+			dirs = [Vector2(-0.25, 1).normalized(), Vector2(0, 1), Vector2(0.25, 1).normalized()]
+			_fire_timer = stats.fire_interval * 0.85
 		2:
 			dirs = []
-			for i in 5:
-				var a := -0.6 + i * 0.3
+			for i in 4:
+				var a := -0.45 + i * 0.3
 				dirs.append(Vector2(a, 1).normalized())
-			_fire_timer = stats.fire_interval * 0.5
+			_fire_timer = stats.fire_interval * 0.7
 	for d in dirs:
 		projectile_pool.spawn_enemy(global_position + Vector2(0, 24), d * stats.projectile_speed, float(stats.contact_damage))
 	AudioBus.play_enemy_shoot()
 	# Fabrication Matrix: assemble sub-drones during the fight.
 	var name_l := String(stats.display_name).to_lower() if stats else ""
-	if ("matrix" in name_l or "fabrication" in name_l) and randf() < 0.35:
+	if ("matrix" in name_l or "fabrication" in name_l) and randf() < 0.18:
 		_spawn_fabricated_drone()
 
 
@@ -267,16 +295,17 @@ func _spawn_fabricated_drone() -> void:
 		e.setup(stats_drone, projectile_pool, scroll_speed)
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, armor_pierce: bool = false) -> void:
 	if not alive:
 		return
-	# Orbital Defense Platform: rotating plating reduces frontal hits.
-	if stats and stats.is_boss and not stats.is_mid_boss:
+	# Orbital Defense Platform: rotating plating reduces frontal hits
+	# unless the shot has armor pierce (Focused Laser Lv2+).
+	if not armor_pierce and stats and stats.is_boss and not stats.is_mid_boss:
 		var name_l := String(stats.display_name).to_lower()
 		if "platform" in name_l or "orbital" in name_l:
 			var facing := absf(sin(_armor_angle))
 			if facing > 0.65:
-				amount *= 0.35
+				amount *= 0.55
 				EventBus.gimmick_toast.emit("ARMORED")
 	hp -= amount
 	_flash_hit()
@@ -321,6 +350,10 @@ func _die() -> void:
 	GameState.add_score(score)
 	AudioBus.play_explode()
 	EventBus.screen_shake.emit(3.0 if not (stats and stats.is_boss) else 12.0, 0.15)
+	EventBus.enemy_killed.emit(
+		stats != null and stats.is_hazard,
+		stats != null and stats.is_boss
+	)
 	if formation_id != "":
 		var tracker := get_tree().get_first_node_in_group("formation_tracker")
 		if tracker and tracker.has_method("notify_killed"):
@@ -331,7 +364,7 @@ func _die() -> void:
 		call_deferred("_split_asteroid")
 	if stats and stats.is_mid_boss:
 		call_deferred("_spawn_major_reward")
-	elif not (stats and stats.is_hazard) and randf() < (0.35 if not (stats and stats.is_boss) else 1.0):
+	elif not (stats and stats.is_hazard) and randf() < (0.10 if not (stats and stats.is_boss) else 1.0):
 		call_deferred("_spawn_pickup")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
@@ -366,15 +399,25 @@ func _split_asteroid() -> void:
 
 
 func _spawn_major_reward() -> void:
-	# Power-up for escalation + shield/heal for the Act 3 breathing room.
+	# Mid-boss: P-Chip + one rare defensive / utility drop.
 	_spawn_pickup_at(global_position + Vector2(-28, 0), "power")
-	_spawn_pickup_at(global_position + Vector2(28, 0), "shield" if randf() < 0.5 else "heal")
+	_spawn_pickup_at(global_position + Vector2(28, 0), _rare_utility_kind())
+
+
+func _rare_utility_kind() -> String:
+	var rares := ["shield", "bomb", "energy", "heal"]
+	return rares[randi() % rares.size()]
 
 
 func _spawn_pickup() -> void:
 	if not is_inside_tree():
 		return
-	var kinds := ["spread", "railgun", "homing", "wave", "flak", "power", "power", "rapid", "shield", "heal"]
+	# Common fodder: color weapons + stackables. Rare utilities never drop here.
+	var kinds := [
+		"spread", "laser", "homing",
+		"power", "power",
+		"option", "speed",
+	]
 	_spawn_pickup_at(global_position, kinds[randi() % kinds.size()])
 
 

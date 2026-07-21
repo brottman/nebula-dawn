@@ -1,13 +1,18 @@
 extends Area2D
 ## Pooled bullet used by both sides. Player shots can request extra behaviors
 ## via the opts Dictionary in activate():
-##   pierce (int)     — pass through this many extra targets
-##   homing (float)   — steering strength toward the nearest enemy
-##   wave_amp (float) — perpendicular sine oscillation amplitude (px)
-##   wave_freq (float)— oscillation speed
-##   lifetime (float) — seconds before despawn (default 3.0)
-##   scale (float)    — visual/collision scale multiplier
-##   color (Color)    — player-shot tint override
+##   pierce (int)          — pass through this many extra targets
+##   homing (float)        — steering strength toward the nearest enemy
+##   wave_amp (float)      — perpendicular sine oscillation amplitude (px)
+##   wave_freq (float)     — oscillation speed
+##   lifetime (float)      — seconds before despawn (default 3.0)
+##   scale (float)         — visual/collision scale multiplier
+##   color (Color)         — player-shot tint override
+##   splash_radius (float) — AoE damage on hit (px)
+##   splash_damage (float) — damage dealt to neighbors in splash radius
+##   melt_ticks (int)      — apply melting DoT ticks to the hit target
+##   melt_dps (float)      — damage per melt tick
+##   cancel_bullets (bool) — destroy enemy projectiles this shot overlaps
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 1.0
@@ -16,6 +21,12 @@ var pierce_left: int = 0
 var homing: float = 0.0
 var wave_amp: float = 0.0
 var wave_freq: float = 8.0
+var splash_radius: float = 0.0
+var splash_damage: float = 0.0
+var melt_ticks: int = 0
+var melt_dps: float = 0.0
+var cancel_bullets: bool = false
+var armor_pierce: bool = false
 
 var _active: bool = false
 var _lifetime: float = 3.0
@@ -59,6 +70,12 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	wave_freq = float(opts.get("wave_freq", 8.0))
 	_lifetime = float(opts.get("lifetime", 3.0))
 	scale = Vector2.ONE * float(opts.get("scale", 1.0))
+	splash_radius = float(opts.get("splash_radius", 0.0))
+	splash_damage = float(opts.get("splash_damage", 0.0))
+	melt_ticks = int(opts.get("melt_ticks", 0))
+	melt_dps = float(opts.get("melt_dps", 0.0))
+	cancel_bullets = bool(opts.get("cancel_bullets", false))
+	armor_pierce = bool(opts.get("armor_pierce", false))
 	if velocity.length() > 0.001:
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
 		rotation = velocity.angle() + PI * 0.5
@@ -72,13 +89,15 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	# Layers: 1=player, 2=player_proj, 3=enemy, 4=enemy_proj, 5=pickup, 6=hazard
 	if from_player:
 		collision_layer = 2
-		collision_mask = 4 | 32
+		# Also overlap enemy bullets when this shot can cancel them.
+		collision_mask = 4 | 32 | (8 if cancel_bullets else 0)
 		if _poly:
 			_poly.color = opts.get("color", Color(0.55, 0.9, 1.0))
 	else:
 		collision_layer = 8
 		# Hit player + hazards (asteroids block enemy fire).
 		collision_mask = 1 | 32
+		add_to_group("enemy_projectiles")
 		if _poly:
 			_poly.color = Color(1.0, 0.55, 0.35)
 
@@ -90,6 +109,8 @@ func deactivate() -> void:
 	set_physics_process(false)
 	velocity = Vector2.ZERO
 	_target = null
+	if is_in_group("enemy_projectiles"):
+		remove_from_group("enemy_projectiles")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	if _collision:
@@ -151,16 +172,44 @@ func _on_area_entered(area: Area2D) -> void:
 	_try_hit(area)
 
 
+func _apply_splash(center: Vector2, primary: Node) -> void:
+	if splash_radius <= 0.0 or splash_damage <= 0.0:
+		return
+	var r2 := splash_radius * splash_radius
+	var tree := get_tree()
+	if tree == null:
+		return
+	for e in tree.get_nodes_in_group("enemies"):
+		if e == null or e == primary or not is_instance_valid(e):
+			continue
+		if e.get("alive") == false:
+			continue
+		if not e.has_method("take_damage"):
+			continue
+		if e is Node2D and (e as Node2D).global_position.distance_squared_to(center) <= r2:
+			e.take_damage(splash_damage)
+
+
 func _try_hit(target: Node) -> void:
 	if not _active:
 		return
 	if from_player:
+		# Side-cancellation waves eat enemy bullets on contact.
+		if cancel_bullets and target.is_in_group("enemy_projectiles"):
+			if target.has_method("deactivate"):
+				target.deactivate()
+			elif target.has_method("queue_free"):
+				target.queue_free()
+			return
 		if (target.is_in_group("enemies") or target.is_in_group("hazards")) and target.has_method("take_damage"):
 			var id := target.get_instance_id()
 			if _hit_ids.has(id):
 				return
 			_hit_ids[id] = true
-			target.take_damage(damage)
+			target.take_damage(damage, armor_pierce)
+			if melt_ticks > 0 and melt_dps > 0.0 and target.has_method("apply_melt"):
+				target.apply_melt(melt_ticks, melt_dps)
+			_apply_splash(global_position, target)
 			AudioBus.play_hit()
 			if pierce_left > 0:
 				pierce_left -= 1

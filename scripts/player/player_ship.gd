@@ -1,46 +1,56 @@
 extends CharacterBody2D
 ## Player strike craft — touch-drag or 8-way move, auto-fire, power-ups.
-## Picked-up weapons persist until the ship takes hull damage; POWER pickups
-## raise the current weapon's level (max MAX_WEAPON_LEVEL) — even the blaster.
+## Color-coded weapons + universal power level:
+##   Red = Spread, Blue = Laser, Green = Homing.
+##   Gold P-Chips raise the shared tier (Lv1→2→3). Swapping color keeps the tier.
+## Hull damage resets to Blaster Lv1 (power tier lost). Bits/Speed persist.
 
 const PLAYFIELD_MARGIN := 24.0
-## Keep the ship above the finger so the craft stays visible.
-const TOUCH_OFFSET := Vector2(0, -56)
-const TOUCH_FOLLOW := 22.0
-## Highest power level any weapon (including the blaster) can reach.
+## How quickly the ship catches relative touch motion (higher = snappier).
+const TOUCH_FOLLOW := 28.0
+## Shared power tier for every color weapon (Lv1–Lv3).
 const MAX_WEAPON_LEVEL := 3
+const MAX_BITS := 2
+const MAX_SPEED_STACKS := 3
+const SPEED_STACK_BONUS := 0.12 ## +12% move speed per stack
 
-enum Weapon { BLASTER, SPREAD, RAILGUN, HOMING, WAVE, FLAK }
+enum Weapon { BLASTER, VULCAN, LASER, HOMING }
 
 const WEAPON_NAMES := {
 	Weapon.BLASTER: "BLASTER",
-	Weapon.SPREAD: "SPREAD",
-	Weapon.RAILGUN: "RAILGUN",
+	Weapon.VULCAN: "SPREAD",
+	Weapon.LASER: "LASER",
 	Weapon.HOMING: "HOMING",
-	Weapon.WAVE: "WAVE",
-	Weapon.FLAK: "FLAK",
 }
+## Base cooldowns; per-level modifiers applied in _weapon_cooldown().
 const WEAPON_COOLDOWNS := {
-	Weapon.BLASTER: 0.18,
-	Weapon.SPREAD: 0.24,
-	Weapon.RAILGUN: 0.55,
-	Weapon.HOMING: 0.40,
-	Weapon.WAVE: 0.30,
-	Weapon.FLAK: 0.50,
+	Weapon.BLASTER: 0.16,
+	Weapon.VULCAN: 0.16, ## Red Spread — Lv2 speeds up
+	Weapon.LASER: 0.42, ## Blue Laser
+	Weapon.HOMING: 0.45, ## Green Homing — Lv3 rapid-fires
 }
 
-@export var move_speed: float = 280.0
-@export var max_hp: int = 5
-@export var fire_cooldown: float = 0.18
-@export var bullet_speed: float = 520.0
+@export var move_speed: float = 310.0
+@export var max_hp: int = 7
+@export var fire_cooldown: float = 0.16
+@export var bullet_speed: float = 560.0
 @export var bullet_damage: float = 1.0
 
 var hp: int = 5
 var invuln_time: float = 0.0
-var shield_time: float = 0.0
+## Hit-based barrier (rare Shield drops). Absorbs 1–2 hits.
+var shield_charges: int = 0
+const MAX_SHIELD_CHARGES := 2
+## Timed fire-rate buff (Energy / temporary Overdrive pickup).
 var rapid_time: float = 0.0
+## Timed invulnerability window from Energy pickup (stacks with rapid).
+var energy_time: float = 0.0
 var weapon: int = Weapon.BLASTER
 var weapon_level: int = 1
+## Stackable sub-systems (persist through hull hits; cleared on death / new run).
+var bit_count: int = 0
+var speed_stacks: int = 0
+var _bits: Array[BitDrone] = []
 var _fire_timer: float = 0.0
 var _flash_timer: float = 0.0
 var dead: bool = false
@@ -60,22 +70,37 @@ var projectile_pool: ProjectilePool
 var _touch_active: bool = false
 var _touch_index: int = -1
 var _touch_world: Vector2 = Vector2.ZERO
+## Ship position relative to the finger at grab time (keeps the craft from jumping).
+var _touch_grab_offset: Vector2 = Vector2.ZERO
 var _cinematic: bool = false
 
+@onready var _sprite: Sprite2D = $Sprite2D
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _shield_visual: Polygon2D = $ShieldVisual
 @onready var _engine: GPUParticles2D = $EngineParticles
+
+const _SHIP_TINT := Color(1.0, 1.0, 1.0, 1.0)
+const _SHIP_FLASH := Color(1.6, 1.6, 1.6, 1.0)
 
 
 func _ready() -> void:
 	add_to_group("player")
 	hp = max_hp
 	_shield_visual.visible = false
+	if _sprite and _sprite.texture:
+		_poly.visible = false
 	EventBus.player_hp_changed.emit(hp, max_hp)
+
+
+func _visual() -> CanvasItem:
+	return _sprite if _sprite and _sprite.visible else _poly
 
 
 func setup(pool: ProjectilePool) -> void:
 	projectile_pool = pool
+	for bit in _bits:
+		if is_instance_valid(bit):
+			bit.projectile_pool = pool
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -87,6 +112,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_touch_active = true
 			_touch_index = touch.index
 			_touch_world = _screen_to_world(touch.position)
+			# Relative grab: ship keeps its current place vs the finger.
+			_touch_grab_offset = global_position - _touch_world
 			get_viewport().set_input_as_handled()
 		elif touch.index == _touch_index:
 			_touch_active = false
@@ -115,11 +142,11 @@ func _physics_process(delta: float) -> void:
 func _update_timers(delta: float) -> void:
 	if invuln_time > 0.0:
 		invuln_time -= delta
-	if shield_time > 0.0:
-		shield_time -= delta
-		_shield_visual.visible = shield_time > 0.0
-	else:
-		_shield_visual.visible = false
+	if energy_time > 0.0:
+		energy_time -= delta
+		if energy_time <= 0.0 and overdrive_time <= 0.0:
+			EventBus.gimmick_toast.emit("ENERGY END")
+	_shield_visual.visible = shield_charges > 0
 	if rapid_time > 0.0:
 		rapid_time -= delta
 	if _flash_timer > 0.0:
@@ -147,6 +174,7 @@ func exit_plasma() -> void:
 func clear_zone_effects() -> void:
 	exit_plasma()
 	overdrive_time = 0.0
+	energy_time = 0.0
 	Engine.time_scale = 1.0
 
 
@@ -171,16 +199,40 @@ func _activate_overdrive() -> void:
 
 func _handle_movement(delta: float) -> void:
 	var vp := get_viewport_rect().size
+	var speed_mult := 1.0 + SPEED_STACK_BONUS * float(speed_stacks)
 	if _touch_active:
-		var target := _touch_world + TOUCH_OFFSET
-		global_position = global_position.lerp(target, 1.0 - exp(-TOUCH_FOLLOW * delta))
+		# Match finger motion 1:1 while preserving the grab-time offset.
+		# Speed stacks make catch-up snappier without breaking relative control.
+		var follow := TOUCH_FOLLOW * (1.0 + 0.15 * float(speed_stacks))
+		var target := _touch_world + _touch_grab_offset
+		global_position = global_position.lerp(target, 1.0 - exp(-follow * delta))
 		velocity = Vector2.ZERO
 	else:
 		var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = dir * move_speed
+		velocity = dir * move_speed * speed_mult
 		move_and_slide()
 	global_position.x = clampf(global_position.x, PLAYFIELD_MARGIN, vp.x - PLAYFIELD_MARGIN)
 	global_position.y = clampf(global_position.y, PLAYFIELD_MARGIN, vp.y - PLAYFIELD_MARGIN)
+
+
+func _weapon_cooldown() -> float:
+	var cd: float = WEAPON_COOLDOWNS.get(weapon, fire_cooldown)
+	match weapon:
+		Weapon.VULCAN:
+			# Lv2+ increased firing speed.
+			if weapon_level >= 2:
+				cd = 0.11
+			if weapon_level >= 3:
+				cd = 0.12 ## slightly slower than Lv2 to feed the side waves
+		Weapon.LASER:
+			if weapon_level >= 3:
+				cd = 0.50 ## mega beam — denser, slightly slower cadence
+		Weapon.HOMING:
+			if weapon_level == 2:
+				cd = 0.34
+			elif weapon_level >= 3:
+				cd = 0.22 ## rapid-fire volleys
+	return cd
 
 
 func _handle_fire(delta: float) -> void:
@@ -188,44 +240,102 @@ func _handle_fire(delta: float) -> void:
 	# Auto-fire; hold also works (same path)
 	if _fire_timer > 0.0:
 		return
-	var cd: float = WEAPON_COOLDOWNS.get(weapon, fire_cooldown)
-	cd *= 0.45 if rapid_time > 0.0 else 1.0
+	var cd := _weapon_cooldown()
+	cd *= 0.45 if (rapid_time > 0.0 or energy_time > 0.0) else 1.0
 	_fire_timer = cd
 	_shoot()
+	_fire_bits()
 
 
 func _set_weapon(w: int) -> void:
+	## Color swap — type changes, universal power level is kept.
+	## Same color again acts as a free P-Chip (classic arcade feel).
+	if weapon == w and weapon != Weapon.BLASTER:
+		_power_up()
+		return
+	var prev_level := weapon_level
 	weapon = w
-	weapon_level = 1
+	# Picking a color while on Blaster still keeps any residual tier
+	# (normally Blaster is Lv1 after a hull hit).
+	weapon_level = clampi(prev_level, 1, MAX_WEAPON_LEVEL)
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
 	_emit_weapon_changed()
+	EventBus.gimmick_toast.emit("%s  Lv%d" % [WEAPON_NAMES[weapon], weapon_level])
 
 
 func _power_up() -> void:
+	## Gold P-Chip — raises the shared power tier for whatever color is active.
 	if weapon_level >= MAX_WEAPON_LEVEL:
-		# Already maxed — convert the pickup into score instead.
-		GameState.add_score(100)
+		GameState.add_score(150)
+		EventBus.gimmick_toast.emit("POWER MAX")
 		return
 	weapon_level += 1
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
+	_emit_weapon_changed()
+	EventBus.gimmick_toast.emit("POWER  Lv%d" % weapon_level)
+
+
+func _add_bit() -> void:
+	if bit_count >= MAX_BITS:
+		GameState.add_score(120)
+		EventBus.gimmick_toast.emit("BITS MAX")
+		return
+	var bit := BitDrone.new()
+	add_child(bit)
+	bit.setup(self, projectile_pool, bit_count)
+	_bits.append(bit)
+	bit_count = _bits.size()
+	EventBus.gimmick_toast.emit("BIT  ×%d" % bit_count)
 	_emit_weapon_changed()
 
 
-## Losing hull integrity knocks the ship back to the stock blaster.
+func _add_speed() -> void:
+	if speed_stacks >= MAX_SPEED_STACKS:
+		GameState.add_score(100)
+		EventBus.gimmick_toast.emit("SPEED MAX")
+		return
+	speed_stacks += 1
+	EventBus.gimmick_toast.emit("SPEED  ×%d" % speed_stacks)
+	_emit_weapon_changed()
+
+
+func _fire_bits() -> void:
+	if secondaries_disabled:
+		return
+	for bit in _bits:
+		if is_instance_valid(bit):
+			bit.fire(damage_mult)
+
+
+func _clear_bits() -> void:
+	for bit in _bits:
+		if is_instance_valid(bit):
+			bit.queue_free()
+	_bits.clear()
+	bit_count = 0
+
+
+## Losing hull integrity knocks the ship back to the stock blaster (power tier resets).
+## Bits and speed stacks are sub-systems and persist.
 func _reset_weapon() -> void:
 	if weapon == Weapon.BLASTER and weapon_level == 1:
 		return
 	weapon = Weapon.BLASTER
 	weapon_level = 1
-	EventBus.weapon_changed.emit("")
+	_emit_weapon_changed()
 
 
 func _emit_weapon_changed() -> void:
-	if weapon == Weapon.BLASTER and weapon_level == 1:
-		EventBus.weapon_changed.emit("")
-		return
-	var text: String = WEAPON_NAMES[weapon]
-	if weapon_level > 1:
-		text += " Lv%d" % weapon_level
-	EventBus.weapon_changed.emit(text)
+	var parts: PackedStringArray = []
+	if weapon != Weapon.BLASTER:
+		parts.append("%s Lv%d" % [WEAPON_NAMES[weapon], weapon_level])
+	elif weapon_level > 1:
+		parts.append("BLASTER Lv%d" % weapon_level)
+	if bit_count > 0:
+		parts.append("BIT×%d" % bit_count)
+	if speed_stacks > 0:
+		parts.append("SPD×%d" % speed_stacks)
+	EventBus.weapon_changed.emit("  ".join(parts))
 
 
 func _shoot() -> void:
@@ -234,60 +344,120 @@ func _shoot() -> void:
 	var origin := global_position + Vector2(0, -18)
 	var dmg := bullet_damage * damage_mult
 	var active_weapon := weapon
+	# Stage 3 plasma fields lock secondaries; fall back to the stock blaster.
 	if secondaries_disabled and weapon != Weapon.BLASTER:
 		active_weapon = Weapon.BLASTER
 	match active_weapon:
-		Weapon.SPREAD:
-			var count := 3 + weapon_level * 2
-			for i in count:
-				var dir := Vector2(-0.7 + 1.4 * i / float(count - 1), -1.0).normalized()
-				projectile_pool.spawn_player(origin, dir * bullet_speed, dmg)
-			AudioBus.play_shoot(720.0)
-		Weapon.RAILGUN:
-			projectile_pool.spawn_player(origin, Vector2(0, -900.0), (2.0 + 2.0 * weapon_level) * damage_mult, {
-				"pierce": 99, "scale": 1.5 + 0.3 * weapon_level, "color": Color(0.8, 1.0, 1.0)})
-			AudioBus.play_shoot(1250.0)
+		Weapon.VULCAN:
+			_shoot_spread(origin, dmg)
+		Weapon.LASER:
+			_shoot_laser(origin)
 		Weapon.HOMING:
-			var count := 1 + weapon_level
-			for i in count:
-				var dir := Vector2((i - (count - 1) * 0.5) * 0.3, -1.0).normalized()
-				projectile_pool.spawn_player(origin, dir * 380.0, (1.0 + 0.5 * weapon_level) * damage_mult, {
-					"homing": 7.0, "scale": 1.1, "color": Color(1.0, 0.75, 0.3)})
-			AudioBus.play_shoot(600.0)
-		Weapon.WAVE:
-			for side in [-1.0, 1.0]:
-				projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(0, -340.0), (1.0 + weapon_level) * damage_mult, {
-					"wave_amp": side * 55.0, "wave_freq": 9.0, "pierce": weapon_level,
-					"scale": 1.4, "color": Color(0.85, 0.5, 1.0)})
-			AudioBus.play_shoot(500.0)
-		Weapon.FLAK:
-			var count := 4 + weapon_level * 2
-			for i in count:
-				var dir := Vector2(randf_range(-0.55, 0.55), -1.0).normalized()
-				projectile_pool.spawn_player(origin, dir * randf_range(480.0, 640.0), dmg, {
-					"lifetime": 0.3 + 0.1 * weapon_level, "scale": 0.8, "color": Color(1.0, 0.5, 0.4)})
-			AudioBus.play_shoot(300.0)
+			_shoot_homing(origin)
 		_:
+			# Stock blaster — straight parallel bolts.
 			for i in weapon_level:
 				var offset := (i - (weapon_level - 1) * 0.5) * 12.0
 				projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -bullet_speed), dmg)
 			AudioBus.play_shoot()
 
 
+func _shoot_spread(origin: Vector2, dmg: float) -> void:
+	## Red — Lv1 3-way / Lv2 5-way + ROF / Lv3 7-way + side-cancellation waves.
+	var count := 1 + weapon_level * 2 ## 3 / 5 / 7
+	var spread := 0.42 + 0.10 * weapon_level
+	var shot_dmg := dmg * (0.85 + 0.05 * weapon_level)
+	for i in count:
+		var t := float(i) / float(maxi(count - 1, 1))
+		var dir := Vector2(-spread + 2.0 * spread * t, -1.0).normalized()
+		projectile_pool.spawn_player(origin, dir * (bullet_speed * 0.95), shot_dmg, {
+			"scale": 0.85, "color": Color(1.0, 0.35, 0.32), "lifetime": 1.6})
+	if weapon_level >= 3:
+		# Lateral cancellation waves — clear enemy bullets on contact.
+		for side in [-1.0, 1.0]:
+			projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(side * 90.0, -420.0), shot_dmg * 0.55, {
+				"wave_amp": side * 36.0,
+				"wave_freq": 9.0,
+				"cancel_bullets": true,
+				"scale": 1.2,
+				"color": Color(1.0, 0.55, 0.4),
+				"lifetime": 1.4})
+	AudioBus.play_shoot(720.0)
+
+
+func _shoot_laser(origin: Vector2) -> void:
+	## Blue — Lv1 single / Lv2 dual + pierce / Lv3 mega beam + melt ticks.
+	match weapon_level:
+		1:
+			projectile_pool.spawn_player(origin, Vector2(0, -920.0), 2.6 * damage_mult, {
+				"scale": 1.25, "color": Color(0.4, 0.75, 1.0), "lifetime": 0.85})
+		2:
+			# Dual parallel beams with armor pierce.
+			for side in [-1.0, 1.0]:
+				projectile_pool.spawn_player(origin + Vector2(side * 7.0, 0.0), Vector2(0, -940.0), 2.8 * damage_mult, {
+					"pierce": 18,
+					"armor_pierce": true,
+					"scale": 1.2,
+					"color": Color(0.45, 0.82, 1.0),
+					"lifetime": 0.9})
+		_:
+			# High-density mega beam + melt ticks.
+			projectile_pool.spawn_player(origin, Vector2(0, -980.0), 4.2 * damage_mult, {
+				"pierce": 28,
+				"armor_pierce": true,
+				"scale": 2.1,
+				"color": Color(0.55, 0.9, 1.0),
+				"lifetime": 0.95,
+				"melt_ticks": 6,
+				"melt_dps": 0.55 * damage_mult})
+			for side in [-1.0, 1.0]:
+				projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(0, -920.0), 1.6 * damage_mult, {
+					"pierce": 10, "armor_pierce": true, "scale": 0.9, "color": Color(0.7, 0.95, 1.0), "lifetime": 0.8})
+	AudioBus.play_shoot(1250.0)
+
+
+func _shoot_homing(origin: Vector2) -> void:
+	## Green — Lv1 2 slow / Lv2 4 fast micro / Lv3 6 rapid + splash.
+	match weapon_level:
+		1:
+			for i in 2:
+				var dir := Vector2((-0.28 if i == 0 else 0.28), -1.0).normalized()
+				projectile_pool.spawn_player(origin, dir * 260.0, 1.35 * damage_mult, {
+					"homing": 7.0, "scale": 1.25, "color": Color(0.35, 1.0, 0.45), "lifetime": 3.0})
+		2:
+			for i in 4:
+				var dir := Vector2((i - 1.5) * 0.28, -1.0).normalized()
+				projectile_pool.spawn_player(origin, dir * 420.0, 0.95 * damage_mult, {
+					"homing": 12.0, "scale": 0.8, "color": Color(0.45, 1.0, 0.55), "lifetime": 2.4})
+		_:
+			for i in 6:
+				var dir := Vector2((i - 2.5) * 0.22, -1.0).normalized()
+				projectile_pool.spawn_player(origin, dir * 400.0, 1.05 * damage_mult, {
+					"homing": 14.0,
+					"scale": 0.95,
+					"color": Color(0.3, 1.0, 0.5),
+					"lifetime": 2.6,
+					"splash_radius": 42.0,
+					"splash_damage": 0.7 * damage_mult})
+	AudioBus.play_shoot(600.0)
+
+
 func take_damage(amount: int) -> void:
-	if dead or _cinematic or invuln_time > 0.0:
+	if dead or _cinematic or invuln_time > 0.0 or energy_time > 0.0:
 		return
-	if shield_time > 0.0:
-		shield_time = 0.0
-		_shield_visual.visible = false
-		invuln_time = 0.6
+	if shield_charges > 0:
+		shield_charges -= 1
+		_shield_visual.visible = shield_charges > 0
+		invuln_time = 0.75
 		AudioBus.play_player_hurt()
 		EventBus.screen_shake.emit(4.0, 0.12)
+		EventBus.gimmick_toast.emit("SHIELD BREAK" if shield_charges <= 0 else "SHIELD  ×%d" % shield_charges)
 		return
 	hp = maxi(0, hp - amount)
 	_reset_weapon()
-	invuln_time = 1.0
+	invuln_time = 1.35
 	_flash_timer = 0.2
+	EventBus.player_hull_hit.emit()
 	AudioBus.play_player_hurt()
 	EventBus.screen_shake.emit(8.0, 0.18)
 	EventBus.player_hp_changed.emit(hp, max_hp)
@@ -295,11 +465,57 @@ func take_damage(amount: int) -> void:
 		_die()
 
 
+func add_shield(charges: int = 2) -> void:
+	shield_charges = mini(MAX_SHIELD_CHARGES, shield_charges + charges)
+	_shield_visual.visible = true
+	EventBus.gimmick_toast.emit("SHIELD  ×%d" % shield_charges)
+
+
+func activate_energy(duration: float = 4.0) -> void:
+	## Rare Energy drop — fire-rate boost + brief invulnerability.
+	energy_time = maxf(energy_time, duration)
+	rapid_time = maxf(rapid_time, duration)
+	invuln_time = maxf(invuln_time, 0.35)
+	EventBus.gimmick_toast.emit("ENERGY")
+
+
+func activate_bomb() -> void:
+	## Smart Cleaver — wipe enemy bullets and burst non-boss threats.
+	EventBus.gimmick_toast.emit("BOMB")
+	EventBus.screen_shake.emit(10.0, 0.22)
+	AudioBus.play_explode()
+	var vp := get_viewport_rect().size
+	var center := vp * 0.5
+	if projectile_pool and projectile_pool.has_method("clear_enemy_in_radius"):
+		projectile_pool.clear_enemy_in_radius(center, maxf(vp.x, vp.y) * 1.2)
+	var tree := get_tree()
+	if tree == null:
+		return
+	for n in tree.get_nodes_in_group("enemies"):
+		if n == null or not is_instance_valid(n) or not n.has_method("take_damage"):
+			continue
+		var is_stage_boss := n.is_in_group("boss") and not n.is_in_group("mid_boss")
+		if is_stage_boss:
+			n.take_damage(4.0) ## light chip only
+		elif n.is_in_group("mid_boss"):
+			n.take_damage(12.0)
+		else:
+			n.take_damage(10.0)
+	for n in tree.get_nodes_in_group("hazards"):
+		if n != null and is_instance_valid(n) and n.has_method("take_damage"):
+			n.take_damage(6.0)
+
+
 func _die() -> void:
 	dead = true
 	_cinematic = false
 	_touch_active = false
 	_touch_index = -1
+	_clear_bits()
+	speed_stacks = 0
+	shield_charges = 0
+	rapid_time = 0.0
+	energy_time = 0.0
 	clear_zone_effects()
 	visible = false
 	set_physics_process(false)
@@ -317,10 +533,13 @@ func play_victory_exit() -> void:
 	invuln_time = 999.0
 	velocity = Vector2.ZERO
 	clear_zone_effects()
+	for bit in _bits:
+		if is_instance_valid(bit):
+			bit.visible = false
 	if _engine:
 		_engine.emitting = true
-	_poly.modulate.a = 1.0
-	_poly.color = Color(0.43, 0.78, 1.0)
+	var vis := _visual()
+	vis.modulate = _SHIP_TINT
 
 	var vp := get_viewport_rect().size
 	var center := Vector2(vp.x * 0.5, vp.y * 0.48)
@@ -339,30 +558,31 @@ func play_victory_exit() -> void:
 	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "global_position", offscreen, 0.75)
 	tween.parallel().tween_property(self, "scale", Vector2(0.7, 1.45), 0.75)
-	tween.parallel().tween_property(_poly, "modulate:a", 0.0, 0.55).set_delay(0.2)
+	tween.parallel().tween_property(vis, "modulate:a", 0.0, 0.55).set_delay(0.2)
 	await tween.finished
 	visible = false
 
 
 func apply_pickup(kind: String) -> void:
 	match kind:
-		"spread":
-			_set_weapon(Weapon.SPREAD)
-		"railgun":
-			_set_weapon(Weapon.RAILGUN)
-		"homing":
+		"spread", "vulcan", "red":
+			_set_weapon(Weapon.VULCAN)
+		"laser", "beam", "blue":
+			_set_weapon(Weapon.LASER)
+		"homing", "missiles", "green":
 			_set_weapon(Weapon.HOMING)
-		"wave":
-			_set_weapon(Weapon.WAVE)
-		"flak":
-			_set_weapon(Weapon.FLAK)
-		"power":
+		"power", "pchip", "p-chip", "gold":
 			_power_up()
-		"rapid":
-			rapid_time = 8.0
-		"shield":
-			shield_time = 6.0
-			_shield_visual.visible = true
+		"option", "bit", "drone":
+			_add_bit()
+		"speed":
+			_add_speed()
+		"shield", "barrier":
+			add_shield(2)
+		"bomb", "cleaver":
+			activate_bomb()
+		"energy", "overdrive_pickup", "rapid":
+			activate_energy(4.0)
 		"heal":
 			hp = mini(max_hp, hp + 1)
 			EventBus.player_hp_changed.emit(hp, max_hp)
@@ -371,13 +591,17 @@ func apply_pickup(kind: String) -> void:
 
 
 func _update_visuals(_delta: float) -> void:
-	if invuln_time > 0.0:
-		_poly.modulate.a = 0.35 if int(Time.get_ticks_msec() / 60) % 2 == 0 else 1.0
+	var vis := _visual()
+	if invuln_time > 0.0 or energy_time > 0.0:
+		vis.modulate.a = 0.35 if int(Time.get_ticks_msec() / 60) % 2 == 0 else 1.0
 	else:
-		_poly.modulate.a = 1.0
+		vis.modulate.a = 1.0
 	if _flash_timer > 0.0:
-		_poly.color = Color(1.0, 1.0, 1.0)
+		vis.modulate = Color(_SHIP_FLASH.r, _SHIP_FLASH.g, _SHIP_FLASH.b, vis.modulate.a)
 	else:
-		_poly.color = Color(0.43, 0.78, 1.0)
+		vis.modulate = Color(_SHIP_TINT.r, _SHIP_TINT.g, _SHIP_TINT.b, vis.modulate.a)
+	# Keep polygon fallback tinted if sprite is missing.
+	if vis == _poly:
+		_poly.color = Color(1.0, 1.0, 1.0) if _flash_timer > 0.0 else Color(0.43, 0.78, 1.0)
 	if _engine:
 		_engine.emitting = not dead

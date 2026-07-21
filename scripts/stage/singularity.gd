@@ -1,7 +1,7 @@
 extends Area2D
 ## Gravity well — pulls the player / bullets and fills Overdrive on graze.
 
-var pull_strength: float = 200.0
+var pull_strength: float = 140.0
 var _life: float = 8.0
 var _player: Node
 var _graze_cd: float = 0.0

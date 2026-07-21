@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bog0ux2kwooy7"
-path="res://.godot/imported/pickup_railgun.png-2552bef98b652e38a664fb2d834ffd92.ctex"
+uid="uid://hke0xb0trcrs"
+path="res://.godot/imported/pickup_energy.png-08317760e7e1831ee044b355af695918.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pickup_railgun.png"
-dest_files=["res://.godot/imported/pickup_railgun.png-2552bef98b652e38a664fb2d834ffd92.ctex"]
+source_file="res://assets/sprites/pickup_energy.png"
+dest_files=["res://.godot/imported/pickup_energy.png-08317760e7e1831ee044b355af695918.ctex"]
 
 [params]
 

@@ -47,7 +47,10 @@ func _trigger_chain(center: Vector2) -> void:
 	EventBus.gimmick_toast.emit("CHAIN REACTION!")
 	if projectile_pool:
 		projectile_pool.clear_enemy_in_radius(center, 130.0)
-	_spawn_bonus(center)
+	GameState.add_score(250)
+	# Occasional bonus drop — not every formation clear.
+	if randf() < 0.35:
+		_spawn_bonus(center)
 
 
 func _spawn_bonus(pos: Vector2) -> void:
@@ -63,5 +66,4 @@ func _spawn_bonus(pos: Vector2) -> void:
 	host.add_child(p)
 	p.global_position = pos
 	if p.has_method("setup"):
-		p.setup("power" if randf() < 0.55 else "rapid")
-	GameState.add_score(250)
+		p.setup("power" if randf() < 0.55 else "option")

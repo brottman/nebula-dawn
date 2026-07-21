@@ -1,8 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" fill="#0a0c1a"/>
-  <polygon points="64,20 80,70 64,58 48,70" fill="#6ec8ff"/>
-  <circle cx="64" cy="90" r="8" fill="#ff9a4a"/>
-  <circle cx="30" cy="40" r="2" fill="#ffffff"/>
-  <circle cx="100" cy="55" r="1.5" fill="#ffffff"/>
-  <circle cx="90" cy="30" r="1" fill="#a8d4ff"/>
+  <defs>
+    <linearGradient id="hull" x1="64" y1="18" x2="64" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#dff6ff"/>
+      <stop offset="35%" stop-color="#5ec8f0"/>
+      <stop offset="100%" stop-color="#1a4f7a"/>
+    </linearGradient>
+    <linearGradient id="wing" x1="64" y1="40" x2="64" y2="105" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#9ee7ff"/>
+      <stop offset="100%" stop-color="#2a6a9a"/>
+    </linearGradient>
+    <radialGradient id="cockpit" cx="64" cy="48" r="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#6ef0ff"/>
+      <stop offset="100%" stop-color="#1a8ab8"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="20" fill="#070a16"/>
+  <circle cx="28" cy="30" r="1.5" fill="#cfe8ff" opacity="0.8"/>
+  <circle cx="102" cy="42" r="1.2" fill="#a8d4ff" opacity="0.7"/>
+  <circle cx="88" cy="22" r="1" fill="#ffffff" opacity="0.6"/>
+  <!-- wings -->
+  <path d="M64 28 L98 88 L78 78 L64 92 L50 78 L30 88 Z" fill="url(#wing)"/>
+  <path d="M64 28 L84 78 L64 70 L44 78 Z" fill="url(#hull)"/>
+  <!-- nose highlight -->
+  <path d="M64 28 L70 52 L64 48 L58 52 Z" fill="#e8f9ff" opacity="0.85"/>
+  <!-- canopy -->
+  <ellipse cx="64" cy="50" rx="7" ry="10" fill="url(#cockpit)"/>
+  <!-- thrusters -->
+  <rect x="52" y="88" width="8" height="6" rx="2" fill="#3a4a5a"/>
+  <rect x="68" y="88" width="8" height="6" rx="2" fill="#3a4a5a"/>
+  <ellipse cx="56" cy="98" rx="5" ry="8" fill="#ff9a3a"/>
+  <ellipse cx="72" cy="98" rx="5" ry="8" fill="#ff9a3a"/>
+  <ellipse cx="56" cy="96" rx="2.5" ry="4" fill="#ffe08a"/>
+  <ellipse cx="72" cy="96" rx="2.5" ry="4" fill="#ffe08a"/>
 </svg>

@@ -5,36 +5,37 @@ extends SceneTree
 
 func _init() -> void:
 	_ensure_dirs()
-	var scout := _enemy(&"scout", "Interceptor", 2.0, 150.0, 100, 0.0, Color(1.0, 0.45, 0.45), Vector2(26, 26))
-	var strafer := _enemy(&"strafer", "Defense Drone", 3.0, 115.0, 150, 1.35, Color(1.0, 0.7, 0.35), Vector2(30, 24))
-	strafer.projectile_speed = 250.0
-	var drone := _enemy(&"drone", "Mining Drone", 6.0, 75.0, 200, 1.7, Color(0.7, 0.4, 1.0), Vector2(34, 34))
-	drone.projectile_speed = 210.0
-	var cruiser := _enemy(&"strafer", "Armored Cruiser", 8.0, 85.0, 280, 1.5, Color(0.85, 0.45, 0.3), Vector2(40, 28))
-	cruiser.projectile_speed = 230.0
-	var asteroid := _enemy(&"asteroid", "Asteroid", 6.0, 85.0, 60, 0.0, Color(0.55, 0.5, 0.48), Vector2(40, 40))
+	# Softer Sector 1 curve: fodder dies fast, shooters fire slower / softer.
+	var scout := _enemy(&"scout", "Interceptor", 1.0, 130.0, 100, 0.0, Color(1.0, 0.45, 0.45), Vector2(40, 40))
+	var strafer := _enemy(&"strafer", "Defense Drone", 2.0, 95.0, 150, 1.8, Color(1.0, 0.7, 0.35), Vector2(46, 38))
+	strafer.projectile_speed = 200.0
+	var drone := _enemy(&"drone", "Mining Drone", 3.0, 65.0, 200, 2.2, Color(0.7, 0.4, 1.0), Vector2(50, 50))
+	drone.projectile_speed = 170.0
+	var cruiser := _enemy(&"strafer", "Armored Cruiser", 4.0, 72.0, 280, 2.0, Color(0.85, 0.45, 0.3), Vector2(58, 42))
+	cruiser.projectile_speed = 185.0
+	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.55, 0.5, 0.48), Vector2(56, 56))
 	asteroid.is_hazard = true
 	asteroid.contact_damage = 1
-	var bio := _enemy(&"drone", "Bio-Ship", 5.0, 90.0, 220, 1.5, Color(0.55, 1.0, 0.75), Vector2(32, 32))
-	bio.projectile_speed = 200.0
-	var stealth := _enemy(&"scout", "Stealth Craft", 3.0, 170.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(24, 24))
-	var repair := _enemy(&"drone", "Repair Drone", 4.0, 100.0, 160, 1.6, Color(0.4, 0.95, 0.7), Vector2(28, 28))
-	var turret := _enemy(&"strafer", "Heavy Turret", 7.0, 40.0, 240, 1.1, Color(1.0, 0.4, 0.5), Vector2(36, 30))
-	turret.projectile_speed = 280.0
-	var ace := _enemy(&"strafer", "Ace Fighter", 5.0, 160.0, 300, 1.0, Color(1.0, 0.85, 0.4), Vector2(28, 26))
-	ace.projectile_speed = 300.0
+	var bio := _enemy(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.0, Color(0.55, 1.0, 0.75), Vector2(48, 48))
+	bio.projectile_speed = 165.0
+	var stealth := _enemy(&"scout", "Stealth Craft", 1.0, 150.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(38, 38))
+	var repair := _enemy(&"drone", "Repair Drone", 2.0, 88.0, 160, 2.1, Color(0.4, 0.95, 0.7), Vector2(44, 44))
+	var turret := _enemy(&"strafer", "Heavy Turret", 4.0, 32.0, 240, 1.55, Color(1.0, 0.4, 0.5), Vector2(52, 44))
+	turret.projectile_speed = 220.0
+	var ace := _enemy(&"strafer", "Ace Fighter", 3.0, 135.0, 300, 1.45, Color(1.0, 0.85, 0.4), Vector2(44, 40))
+	ace.projectile_speed = 230.0
 
-	var mid1 := _mid_boss("Heavy Transport", 36.0, 70.0, 1400, 1.25, Color(0.55, 0.8, 1.0), Vector2(64, 48), 240.0)
-	var mid2 := _mid_boss("Seismic Drill", 40.0, 55.0, 1600, 1.3, Color(0.8, 0.6, 0.4), Vector2(66, 52), 230.0)
-	var mid3 := _mid_boss("Quantum Stalker", 42.0, 90.0, 1800, 1.1, Color(0.7, 0.4, 1.0), Vector2(56, 48), 260.0)
-	var mid4 := _mid_boss("Core Overseer", 46.0, 60.0, 1900, 1.15, Color(0.45, 1.0, 0.75), Vector2(58, 58), 250.0)
-	var mid5 := _mid_boss("Twin Ace Lead", 38.0, 100.0, 1700, 0.95, Color(1.0, 0.7, 0.3), Vector2(50, 44), 290.0)
+	var mid1 := _mid_boss("Heavy Transport", 36.0, 60.0, 1600, 1.55, Color(0.55, 0.8, 1.0), Vector2(84, 64), 190.0)
+	var mid2 := _mid_boss("Seismic Drill", 40.0, 48.0, 1800, 1.6, Color(0.8, 0.6, 0.4), Vector2(88, 70), 185.0)
+	var mid3 := _mid_boss("Quantum Stalker", 42.0, 78.0, 2000, 1.4, Color(0.7, 0.4, 1.0), Vector2(76, 66), 200.0)
+	var mid4 := _mid_boss("Core Overseer", 44.0, 52.0, 2100, 1.45, Color(0.45, 1.0, 0.75), Vector2(78, 78), 195.0)
+	var mid5 := _mid_boss("Twin Ace Lead", 38.0, 85.0, 1900, 1.25, Color(1.0, 0.7, 0.3), Vector2(70, 60), 220.0)
 
-	var boss1 := _boss("Orbital Defense Platform", 95.0, 50.0, 5500, 1.1, Color(0.4, 0.75, 1.0), Vector2(96, 72), 260.0)
-	var boss2 := _boss("Megalith Dreadnought", 110.0, 45.0, 6500, 1.05, Color(0.75, 0.55, 0.4), Vector2(110, 78), 250.0)
-	var boss3 := _boss("Celestial Leviathan", 120.0, 55.0, 7500, 1.0, Color(0.85, 0.45, 1.0), Vector2(100, 80), 270.0)
-	var boss4 := _boss("Fabrication Matrix", 130.0, 50.0, 8000, 0.95, Color(0.5, 1.0, 0.7), Vector2(98, 76), 280.0)
-	var boss5 := _boss("Omega Engine", 160.0, 65.0, 10000, 0.85, Color(1.0, 0.35, 0.55), Vector2(108, 84), 310.0)
+	var boss1 := _boss("Orbital Defense Platform", 100.0, 42.0, 6500, 1.4, Color(0.4, 0.75, 1.0), Vector2(120, 92), 200.0)
+	var boss2 := _boss("Megalith Dreadnought", 115.0, 38.0, 7500, 1.35, Color(0.75, 0.55, 0.4), Vector2(136, 98), 195.0)
+	var boss3 := _boss("Celestial Leviathan", 125.0, 46.0, 8500, 1.3, Color(0.85, 0.45, 1.0), Vector2(128, 100), 210.0)
+	var boss4 := _boss("Fabrication Matrix", 135.0, 42.0, 9000, 1.25, Color(0.5, 1.0, 0.7), Vector2(124, 96), 215.0)
+	var boss5 := _boss("Omega Engine", 160.0, 55.0, 12000, 1.15, Color(1.0, 0.35, 0.55), Vector2(136, 108), 235.0)
 
 	_save(scout, "res://resources/enemies/scout.tres")
 	_save(strafer, "res://resources/enemies/strafer.tres")
@@ -88,12 +89,23 @@ func _mid_boss(display: String, hp: float, speed: float, score: int, fire: float
 	return e
 
 
-func _entry(enemy: EnemyStats, delay: float, pos: Vector2, count: int = 1, spacing: Vector2 = Vector2(48, 0), formation: String = "") -> SpawnEntry:
+func _entry(
+	enemy: EnemyStats,
+	delay: float,
+	pos: Vector2,
+	count: int = 1,
+	pat: StringName = &"line",
+	spread: float = 56.0,
+	formation: String = "",
+	spacing: Vector2 = Vector2(56, 0)
+) -> SpawnEntry:
 	var s := SpawnEntry.new()
 	s.enemy = enemy
 	s.delay = delay
 	s.position = pos
 	s.count = count
+	s.pattern = pat
+	s.pattern_spread = spread
 	s.spacing = spacing
 	s.formation_id = formation
 	return s
@@ -127,176 +139,296 @@ func _mission_base(id: StringName, title: String, subtitle: String, scroll: floa
 
 # Stage 1 — Planetary Ascent: formations + chain reactions
 func _mission_01(scout: EnemyStats, strafer: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
-	var m := _mission_base(&"mission_01", "Planetary Ascent", "Break low orbit over the metropolis.", 38.0, Color(0.2, 0.35, 0.65), boss, &"formations", 1, 1.5)
+	var m := _mission_base(&"mission_01", "Planetary Ascent", "Break low orbit over the metropolis.", 38.0, Color(0.2, 0.35, 0.65), boss, &"formations", 1, 2.2)
 	m.waves = [
-		_wave("Act 1 — Opener", 0.7, [
-			_entry(scout, 0.0, Vector2(240, -40), 5, Vector2(45, 18), "v1"),
-			_entry(scout, 1.2, Vector2(120, -40), 4, Vector2(55, 0), "line1"),
-			_entry(scout, 1.0, Vector2(100, -40), 3, Vector2(70, 12), "sine1"),
-			_entry(scout, 0.3, Vector2(380, -40), 3, Vector2(-70, 12), "sine1b"),
-		], true, 8.0),
-		_wave("Act 2 — Escalation", 1.0, [
-			_entry(strafer, 0.0, Vector2(90, -40)),
-			_entry(strafer, 0.4, Vector2(390, -40)),
-			_entry(scout, 0.8, Vector2(200, -40), 5, Vector2(40, 14), "v2"),
-			_entry(strafer, 1.0, Vector2(160, -40), 2, Vector2(100, 0)),
-			_entry(scout, 0.9, Vector2(80, -40), 4, Vector2(80, 0), "line2"),
-			_entry(scout, 0.8, Vector2(140, -40), 3, Vector2(50, 20), "sweep1"),
-			_entry(scout, 0.2, Vector2(340, -40), 3, Vector2(-50, 20), "sweep1b"),
-		], true, 8.0),
-		_wave("Act 3 — Mid-Boss", 2.0, [_entry(mid, 0.0, Vector2(240, -60))], true, 0.0),
-		_wave("Act 4 — Climax", 2.4, [
-			_entry(scout, 0.0, Vector2(80, -40), 5, Vector2(50, 10), "finale_v"),
-			_entry(strafer, 0.6, Vector2(100, -40), 2, Vector2(0, 40)),
-			_entry(strafer, 0.0, Vector2(380, -40), 2, Vector2(0, 40)),
-			_entry(scout, 0.9, Vector2(240, -50), 5, Vector2(45, 0), "finale_line"),
-			_entry(strafer, 0.8, Vector2(200, -40), 2, Vector2(90, 0)),
-			_entry(scout, 0.7, Vector2(120, -40), 4, Vector2(70, 12), "finale_s"),
-		], true, 12.0),
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(scout, 0.0, Vector2(240, -50), 5, &"v", 54.0, "v1"),
+			_entry(scout, 1.6, Vector2(240, -50), 5, &"line", 58.0, "line1"),
+			_entry(scout, 1.5, Vector2(240, -55), 5, &"arc", 50.0, "arc1"),
+			_entry(scout, 1.4, Vector2(240, -50), 5, &"wave", 52.0, "wave1"),
+			_entry(scout, 1.5, Vector2(240, -55), 5, &"inv_v", 54.0, "inv0"),
+		], true, 14.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(scout, 0.0, Vector2(120, -50), 4, &"column", 40.0, "col_l"),
+			_entry(scout, 0.3, Vector2(360, -50), 4, &"column", 40.0, "col_r"),
+			_entry(scout, 1.4, Vector2(240, -55), 6, &"diamond", 48.0, "dia0"),
+			_entry(scout, 1.5, Vector2(240, -50), 5, &"cross", 46.0, "cross0"),
+			_entry(scout, 1.4, Vector2(240, -55), 6, &"arc", 50.0, "arc0b"),
+		], true, 14.0),
+		_wave("Act 2 — Escalation", 1.6, [
+			_entry(strafer, 0.0, Vector2(100, -50), 3, &"column", 42.0),
+			_entry(strafer, 0.3, Vector2(380, -50), 3, &"column", 42.0),
+			_entry(scout, 1.2, Vector2(240, -55), 5, &"diamond", 48.0, "dia1"),
+			_entry(scout, 1.4, Vector2(240, -50), 5, &"inv_v", 54.0, "inv1"),
+			_entry(strafer, 1.2, Vector2(240, -50), 4, &"line", 70.0),
+			_entry(scout, 1.3, Vector2(240, -55), 5, &"cross", 46.0, "cross1"),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(strafer, 0.0, Vector2(240, -50), 4, &"wave", 62.0),
+			_entry(scout, 1.2, Vector2(240, -55), 7, &"v", 48.0, "v2"),
+			_entry(strafer, 1.0, Vector2(90, -50), 3, &"column", 38.0),
+			_entry(strafer, 0.2, Vector2(390, -50), 3, &"column", 38.0),
+			_entry(scout, 1.3, Vector2(240, -50), 6, &"box", 50.0, "box1"),
+			_entry(scout, 1.4, Vector2(240, -55), 6, &"arc", 52.0, "arc2"),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.4, [_entry(mid, 0.0, Vector2(240, -70))], true, 0.0),
+		_wave("Act 4 — Build", 2.2, [
+			_entry(scout, 0.0, Vector2(240, -55), 6, &"v", 50.0, "build_v"),
+			_entry(strafer, 1.0, Vector2(110, -50), 3, &"column", 40.0),
+			_entry(strafer, 0.2, Vector2(370, -50), 3, &"column", 40.0),
+			_entry(scout, 1.3, Vector2(240, -50), 5, &"wave", 54.0, "build_w"),
+			_entry(scout, 1.4, Vector2(240, -55), 6, &"diamond", 48.0, "build_d"),
+			_entry(strafer, 1.2, Vector2(240, -50), 4, &"line", 68.0),
+		], true, 16.0),
+		_wave("Act 5 — Climax", 2.6, [
+			_entry(scout, 0.0, Vector2(240, -55), 7, &"v", 48.0, "finale_v"),
+			_entry(strafer, 0.9, Vector2(120, -50), 4, &"column", 38.0),
+			_entry(strafer, 0.2, Vector2(360, -50), 4, &"column", 38.0),
+			_entry(scout, 1.2, Vector2(240, -55), 6, &"box", 50.0, "finale_box"),
+			_entry(scout, 1.3, Vector2(240, -50), 7, &"arc", 50.0, "finale_arc"),
+			_entry(strafer, 1.1, Vector2(240, -50), 4, &"wave", 60.0),
+			_entry(scout, 1.3, Vector2(240, -55), 6, &"cross", 46.0, "finale_x"),
+			_entry(scout, 1.2, Vector2(240, -50), 5, &"inv_v", 54.0, "finale_inv"),
+		], true, 20.0),
 	]
 	return m
 
 
 # Stage 2 — Asteroid Belt: splitting rocks that block bullets
 func _mission_02(scout: EnemyStats, strafer: EnemyStats, asteroid: EnemyStats, drone: EnemyStats, cruiser: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
-	var m := _mission_base(&"mission_02", "The Asteroid Belt", "Use the rocks — or be crushed by them.", 48.0, Color(0.32, 0.22, 0.14), boss, &"asteroids", 2, 1.6)
+	var m := _mission_base(&"mission_02", "The Asteroid Belt", "Use the rocks — or be crushed by them.", 48.0, Color(0.32, 0.22, 0.14), boss, &"asteroids", 2, 2.2)
 	m.waves = [
-		_wave("Act 1 — Opener", 0.7, [
-			_entry(asteroid, 0.0, Vector2(140, -40)),
-			_entry(asteroid, 0.5, Vector2(320, -50)),
-			_entry(scout, 0.8, Vector2(220, -40), 2, Vector2(80, 0)),
-			_entry(asteroid, 0.9, Vector2(240, -40)),
-			_entry(scout, 0.8, Vector2(160, -40), 3, Vector2(70, 0)),
-		], true, 8.0),
-		_wave("Act 2 — Escalation", 1.0, [
-			_entry(asteroid, 0.0, Vector2(100, -40), 2, Vector2(140, 20)),
-			_entry(strafer, 0.5, Vector2(90, -40), 2, Vector2(0, 40)),
-			_entry(strafer, 0.2, Vector2(390, -40), 2, Vector2(0, 40)),
-			_entry(drone, 0.9, Vector2(240, -40)),
-			_entry(cruiser, 0.8, Vector2(200, -40)),
-			_entry(asteroid, 0.6, Vector2(80, -40)),
-			_entry(asteroid, 0.3, Vector2(400, -40)),
-			_entry(scout, 0.7, Vector2(180, -40), 3, Vector2(60, 0)),
-		], true, 8.0),
-		_wave("Act 3 — Mid-Boss", 2.0, [_entry(mid, 0.0, Vector2(240, -60))], true, 0.0),
-		_wave("Act 4 — Climax", 2.5, [
-			_entry(asteroid, 0.0, Vector2(90, -40), 3, Vector2(120, 10)),
-			_entry(cruiser, 0.5, Vector2(160, -40)),
-			_entry(cruiser, 0.3, Vector2(320, -40)),
-			_entry(drone, 0.7, Vector2(240, -40)),
-			_entry(asteroid, 0.6, Vector2(60, -50), 2, Vector2(80, 25)),
-			_entry(strafer, 0.5, Vector2(100, -40), 2, Vector2(0, 35)),
-			_entry(strafer, 0.0, Vector2(380, -40), 2, Vector2(0, 35)),
-			_entry(asteroid, 0.8, Vector2(240, -40), 2, Vector2(130, 0)),
-			_entry(scout, 0.6, Vector2(140, -40), 4, Vector2(55, 0)),
-		], true, 12.0),
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(asteroid, 0.0, Vector2(240, -55), 3, &"arc", 70.0),
+			_entry(scout, 1.2, Vector2(240, -50), 4, &"v", 56.0),
+			_entry(asteroid, 1.2, Vector2(240, -60), 3, &"line", 100.0),
+			_entry(scout, 1.1, Vector2(240, -50), 5, &"wave", 52.0),
+			_entry(asteroid, 1.3, Vector2(160, -55), 2, &"line", 140.0),
+			_entry(asteroid, 0.4, Vector2(320, -55), 2, &"line", 140.0),
+		], true, 14.0),
+		_wave("Act 1 — Drift", 1.4, [
+			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"diamond", 64.0),
+			_entry(scout, 1.2, Vector2(240, -50), 5, &"arc", 50.0),
+			_entry(asteroid, 1.3, Vector2(100, -60), 3, &"column", 48.0),
+			_entry(asteroid, 0.3, Vector2(380, -60), 3, &"column", 48.0),
+			_entry(scout, 1.4, Vector2(240, -50), 5, &"inv_v", 52.0),
+		], true, 14.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"arc", 62.0),
+			_entry(strafer, 0.7, Vector2(90, -50), 3, &"column", 40.0),
+			_entry(strafer, 0.3, Vector2(390, -50), 3, &"column", 40.0),
+			_entry(drone, 1.2, Vector2(240, -50), 3, &"line", 80.0),
+			_entry(cruiser, 1.1, Vector2(240, -55), 2, &"line", 120.0),
+			_entry(scout, 1.0, Vector2(240, -50), 5, &"inv_v", 52.0),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(asteroid, 0.0, Vector2(240, -55), 5, &"wave", 58.0),
+			_entry(cruiser, 1.0, Vector2(180, -50), 2, &"line", 130.0),
+			_entry(drone, 1.1, Vector2(240, -55), 3, &"v", 60.0),
+			_entry(strafer, 1.0, Vector2(100, -50), 3, &"column", 38.0),
+			_entry(strafer, 0.2, Vector2(380, -50), 3, &"column", 38.0),
+			_entry(scout, 1.2, Vector2(240, -50), 6, &"cross", 48.0),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.4, [_entry(mid, 0.0, Vector2(240, -70))], true, 0.0),
+		_wave("Act 4 — Build", 2.2, [
+			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"box", 68.0),
+			_entry(drone, 1.0, Vector2(240, -50), 3, &"line", 90.0),
+			_entry(cruiser, 1.1, Vector2(200, -55)),
+			_entry(cruiser, 0.4, Vector2(280, -55)),
+			_entry(scout, 1.2, Vector2(240, -50), 5, &"v", 54.0),
+			_entry(asteroid, 1.2, Vector2(120, -60), 3, &"arc", 70.0),
+		], true, 16.0),
+		_wave("Act 5 — Climax", 2.6, [
+			_entry(asteroid, 0.0, Vector2(240, -55), 5, &"arc", 58.0),
+			_entry(cruiser, 0.8, Vector2(240, -50), 2, &"line", 140.0),
+			_entry(drone, 1.0, Vector2(240, -55), 4, &"v", 58.0),
+			_entry(strafer, 0.9, Vector2(100, -50), 4, &"column", 36.0),
+			_entry(strafer, 0.2, Vector2(380, -50), 4, &"column", 36.0),
+			_entry(asteroid, 1.1, Vector2(240, -60), 5, &"box", 66.0),
+			_entry(scout, 1.0, Vector2(240, -50), 6, &"cross", 48.0),
+			_entry(drone, 1.1, Vector2(240, -55), 3, &"wave", 72.0),
+		], true, 20.0),
 	]
 	return m
 
 
 # Stage 3 — Nebula Anomaly: fog + plasma fields
 func _mission_03(scout: EnemyStats, stealth: EnemyStats, bio: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
-	var m := _mission_base(&"mission_03", "Nebula Anomaly", "Trust the glow — not your eyes.", 52.0, Color(0.4, 0.12, 0.4), boss, &"nebula", 3, 1.8)
+	var m := _mission_base(&"mission_03", "Nebula Anomaly", "Trust the glow — not your eyes.", 52.0, Color(0.4, 0.12, 0.4), boss, &"nebula", 3, 2.4)
 	m.waves = [
-		_wave("Act 1 — Opener", 0.7, [
-			_entry(stealth, 0.0, Vector2(200, -40), 3, Vector2(55, 0)),
-			_entry(scout, 0.9, Vector2(120, -40), 3, Vector2(60, 12)),
-			_entry(bio, 1.0, Vector2(280, -40)),
-			_entry(stealth, 0.8, Vector2(160, -40), 3, Vector2(70, 0)),
-		], true, 8.0),
-		_wave("Act 2 — Escalation", 1.0, [
-			_entry(bio, 0.0, Vector2(180, -40)),
-			_entry(bio, 0.4, Vector2(300, -40)),
-			_entry(stealth, 0.8, Vector2(100, -40), 4, Vector2(50, 10)),
-			_entry(bio, 0.9, Vector2(240, -50)),
-			_entry(scout, 0.6, Vector2(140, -40), 3, Vector2(80, 0)),
-			_entry(stealth, 0.8, Vector2(80, -40), 3, Vector2(0, 30)),
-			_entry(stealth, 0.2, Vector2(400, -40), 3, Vector2(0, 30)),
-		], true, 8.0),
-		_wave("Act 3 — Mid-Boss", 2.0, [_entry(mid, 0.0, Vector2(240, -60))], true, 0.0),
-		_wave("Act 4 — Climax", 2.5, [
-			_entry(bio, 0.0, Vector2(160, -40)),
-			_entry(bio, 0.3, Vector2(320, -40)),
-			_entry(stealth, 0.6, Vector2(100, -40), 5, Vector2(55, 8)),
-			_entry(bio, 0.8, Vector2(240, -40), 2, Vector2(90, 0)),
-			_entry(scout, 0.6, Vector2(140, -40), 4, Vector2(65, 0)),
-			_entry(stealth, 0.7, Vector2(90, -40), 2, Vector2(0, 40)),
-			_entry(stealth, 0.0, Vector2(390, -40), 2, Vector2(0, 40)),
-			_entry(bio, 0.9, Vector2(220, -40)),
-		], true, 12.0),
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(stealth, 0.0, Vector2(240, -50), 5, &"wave", 50.0),
+			_entry(scout, 1.3, Vector2(240, -55), 5, &"arc", 48.0),
+			_entry(bio, 1.3, Vector2(240, -50), 3, &"v", 70.0),
+			_entry(stealth, 1.2, Vector2(240, -50), 5, &"inv_v", 52.0),
+			_entry(scout, 1.3, Vector2(240, -55), 5, &"line", 56.0),
+		], true, 14.0),
+		_wave("Act 1 — Drift", 1.4, [
+			_entry(stealth, 0.0, Vector2(240, -50), 6, &"diamond", 46.0),
+			_entry(bio, 1.2, Vector2(180, -55)),
+			_entry(bio, 0.4, Vector2(300, -55)),
+			_entry(stealth, 1.3, Vector2(110, -50), 4, &"column", 36.0),
+			_entry(stealth, 0.3, Vector2(370, -50), 4, &"column", 36.0),
+			_entry(scout, 1.3, Vector2(240, -50), 5, &"cross", 48.0),
+		], true, 14.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(bio, 0.0, Vector2(240, -55), 3, &"line", 90.0),
+			_entry(stealth, 1.1, Vector2(240, -50), 6, &"diamond", 46.0),
+			_entry(bio, 1.2, Vector2(240, -55), 3, &"arc", 64.0),
+			_entry(scout, 1.0, Vector2(240, -50), 5, &"cross", 48.0),
+			_entry(stealth, 1.1, Vector2(110, -50), 4, &"column", 36.0),
+			_entry(stealth, 0.3, Vector2(370, -50), 4, &"column", 36.0),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(bio, 0.0, Vector2(240, -55), 4, &"v", 58.0),
+			_entry(stealth, 1.1, Vector2(240, -50), 7, &"wave", 48.0),
+			_entry(scout, 1.1, Vector2(240, -55), 5, &"box", 50.0),
+			_entry(bio, 1.2, Vector2(200, -50), 2, &"line", 100.0),
+			_entry(stealth, 1.1, Vector2(100, -50), 3, &"column", 40.0),
+			_entry(stealth, 0.2, Vector2(380, -50), 3, &"column", 40.0),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.4, [_entry(mid, 0.0, Vector2(240, -70))], true, 0.0),
+		_wave("Act 4 — Build", 2.2, [
+			_entry(stealth, 0.0, Vector2(240, -50), 6, &"arc", 48.0),
+			_entry(bio, 1.1, Vector2(240, -55), 3, &"inv_v", 70.0),
+			_entry(scout, 1.2, Vector2(240, -50), 5, &"diamond", 50.0),
+			_entry(stealth, 1.1, Vector2(120, -50), 4, &"column", 38.0),
+			_entry(stealth, 0.3, Vector2(360, -50), 4, &"column", 38.0),
+			_entry(bio, 1.2, Vector2(240, -55), 3, &"wave", 72.0),
+		], true, 16.0),
+		_wave("Act 5 — Climax", 2.6, [
+			_entry(bio, 0.0, Vector2(240, -55), 4, &"v", 58.0),
+			_entry(stealth, 0.9, Vector2(240, -50), 7, &"arc", 46.0),
+			_entry(bio, 1.1, Vector2(240, -55), 4, &"box", 68.0),
+			_entry(scout, 1.0, Vector2(240, -50), 6, &"wave", 52.0),
+			_entry(stealth, 1.0, Vector2(100, -50), 4, &"column", 38.0),
+			_entry(stealth, 0.2, Vector2(380, -50), 4, &"column", 38.0),
+			_entry(bio, 1.2, Vector2(240, -50), 3, &"inv_v", 72.0),
+			_entry(stealth, 1.1, Vector2(240, -55), 6, &"cross", 48.0),
+		], true, 20.0),
 	]
 	return m
 
 
 # Stage 4 — Cybernetic Hive: barriers + terminals
 func _mission_04(scout: EnemyStats, repair: EnemyStats, turret: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
-	var m := _mission_base(&"mission_04", "Cybernetic Hive", "Shoot the terminals. Survive the fences.", 58.0, Color(0.15, 0.35, 0.28), boss, &"hive", 4, 1.7)
+	var m := _mission_base(&"mission_04", "Cybernetic Hive", "Shoot the terminals. Survive the fences.", 58.0, Color(0.15, 0.35, 0.28), boss, &"hive", 4, 2.3)
 	m.waves = [
-		_wave("Act 1 — Opener", 0.6, [
-			_entry(repair, 0.0, Vector2(160, -40)),
-			_entry(repair, 0.5, Vector2(320, -40)),
-			_entry(scout, 0.8, Vector2(240, -40), 3, Vector2(60, 0)),
-			_entry(turret, 1.0, Vector2(240, -50)),
-		], true, 8.0),
-		_wave("Act 2 — Escalation", 1.0, [
-			_entry(turret, 0.0, Vector2(120, -40)),
-			_entry(turret, 0.4, Vector2(360, -40)),
-			_entry(repair, 0.8, Vector2(200, -40), 2, Vector2(90, 0)),
-			_entry(scout, 0.7, Vector2(140, -40), 4, Vector2(55, 0)),
-			_entry(turret, 0.9, Vector2(240, -40)),
-			_entry(repair, 0.6, Vector2(100, -40), 2, Vector2(0, 35)),
-			_entry(repair, 0.2, Vector2(380, -40), 2, Vector2(0, 35)),
-		], true, 8.0),
-		_wave("Act 3 — Mid-Boss", 2.0, [_entry(mid, 0.0, Vector2(240, -60))], true, 0.0),
-		_wave("Act 4 — Climax", 2.4, [
-			_entry(turret, 0.0, Vector2(100, -40)),
-			_entry(turret, 0.3, Vector2(380, -40)),
-			_entry(repair, 0.6, Vector2(200, -40), 3, Vector2(50, 0)),
-			_entry(scout, 0.7, Vector2(120, -40), 5, Vector2(50, 8)),
-			_entry(turret, 0.8, Vector2(240, -50)),
-			_entry(repair, 0.5, Vector2(90, -40), 2, Vector2(0, 40)),
-			_entry(repair, 0.0, Vector2(390, -40), 2, Vector2(0, 40)),
-			_entry(turret, 0.9, Vector2(180, -40)),
-			_entry(turret, 0.3, Vector2(300, -40)),
-		], true, 12.0),
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(repair, 0.0, Vector2(240, -50), 3, &"v", 70.0),
+			_entry(scout, 1.2, Vector2(240, -55), 5, &"line", 56.0),
+			_entry(turret, 1.3, Vector2(240, -55), 3, &"line", 110.0),
+			_entry(repair, 1.2, Vector2(240, -50), 4, &"arc", 58.0),
+			_entry(scout, 1.3, Vector2(240, -55), 5, &"wave", 52.0),
+		], true, 14.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(turret, 0.0, Vector2(140, -55)),
+			_entry(turret, 0.4, Vector2(340, -55)),
+			_entry(repair, 1.1, Vector2(240, -50), 4, &"diamond", 52.0),
+			_entry(scout, 1.2, Vector2(240, -55), 5, &"box", 48.0),
+			_entry(repair, 1.2, Vector2(100, -50), 3, &"column", 38.0),
+			_entry(repair, 0.3, Vector2(380, -50), 3, &"column", 38.0),
+		], true, 14.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(turret, 0.0, Vector2(240, -55), 3, &"arc", 90.0),
+			_entry(repair, 1.1, Vector2(240, -50), 4, &"diamond", 52.0),
+			_entry(scout, 1.0, Vector2(240, -55), 5, &"box", 48.0),
+			_entry(turret, 1.2, Vector2(240, -50), 2, &"line", 140.0),
+			_entry(repair, 1.0, Vector2(100, -50), 3, &"column", 38.0),
+			_entry(repair, 0.3, Vector2(380, -50), 3, &"column", 38.0),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(turret, 0.0, Vector2(120, -55)),
+			_entry(turret, 0.3, Vector2(240, -50)),
+			_entry(turret, 0.3, Vector2(360, -55)),
+			_entry(repair, 1.1, Vector2(240, -50), 5, &"v", 50.0),
+			_entry(scout, 1.1, Vector2(240, -55), 6, &"wave", 48.0),
+			_entry(repair, 1.1, Vector2(90, -50), 3, &"column", 40.0),
+			_entry(repair, 0.2, Vector2(390, -50), 3, &"column", 40.0),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.4, [_entry(mid, 0.0, Vector2(240, -70))], true, 0.0),
+		_wave("Act 4 — Build", 2.2, [
+			_entry(turret, 0.0, Vector2(240, -55), 3, &"line", 120.0),
+			_entry(repair, 1.0, Vector2(240, -50), 4, &"arc", 56.0),
+			_entry(scout, 1.1, Vector2(240, -55), 5, &"inv_v", 54.0),
+			_entry(turret, 1.1, Vector2(160, -50)),
+			_entry(turret, 0.4, Vector2(320, -50)),
+			_entry(repair, 1.2, Vector2(240, -55), 4, &"cross", 52.0),
+		], true, 16.0),
+		_wave("Act 5 — Climax", 2.6, [
+			_entry(turret, 0.0, Vector2(240, -55), 4, &"cross", 70.0),
+			_entry(repair, 0.9, Vector2(240, -50), 5, &"v", 50.0),
+			_entry(scout, 1.0, Vector2(240, -55), 7, &"wave", 46.0),
+			_entry(turret, 1.1, Vector2(240, -50), 3, &"line", 120.0),
+			_entry(repair, 0.9, Vector2(90, -50), 4, &"column", 38.0),
+			_entry(repair, 0.2, Vector2(390, -50), 4, &"column", 38.0),
+			_entry(scout, 1.1, Vector2(240, -55), 6, &"inv_v", 52.0),
+			_entry(turret, 1.1, Vector2(180, -50)),
+			_entry(turret, 0.3, Vector2(300, -50)),
+		], true, 20.0),
 	]
 	return m
 
 
 # Stage 5 — Flagship Core: singularities + overdrive
 func _mission_05(scout: EnemyStats, ace: EnemyStats, drone: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
-	var m := _mission_base(&"mission_05", "Flagship Core", "Graze the void. Break the Omega Engine.", 62.0, Color(0.22, 0.06, 0.28), boss, &"gravity", 5, 2.0)
+	var m := _mission_base(&"mission_05", "Flagship Core", "Graze the void. Break the Omega Engine.", 62.0, Color(0.22, 0.06, 0.28), boss, &"gravity", 5, 2.6)
 	m.waves = [
-		_wave("Act 1 — Opener", 0.7, [
-			_entry(ace, 0.0, Vector2(140, -40)),
-			_entry(ace, 0.5, Vector2(340, -40)),
-			_entry(scout, 0.8, Vector2(220, -40), 3, Vector2(55, 0)),
-			_entry(ace, 1.0, Vector2(240, -40), 2, Vector2(100, 0)),
-		], true, 8.0),
-		_wave("Act 2 — Escalation", 1.0, [
-			_entry(ace, 0.0, Vector2(80, -40), 2, Vector2(0, 40)),
-			_entry(ace, 0.3, Vector2(400, -40), 2, Vector2(0, 40)),
-			_entry(drone, 0.9, Vector2(240, -40), 2, Vector2(100, 0)),
-			_entry(scout, 0.6, Vector2(160, -40), 4, Vector2(55, 0)),
-			_entry(ace, 0.8, Vector2(200, -40), 2, Vector2(90, 0)),
-			_entry(drone, 0.7, Vector2(180, -50)),
-			_entry(drone, 0.3, Vector2(300, -50)),
-		], true, 8.0),
-		_wave("Act 3 — Mid-Boss", 2.0, [
-			_entry(mid, 0.0, Vector2(180, -60)),
-			_entry(mid, 0.4, Vector2(300, -60)),
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(ace, 0.0, Vector2(240, -50), 3, &"v", 80.0),
+			_entry(scout, 1.2, Vector2(240, -55), 5, &"arc", 50.0),
+			_entry(ace, 1.3, Vector2(240, -50), 4, &"line", 70.0),
+			_entry(scout, 1.2, Vector2(240, -50), 5, &"wave", 52.0),
+			_entry(ace, 1.3, Vector2(140, -55)),
+			_entry(ace, 0.4, Vector2(340, -55)),
+		], true, 14.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(ace, 0.0, Vector2(90, -50), 3, &"column", 40.0),
+			_entry(ace, 0.3, Vector2(390, -50), 3, &"column", 40.0),
+			_entry(scout, 1.2, Vector2(240, -55), 6, &"diamond", 48.0),
+			_entry(drone, 1.2, Vector2(240, -50), 3, &"line", 90.0),
+			_entry(scout, 1.2, Vector2(240, -55), 5, &"inv_v", 54.0),
+		], true, 14.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(ace, 0.0, Vector2(90, -50), 4, &"column", 38.0),
+			_entry(ace, 0.3, Vector2(390, -50), 4, &"column", 38.0),
+			_entry(drone, 1.2, Vector2(240, -55), 3, &"diamond", 60.0),
+			_entry(scout, 1.0, Vector2(240, -50), 6, &"cross", 46.0),
+			_entry(ace, 1.1, Vector2(240, -55), 4, &"inv_v", 58.0),
+			_entry(drone, 1.0, Vector2(240, -50), 3, &"arc", 72.0),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(ace, 0.0, Vector2(240, -50), 4, &"wave", 64.0),
+			_entry(scout, 1.1, Vector2(240, -55), 7, &"v", 48.0),
+			_entry(drone, 1.1, Vector2(180, -50), 2, &"line", 120.0),
+			_entry(drone, 0.4, Vector2(300, -50)),
+			_entry(ace, 1.1, Vector2(100, -55), 3, &"column", 38.0),
+			_entry(ace, 0.2, Vector2(380, -55), 3, &"column", 38.0),
+			_entry(scout, 1.2, Vector2(240, -50), 6, &"box", 50.0),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.5, [
+			_entry(mid, 0.0, Vector2(240, -75), 2, &"line", 120.0),
 		], true, 0.0),
-		_wave("Act 4 — Climax", 2.5, [
-			_entry(ace, 0.0, Vector2(90, -40), 3, Vector2(0, 35)),
-			_entry(ace, 0.0, Vector2(390, -40), 3, Vector2(0, 35)),
-			_entry(drone, 0.8, Vector2(200, -40), 2, Vector2(100, 0)),
-			_entry(scout, 0.6, Vector2(120, -40), 5, Vector2(50, 8)),
-			_entry(ace, 0.7, Vector2(240, -40), 2, Vector2(90, 0)),
-			_entry(drone, 0.8, Vector2(240, -50)),
-			_entry(ace, 0.6, Vector2(140, -40)),
-			_entry(ace, 0.3, Vector2(340, -40)),
-			_entry(scout, 0.7, Vector2(100, -40), 5, Vector2(55, 0)),
-		], true, 12.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(ace, 0.0, Vector2(90, -50), 3, &"column", 40.0),
+			_entry(ace, 0.2, Vector2(390, -50), 3, &"column", 40.0),
+			_entry(drone, 1.1, Vector2(240, -55), 4, &"v", 58.0),
+			_entry(scout, 1.1, Vector2(240, -50), 6, &"arc", 48.0),
+			_entry(ace, 1.1, Vector2(240, -55), 4, &"line", 68.0),
+			_entry(drone, 1.1, Vector2(240, -50), 3, &"wave", 70.0),
+		], true, 16.0),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(ace, 0.0, Vector2(90, -50), 4, &"column", 36.0),
+			_entry(ace, 0.0, Vector2(390, -50), 4, &"column", 36.0),
+			_entry(drone, 1.0, Vector2(240, -55), 4, &"v", 58.0),
+			_entry(scout, 0.9, Vector2(240, -50), 7, &"arc", 44.0),
+			_entry(ace, 1.0, Vector2(240, -55), 4, &"box", 64.0),
+			_entry(drone, 1.1, Vector2(240, -50), 4, &"wave", 66.0),
+			_entry(scout, 1.0, Vector2(240, -55), 6, &"diamond", 48.0),
+			_entry(ace, 1.1, Vector2(140, -50)),
+			_entry(ace, 0.3, Vector2(340, -50)),
+			_entry(scout, 1.1, Vector2(240, -55), 5, &"cross", 50.0),
+		], true, 22.0),
 	]
 	return m
 
