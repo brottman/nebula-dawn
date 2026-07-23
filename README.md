@@ -21,13 +21,13 @@ godot --path .
 
 Or open this folder in the Godot editor and press Play.
 
-### Build & install Android APK
+### Build Android APK
 
 ```bash
-./scripts/build_apk.sh
+nix shell nixpkgs#godot --command ./scripts/build_apk.sh
 ```
 
-Exports a debug APK to `build/NebulaDawn-debug.apk`, signs it, and installs on a connected device when available.
+Exports a signed debug APK to `build/NebulaDawn-debug.apk` (does not install). Install separately with `adb install -r build/NebulaDawn-debug.apk` if needed.
 
 ---
 

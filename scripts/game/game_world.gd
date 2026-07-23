@@ -1,18 +1,24 @@
-extends Node2D
+extends Control
 ## Shared game world for campaign missions and endless mode.
+## Playfield renders in a SubViewport below the top HUD bar so chrome
+## does not cover the Camera2D action zone.
 
-@onready var parallax: Node2D = $ParallaxBg
-@onready var player: CharacterBody2D = $Player
-@onready var entities: Node2D = $Entities
-@onready var projectiles: Node2D = $Projectiles
+const HUD_TOP_HEIGHT := 72.0
+
+@onready var playfield_host: SubViewportContainer = $PlayfieldHost
+@onready var playfield: SubViewport = $PlayfieldHost/Playfield
+@onready var parallax: Node2D = $PlayfieldHost/Playfield/ParallaxBg
+@onready var player: CharacterBody2D = $PlayfieldHost/Playfield/Player
+@onready var entities: Node2D = $PlayfieldHost/Playfield/Entities
+@onready var projectiles: Node2D = $PlayfieldHost/Playfield/Projectiles
 @onready var hud: CanvasLayer = $HUD
 @onready var pause_menu: CanvasLayer = $PauseMenu
-@onready var camera: Camera2D = $Camera2D
-@onready var pool: ProjectilePool = $ProjectilePool
-@onready var spawner: Node = $WaveSpawner
-@onready var runner: Node = $MissionRunner
-@onready var formation_tracker: Node = $FormationTracker
-@onready var stage_director: Node = $StageDirector
+@onready var camera: Camera2D = $PlayfieldHost/Playfield/Camera2D
+@onready var pool: ProjectilePool = $PlayfieldHost/Playfield/ProjectilePool
+@onready var spawner: Node = $PlayfieldHost/Playfield/WaveSpawner
+@onready var runner: Node = $PlayfieldHost/Playfield/MissionRunner
+@onready var formation_tracker: Node = $PlayfieldHost/Playfield/FormationTracker
+@onready var stage_director: Node = $PlayfieldHost/Playfield/StageDirector
 
 var _shake_time: float = 0.0
 var _shake_amount: float = 0.0
@@ -39,7 +45,20 @@ func _ready() -> void:
 
 
 func _fit_playfield() -> void:
-	var vp := get_viewport_rect().size
+	var safe := _safe_area_insets()
+	var top_chrome := HUD_TOP_HEIGHT + safe.y
+	playfield_host.offset_top = top_chrome
+	playfield_host.offset_left = safe.x
+	playfield_host.offset_right = -safe.z
+	playfield_host.offset_bottom = -safe.w
+	# Container size updates after the current layout pass.
+	call_deferred("_finish_fit_playfield")
+
+
+func _finish_fit_playfield() -> void:
+	var vp := Vector2(playfield.size)
+	if vp.x <= 0.0 or vp.y <= 0.0:
+		return
 	camera.position = vp * 0.5
 	if _ending or not is_instance_valid(player) or player.dead:
 		return
@@ -47,8 +66,22 @@ func _fit_playfield() -> void:
 	player.global_position.x = clampf(player.global_position.x, margin, vp.x - margin)
 	player.global_position.y = clampf(player.global_position.y, margin, vp.y - margin)
 	# First fit: place near bottom-center if still at the editor default.
-	if player.global_position.distance_to(Vector2(240, 600)) < 2.0:
+	if player.global_position.distance_to(Vector2(240, 540)) < 2.0 \
+			or player.global_position.distance_to(Vector2(240, 600)) < 2.0:
 		player.global_position = Vector2(vp.x * 0.5, vp.y * 0.83)
+
+
+func _safe_area_insets() -> Vector4:
+	var safe := DisplayServer.get_display_safe_area()
+	var screen := DisplayServer.screen_get_size()
+	if screen.x <= 0 or screen.y <= 0:
+		return Vector4.ZERO
+	var vp := get_viewport().get_visible_rect().size
+	var left := float(safe.position.x) / float(screen.x) * vp.x
+	var top := float(safe.position.y) / float(screen.y) * vp.y
+	var right := float(screen.x - safe.end.x) / float(screen.x) * vp.x
+	var bottom := float(screen.y - safe.end.y) / float(screen.y) * vp.y
+	return Vector4(maxf(left, 0.0), maxf(top, 0.0), maxf(right, 0.0), maxf(bottom, 0.0))
 
 
 func _start_mode() -> void:
@@ -123,7 +156,7 @@ func _on_mission_complete(won: bool) -> void:
 
 func _freeze_combat() -> void:
 	if pool and pool.has_method("clear_enemy_in_radius"):
-		var vp := get_viewport_rect().size
+		var vp := Vector2(playfield.size)
 		pool.clear_enemy_in_radius(vp * 0.5, maxf(vp.x, vp.y))
 	for n in get_tree().get_nodes_in_group("enemies"):
 		if n == player:

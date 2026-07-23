@@ -19,6 +19,7 @@ const CHIP_SEGMENTS := 5
 @onready var boss_bar: ProgressBar = $Root/BossBar
 @onready var boss_label: Label = $Root/BossLabel
 @onready var pickup_toast: Label = $Root/PickupToast
+@onready var root: Control = $Root
 @onready var bomb_btn: Button = $Root/BombButton
 
 var _hp: int = 5
@@ -36,6 +37,8 @@ func _ready() -> void:
 	pickup_toast.visible = false
 	bomb_btn.focus_mode = Control.FOCUS_NONE
 	bomb_btn.pressed.connect(_on_bomb_pressed)
+	get_viewport().size_changed.connect(_apply_safe_area)
+	_apply_safe_area()
 	_build_weapon_module_styles()
 	_build_chip_segments()
 	EventBus.player_hp_changed.connect(_on_hp)
@@ -93,6 +96,28 @@ func _build_chip_segments() -> void:
 		seg.color = Color(0.18, 0.22, 0.28, 0.95)
 		chip_segments.add_child(seg)
 		_segment_panels.append(seg)
+
+
+## Keep chrome clear of notches / punch-hole cameras (immersive Android).
+func _apply_safe_area() -> void:
+	var insets := _safe_area_insets()
+	root.offset_left = insets.x
+	root.offset_top = insets.y
+	root.offset_right = -insets.z
+	root.offset_bottom = -insets.w
+
+
+func _safe_area_insets() -> Vector4:
+	var safe := DisplayServer.get_display_safe_area()
+	var screen := DisplayServer.screen_get_size()
+	if screen.x <= 0 or screen.y <= 0:
+		return Vector4.ZERO
+	var vp := get_viewport().get_visible_rect().size
+	var left := float(safe.position.x) / float(screen.x) * vp.x
+	var top := float(safe.position.y) / float(screen.y) * vp.y
+	var right := float(screen.x - safe.end.x) / float(screen.x) * vp.x
+	var bottom := float(screen.y - safe.end.y) / float(screen.y) * vp.y
+	return Vector4(maxf(left, 0.0), maxf(top, 0.0), maxf(right, 0.0), maxf(bottom, 0.0))
 
 
 func _on_bomb_pressed() -> void:
