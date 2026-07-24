@@ -99,7 +99,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 		collision_mask = 1 | 32
 		add_to_group("enemy_projectiles")
 		if _poly:
-			_poly.color = Color(1.0, 0.55, 0.35)
+			_poly.color = opts.get("color", Color(1.0, 0.55, 0.35))
 
 
 func deactivate() -> void:

@@ -33,6 +33,9 @@ var run_hits_taken: int = 0
 var run_formations: int = 0
 var run_max_weapon_level: int = 1
 var run_bosses_defeated: int = 0
+## Letter rank from the last finished run ("" while in progress).
+var last_rank: String = ""
+var last_rank_bonus: int = 0
 
 
 func _ready() -> void:
@@ -70,6 +73,8 @@ func start_campaign_mission(index: int) -> void:
 	session_score = 0
 	last_score = 0
 	last_won = false
+	last_rank = ""
+	last_rank_bonus = 0
 	_reset_run_stats()
 
 
@@ -79,6 +84,8 @@ func start_endless() -> void:
 	session_score = 0
 	last_score = 0
 	last_won = false
+	last_rank = ""
+	last_rank_bonus = 0
 	_reset_run_stats()
 
 
@@ -131,18 +138,78 @@ func add_score(amount: int) -> void:
 func record_mission_result(won: bool) -> void:
 	run_active = false
 	last_won = won
-	last_score = session_score
+	last_rank = ""
+	last_rank_bonus = 0
 	if won and mode == Mode.CAMPAIGN:
+		var rank_info := compute_clear_rank()
+		last_rank = String(rank_info.get("rank", "C"))
+		last_rank_bonus = int(rank_info.get("bonus", 0))
+		if last_rank_bonus > 0:
+			session_score += last_rank_bonus
 		var next := current_mission_index + 1
 		if next > highest_unlocked_mission and next < MISSION_PATHS.size():
 			highest_unlocked_mission = next
 		elif current_mission_index == MISSION_PATHS.size() - 1:
 			highest_unlocked_mission = maxi(highest_unlocked_mission, current_mission_index)
 		save_progress()
+	last_score = session_score
 	if mode == Mode.ENDLESS:
 		if session_score > endless_high_score:
 			endless_high_score = session_score
 			save_progress()
+
+
+## Rank a campaign clear from hull hits, pace, aggression, and power ceiling.
+## Returns { "rank": "S"|"A"|"B"|"C", "bonus": int, "points": int }.
+func compute_clear_rank() -> Dictionary:
+	var points := 0
+	# Survival — the strongest lever; clean runs feel elite.
+	if run_hits_taken <= 0:
+		points += 45
+	elif run_hits_taken <= 2:
+		points += 32
+	elif run_hits_taken <= 5:
+		points += 18
+	elif run_hits_taken <= 9:
+		points += 8
+	# Pace — stages are multi-minute; reward decisive clears without punishing careful play.
+	if run_elapsed <= 150.0:
+		points += 20
+	elif run_elapsed <= 210.0:
+		points += 12
+	elif run_elapsed <= 270.0:
+		points += 6
+	# Aggression / mastery of stage toys.
+	if current_mission_index == 0:
+		if run_formations >= 4:
+			points += 15
+		elif run_formations >= 2:
+			points += 8
+	else:
+		if run_kills >= 80:
+			points += 12
+		elif run_kills >= 50:
+			points += 7
+	# Power ceiling shows you rode the pickup economy.
+	if run_max_weapon_level >= 3:
+		points += 15
+	elif run_max_weapon_level >= 2:
+		points += 8
+	if run_bosses_defeated >= 2:
+		points += 5
+
+	var rank := "C"
+	var bonus := 500
+	if points >= 85:
+		rank = "S"
+		bonus = 5000
+	elif points >= 65:
+		rank = "A"
+		bonus = 2500
+	elif points >= 40:
+		rank = "B"
+		bonus = 1200
+	return {"rank": rank, "bonus": bonus, "points": points}
 
 
 func has_next_mission() -> bool:

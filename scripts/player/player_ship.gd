@@ -636,6 +636,10 @@ func activate_bomb() -> void:
 	AudioBus.play_explode()
 	var vp := get_viewport_rect().size
 	var center := vp * 0.5
+	var fx_parent := get_parent()
+	if fx_parent:
+		CombatFX.spawn_ring(fx_parent, global_position, Color(1.0, 0.75, 0.35), 28.0)
+		CombatFX.spawn_burst(fx_parent, global_position, Color(1.0, 0.6, 0.25), 16, 48.0)
 	if projectile_pool and projectile_pool.has_method("clear_enemy_in_radius"):
 		projectile_pool.clear_enemy_in_radius(center, maxf(vp.x, vp.y) * 1.2)
 	var tree := get_tree()
@@ -679,6 +683,10 @@ func _die() -> void:
 	set_physics_process(true) ## keep process for respawn scheduling via await
 	AudioBus.play_explode()
 	EventBus.screen_shake.emit(12.0, 0.28)
+	var fx_parent := get_parent()
+	if fx_parent:
+		CombatFX.spawn_ring(fx_parent, global_position, Color(0.55, 0.9, 1.0), 16.0)
+		CombatFX.spawn_burst(fx_parent, global_position, Color(0.7, 0.9, 1.0), 14, 34.0)
 	lives -= 1
 	EventBus.player_lives_changed.emit(lives)
 	if lives <= 0:
