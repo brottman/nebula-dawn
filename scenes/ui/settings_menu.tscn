@@ -1,0 +1,120 @@
+[gd_scene load_steps=2 format=3 uid="uid://settings001"]
+
+[ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="1"]
+
+[node name="SettingsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.05, 0.12, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="MusicRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Center/VBox/MusicRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Music"
+
+[node name="Slider" type="HSlider" parent="Center/VBox/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="Value" type="Label" parent="Center/VBox/MusicRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "75%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Center/VBox/SfxRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "SFX"
+
+[node name="Slider" type="HSlider" parent="Center/VBox/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="Value" type="Label" parent="Center/VBox/SfxRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "85%"
+horizontal_alignment = 2
+
+[node name="TouchRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Center/VBox/TouchRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Touch"
+
+[node name="Slider" type="HSlider" parent="Center/VBox/TouchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="Value" type="Label" parent="Center/VBox/TouchRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "1.00x"
+horizontal_alignment = 2
+
+[node name="Hint" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.6, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "Touch sensitivity only affects drag follow speed."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="BackButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Back"

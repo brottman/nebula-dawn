@@ -81,8 +81,11 @@ func _fill_header() -> void:
 
 	if GameState.last_won:
 		if GameState.is_sector_finale():
-			title.text = "SECTOR 1 CLEARED"
-			detail.text = "Flagship Core destroyed — Sector 1 complete"
+			title.text = "SECTOR %d CLEARED" % GameState.sector_of()
+			if GameState.sector_of() == 1:
+				detail.text = "Flagship Core destroyed — Sector 2 unlocked"
+			else:
+				detail.text = "Dawn Gate shattered — Sector 2 complete"
 		else:
 			title.text = "STAGE CLEARED"
 			detail.text = "Stage %s complete" % code

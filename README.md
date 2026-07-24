@@ -2,7 +2,7 @@
 
 Vertical-scrolling space shooter built with **Godot 4.7** (GDScript).
 
-Campaign **Sector 1** has five thematic stages with unique gimmicks. An Endless survival mode is also included. Built for desktop and Android (portrait).
+Campaign has two sectors (ten stages) with unique gimmicks. An Endless survival mode is also included. Built for desktop and Android (portrait).
 
 ---
 
@@ -57,7 +57,19 @@ Five stages. Clear a stage to unlock the next. Progress is saved under `user://n
 | **1-4** | Cybernetic Hive | Sweeping laser barriers; shoot terminals to shut them down |
 | **1-5** | Flagship Core | Singularities pull ship/bullets; graze them to fill **Overdrive** (brief slow-mo) |
 
-Beating stages 1–4 shows **STAGE CLEARED** with a statistics screen and a **Next Mission** button. Beating Flagship Core shows **SECTOR 1 CLEARED**.
+Beating stages 1–4 shows **STAGE CLEARED** with a statistics screen, letter rank (S/A/B/C), and a **Next Mission** button. Beating Flagship Core shows **SECTOR 1 CLEARED** and unlocks Sector 2.
+
+### Sector 2 (campaign)
+
+Unlocked after Flagship Core. Denser EX-style power floor (Lv2 + Bomb/Shield on respawn).
+
+| Code | Stage | Gimmick |
+|------|--------|---------|
+| **2-1** | Mirror Field | Mirror plates bounce enemy bullets sideways |
+| **2-2** | Ion Storm | Vertical lightning columns pulse across lanes |
+| **2-3** | Phantom Wake | Fog + delayed echo volleys at your last position |
+| **2-4** | Scrap Gauntlet | Horizontal scrap conveyors shove the ship |
+| **2-5** | Dawn Gate | Solar flares scorch the lower field; residual gravity wells |
 
 ### Endless
 
@@ -152,9 +164,14 @@ Mission `background_tint` and `scroll_speed` drive the look per stage.
 | 1-3 | `Zero_G_Intercept.mp3` |
 | 1-4 | `Hull_Breach_Protocol.mp3` |
 | 1-5 | `Gravity_Override.mp3` |
+| 2-1 | `Orbital_Strike_Pattern.mp3` |
+| 2-2 | `Against_the_Solar_Wind.mp3` |
+| 2-3 | `Zero_G_Intercept.mp3` |
+| 2-4 | `Hull_Breach_Protocol.mp3` |
+| 2-5 | `Last_Sector_Approach.mp3` |
 | Endless | `Last_Sector_Approach.mp3` |
 
-Audio files live in `assets/audio/`. Mapping is in `scripts/autoloads/audio_bus.gd`.
+Sampled SFX live in `assets/audio/sfx/`. Mapping is in `scripts/autoloads/audio_bus.gd`.
 
 ---
 

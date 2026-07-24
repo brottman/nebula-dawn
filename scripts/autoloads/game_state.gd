@@ -1,5 +1,5 @@
 extends Node
-## Persistent campaign progress, run mode, session score, and mission stats.
+## Persistent campaign progress, settings, run mode, and mission stats.
 
 const SAVE_PATH := "user://nebula_dawn.cfg"
 ## Sector 1 — five stages from Planetary Ascent through Flagship Core.
@@ -10,8 +10,19 @@ const SECTOR_1_PATHS := [
 	"res://resources/missions/mission_04_cybernetic_hive.tres",
 	"res://resources/missions/mission_05_flagship_core.tres",
 ]
-const MISSION_PATHS := SECTOR_1_PATHS
+## Sector 2 — five stages beyond the Flagship Core.
+const SECTOR_2_PATHS := [
+	"res://resources/missions/mission_06_mirror_field.tres",
+	"res://resources/missions/mission_07_ion_storm.tres",
+	"res://resources/missions/mission_08_phantom_wake.tres",
+	"res://resources/missions/mission_09_scrap_gauntlet.tres",
+	"res://resources/missions/mission_10_dawn_gate.tres",
+]
+const MISSION_PATHS := SECTOR_1_PATHS + SECTOR_2_PATHS
 const SECTOR_1 := 1
+const SECTOR_2 := 2
+const SECTOR_1_COUNT := 5
+const RANK_ORDER := {"S": 4, "A": 3, "B": 2, "C": 1}
 
 enum Mode { CAMPAIGN, ENDLESS }
 
@@ -22,6 +33,15 @@ var last_score: int = 0
 var last_won: bool = false
 var endless_high_score: int = 0
 var session_score: int = 0
+## Best clear rank per mission index ("", "C", "B", "A", "S").
+var best_ranks: Array[String] = []
+
+var settings_return_scene: String = "res://scenes/ui/main_menu.tscn"
+
+## Settings (0–1 volumes, 0.5–1.5 touch sensitivity).
+var music_volume: float = 0.75
+var sfx_volume: float = 0.85
+var touch_sensitivity: float = 1.0
 
 ## Per-run statistics shown on the mission results screen.
 var run_active: bool = false
@@ -39,6 +59,7 @@ var last_rank_bonus: int = 0
 
 
 func _ready() -> void:
+	_ensure_rank_slots()
 	load_progress()
 	EventBus.enemy_killed.connect(_on_enemy_killed)
 	EventBus.pickup_collected.connect(_on_pickup_collected)
@@ -52,19 +73,55 @@ func _process(delta: float) -> void:
 		run_elapsed += delta
 
 
+func _ensure_rank_slots() -> void:
+	while best_ranks.size() < MISSION_PATHS.size():
+		best_ranks.append("")
+
+
 func load_progress() -> void:
+	_ensure_rank_slots()
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	highest_unlocked_mission = int(cfg.get_value("campaign", "unlocked", 0))
 	endless_high_score = int(cfg.get_value("endless", "high_score", 0))
+	music_volume = float(cfg.get_value("settings", "music_volume", music_volume))
+	sfx_volume = float(cfg.get_value("settings", "sfx_volume", sfx_volume))
+	touch_sensitivity = float(cfg.get_value("settings", "touch_sensitivity", touch_sensitivity))
+	for i in MISSION_PATHS.size():
+		best_ranks[i] = String(cfg.get_value("ranks", "m%d" % i, ""))
 
 
 func save_progress() -> void:
+	_ensure_rank_slots()
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", highest_unlocked_mission)
 	cfg.set_value("endless", "high_score", endless_high_score)
+	cfg.set_value("settings", "music_volume", music_volume)
+	cfg.set_value("settings", "sfx_volume", sfx_volume)
+	cfg.set_value("settings", "touch_sensitivity", touch_sensitivity)
+	for i in MISSION_PATHS.size():
+		cfg.set_value("ranks", "m%d" % i, best_ranks[i])
 	cfg.save(SAVE_PATH)
+
+
+func set_music_volume(v: float) -> void:
+	music_volume = clampf(v, 0.0, 1.0)
+	if AudioBus and AudioBus.has_method("apply_volumes"):
+		AudioBus.apply_volumes()
+	save_progress()
+
+
+func set_sfx_volume(v: float) -> void:
+	sfx_volume = clampf(v, 0.0, 1.0)
+	if AudioBus and AudioBus.has_method("apply_volumes"):
+		AudioBus.apply_volumes()
+	save_progress()
+
+
+func set_touch_sensitivity(v: float) -> void:
+	touch_sensitivity = clampf(v, 0.5, 1.5)
+	save_progress()
 
 
 func start_campaign_mission(index: int) -> void:
@@ -103,10 +160,9 @@ func _reset_run_stats() -> void:
 
 func get_power_floor(mission_index: int = -1) -> int:
 	## Minimum weapon tier on respawn. Stages are 1-based in design docs;
-	## mission_index is 0-based (0–4 = Sector 1 stages 1–5).
+	## mission_index is 0-based (0–4 = Sector 1, 5–9 = Sector 2 / EX).
 	var i := current_mission_index if mission_index < 0 else mission_index
 	if mode == Mode.ENDLESS:
-		# Endless ramps like late Sector 1.
 		return 2 if run_elapsed > 90.0 else 1
 	if i < 0:
 		return 1
@@ -114,13 +170,13 @@ func get_power_floor(mission_index: int = -1) -> int:
 		return 1 ## Stages 1–3
 	if i <= 4:
 		return 2 ## Stages 4–5
-	# EX Stages 6–10 (future): Lv2 floor + utility on respawn.
+	# Sector 2 / EX: Lv2 floor + utility on respawn.
 	return 2
 
 
 func is_ex_stage(mission_index: int = -1) -> bool:
 	var i := current_mission_index if mission_index < 0 else mission_index
-	return mode == Mode.CAMPAIGN and i >= 5
+	return mode == Mode.CAMPAIGN and i >= SECTOR_1_COUNT
 
 
 func get_mission_path(index: int = -1) -> String:
@@ -146,6 +202,7 @@ func record_mission_result(won: bool) -> void:
 		last_rank_bonus = int(rank_info.get("bonus", 0))
 		if last_rank_bonus > 0:
 			session_score += last_rank_bonus
+		_record_best_rank(current_mission_index, last_rank)
 		var next := current_mission_index + 1
 		if next > highest_unlocked_mission and next < MISSION_PATHS.size():
 			highest_unlocked_mission = next
@@ -159,11 +216,26 @@ func record_mission_result(won: bool) -> void:
 			save_progress()
 
 
+func _record_best_rank(index: int, rank: String) -> void:
+	_ensure_rank_slots()
+	if index < 0 or index >= best_ranks.size() or rank == "":
+		return
+	var prev := best_ranks[index]
+	if prev == "" or RANK_ORDER.get(rank, 0) > RANK_ORDER.get(prev, 0):
+		best_ranks[index] = rank
+
+
+func get_best_rank(index: int) -> String:
+	_ensure_rank_slots()
+	if index < 0 or index >= best_ranks.size():
+		return ""
+	return best_ranks[index]
+
+
 ## Rank a campaign clear from hull hits, pace, aggression, and power ceiling.
 ## Returns { "rank": "S"|"A"|"B"|"C", "bonus": int, "points": int }.
 func compute_clear_rank() -> Dictionary:
 	var points := 0
-	# Survival — the strongest lever; clean runs feel elite.
 	if run_hits_taken <= 0:
 		points += 45
 	elif run_hits_taken <= 2:
@@ -172,25 +244,25 @@ func compute_clear_rank() -> Dictionary:
 		points += 18
 	elif run_hits_taken <= 9:
 		points += 8
-	# Pace — stages are multi-minute; reward decisive clears without punishing careful play.
 	if run_elapsed <= 150.0:
 		points += 20
 	elif run_elapsed <= 210.0:
 		points += 12
 	elif run_elapsed <= 270.0:
 		points += 6
-	# Aggression / mastery of stage toys.
-	if current_mission_index == 0:
+	# Stage 1 teaches formations; elsewhere reward kill aggression.
+	if current_mission_index == 0 or current_mission_index == 5:
 		if run_formations >= 4:
 			points += 15
 		elif run_formations >= 2:
 			points += 8
+		elif run_kills >= 50:
+			points += 7
 	else:
 		if run_kills >= 80:
 			points += 12
 		elif run_kills >= 50:
 			points += 7
-	# Power ceiling shows you rode the pickup economy.
 	if run_max_weapon_level >= 3:
 		points += 15
 	elif run_max_weapon_level >= 2:
@@ -231,6 +303,13 @@ func is_mission_unlocked(index: int) -> bool:
 	return index <= highest_unlocked_mission
 
 
+func is_sector_unlocked(sector: int) -> bool:
+	if sector <= SECTOR_1:
+		return true
+	# Sector 2 unlocks after clearing Flagship Core (index 4).
+	return highest_unlocked_mission >= SECTOR_1_COUNT
+
+
 func get_mission_data(index: int = -1) -> MissionData:
 	var path := get_mission_path(index)
 	if path == "":
@@ -240,7 +319,10 @@ func get_mission_data(index: int = -1) -> MissionData:
 
 func sector_of(index: int = -1) -> int:
 	var data := get_mission_data(index)
-	return data.sector if data else SECTOR_1
+	if data:
+		return data.sector
+	var i := current_mission_index if index < 0 else index
+	return SECTOR_2 if i >= SECTOR_1_COUNT else SECTOR_1
 
 
 func stage_of(index: int = -1) -> int:
@@ -248,12 +330,12 @@ func stage_of(index: int = -1) -> int:
 	if data:
 		return data.stage
 	var i := current_mission_index if index < 0 else index
-	return i + 1
+	return (i % SECTOR_1_COUNT) + 1
 
 
 func is_sector_finale(index: int = -1) -> bool:
-	var i := current_mission_index if index < 0 else index
-	return i == MISSION_PATHS.size() - 1
+	## True for the last stage of whichever sector this mission belongs to.
+	return stage_of(index) == SECTOR_1_COUNT
 
 
 func stage_code(index: int = -1) -> String:

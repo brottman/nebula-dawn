@@ -3,12 +3,14 @@ extends CanvasLayer
 
 @onready var root: Control = $Root
 @onready var resume_btn: Button = $Root/Panel/VBox/ResumeButton
+@onready var settings_btn: Button = $Root/Panel/VBox/SettingsButton
 @onready var menu_btn: Button = $Root/Panel/VBox/MenuButton
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	resume_btn.pressed.connect(_on_resume)
+	settings_btn.pressed.connect(_on_settings)
 	menu_btn.pressed.connect(_on_menu)
 	hide_menu()
 
@@ -27,6 +29,14 @@ func _on_resume() -> void:
 	AudioBus.play_ui()
 	get_tree().paused = false
 	hide_menu()
+
+
+func _on_settings() -> void:
+	AudioBus.play_ui()
+	get_tree().paused = false
+	hide_menu()
+	GameState.settings_return_scene = "res://scenes/ui/main_menu.tscn"
+	get_tree().change_scene_to_file("res://scenes/ui/settings_menu.tscn")
 
 
 func _on_menu() -> void:

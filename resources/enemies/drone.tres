@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
 
@@ -11,6 +11,11 @@ move_speed = 65.0
 score_value = 200
 fire_interval = 2.2
 projectile_speed = 170.0
+contact_damage = 1
+fire_pattern = &"burst"
 color = Color(0.7, 0.4, 1, 1)
 size = Vector2(50, 50)
+is_hazard = false
+is_boss = false
+is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"

@@ -256,8 +256,42 @@ func _try_fire(delta: float) -> void:
 	if stats.is_boss:
 		_boss_fire()
 	else:
-		projectile_pool.spawn_enemy(global_position + Vector2(0, 16), Vector2(0, stats.projectile_speed), float(stats.contact_damage))
+		_fodder_fire()
 		AudioBus.play_enemy_shoot()
+
+
+func _fodder_fire() -> void:
+	## Per-archetype fodder patterns so waves aren't one note.
+	var muzzle := global_position + Vector2(0, 16)
+	var spd := stats.projectile_speed
+	var dmg := float(stats.contact_damage)
+	var pat := String(stats.fire_pattern) if stats.fire_pattern != &"" else _default_fodder_pattern()
+	match pat:
+		"aimed":
+			_fire_aimed(muzzle, spd, dmg, 1, 0.0)
+		"side":
+			var side := _strafe_dir if absf(_strafe_dir) > 0.1 else (1.0 if randf() > 0.5 else -1.0)
+			_spawn_enemy_shot(muzzle, Vector2(side * 0.55, 1).normalized() * spd, dmg)
+			_spawn_enemy_shot(muzzle, Vector2(0, 1) * spd * 0.95, dmg)
+		"burst":
+			_fire_spread_fan(muzzle, spd * 0.92, dmg, 3, 0.28)
+			_fire_timer = stats.fire_interval * 1.15
+		"spread":
+			_fire_spread_fan(muzzle, spd, dmg, 3, 0.4)
+		_:
+			_spawn_enemy_shot(muzzle, Vector2(0, spd), dmg)
+
+
+func _default_fodder_pattern() -> String:
+	if stats == null:
+		return "straight"
+	match String(stats.enemy_id):
+		"strafer":
+			return "side"
+		"drone":
+			return "burst"
+		_:
+			return "straight"
 
 
 func _boss_fire() -> void:
@@ -277,15 +311,15 @@ func _boss_fire() -> void:
 	# Stage bosses each teach a different reading skill.
 	if "platform" in name_l or "orbital" in name_l:
 		_fire_orbital_platform(muzzle, spd, dmg)
-	elif "megalith" in name_l or "dreadnought" in name_l:
+	elif "megalith" in name_l or "dreadnought" in name_l or "colossus" in name_l or "junkyard" in name_l:
 		_fire_megalith(muzzle, spd, dmg)
-	elif "leviathan" in name_l or "celestial" in name_l:
+	elif "leviathan" in name_l or "celestial" in name_l or "choir" in name_l or "null" in name_l:
 		_fire_leviathan(muzzle, spd, dmg)
-	elif "matrix" in name_l or "fabrication" in name_l:
+	elif "matrix" in name_l or "fabrication" in name_l or "kaleidoscope" in name_l or "array" in name_l:
 		_fire_fabrication(muzzle, spd, dmg)
 		if randf() < (0.14 + 0.08 * float(_boss_phase)):
 			_spawn_fabricated_drone()
-	elif "omega" in name_l:
+	elif "omega" in name_l or "dawn" in name_l or "tempest" in name_l or "dynamo" in name_l:
 		_fire_omega(muzzle, spd, dmg)
 	else:
 		_fire_spread_fan(muzzle, spd, dmg, 1 + _boss_phase * 2, 0.55)
@@ -293,22 +327,25 @@ func _boss_fire() -> void:
 
 
 func _mid_boss_fire(name_l: String, muzzle: Vector2, spd: float, dmg: float) -> void:
-	if "stalker" in name_l or "quantum" in name_l:
-		# Burst toward the player after each teleport window.
+	if "stalker" in name_l or "quantum" in name_l or "echo" in name_l or "revenant" in name_l:
 		_fire_aimed(muzzle, spd * 1.05, dmg, 3 + _boss_phase, 0.18)
 		_fire_timer = stats.fire_interval * (0.9 - 0.1 * float(_boss_phase))
-	elif "drill" in name_l or "seismic" in name_l:
+	elif "drill" in name_l or "seismic" in name_l or "belt" in name_l or "tyrant" in name_l:
 		_fire_spread_fan(muzzle, spd * 0.9, dmg, 3 + _boss_phase, 0.7)
 		_fire_timer = stats.fire_interval * 0.95
-	elif "overseer" in name_l or "core" in name_l:
+	elif "overseer" in name_l or "prism" in name_l or "warden" in name_l:
 		_fire_cross(muzzle, spd, dmg)
 		if _boss_phase >= 1:
 			_fire_spread_fan(muzzle, spd * 0.85, dmg, 3, 0.35)
 		_fire_timer = stats.fire_interval * (0.9 - 0.08 * float(_boss_phase))
-	elif "ace" in name_l or "twin" in name_l:
+	elif "ace" in name_l or "twin" in name_l or "herald" in name_l or "solar" in name_l:
 		_fire_aimed(muzzle, spd * 1.1, dmg, 2 + _boss_phase, 0.12)
 		_fire_spread_fan(muzzle, spd, dmg, 3, 0.4)
 		_fire_timer = stats.fire_interval * 0.85
+	elif "storm" in name_l or "coil" in name_l:
+		_fire_ring(muzzle, spd * 0.75, dmg, 6 + _boss_phase)
+		_fire_aimed(muzzle, spd, dmg, 1 + _boss_phase, 0.1)
+		_fire_timer = stats.fire_interval * 0.88
 	else:
 		_fire_spread_fan(muzzle, spd, dmg, 3 + _boss_phase, 0.5)
 		_fire_timer = stats.fire_interval * (0.95 - 0.08 * float(_boss_phase))
