@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_ncofv"]
 
@@ -11,8 +11,11 @@ move_speed = 60.0
 score_value = 1600
 fire_interval = 1.55
 projectile_speed = 190.0
+contact_damage = 1
+fire_pattern = &"straight"
 color = Color(0.55, 0.8, 1, 1)
 size = Vector2(84, 64)
+is_hazard = false
 is_boss = true
 is_mid_boss = true
 scene_path = "res://scenes/entities/enemy_base.tscn"

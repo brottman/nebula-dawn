@@ -29,26 +29,33 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(340, 0)
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 28
-text = "SECTOR 1"
+text = "CAMPAIGN"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.7, 0.85, 1)
 theme_override_font_sizes/font_size = 13
-text = "Five stages to the Flagship Core"
+text = "Sector 1 + Sector 2"
 horizontal_alignment = 1
 
-[node name="MissionList" type="VBoxContainer" parent="Center/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Center/VBox"]
+custom_minimum_size = Vector2(340, 420)
 layout_mode = 2
-theme_override_constants/separation = 10
+horizontal_scroll_mode = 0
+
+[node name="MissionList" type="VBoxContainer" parent="Center/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [node name="BackButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(280, 40)

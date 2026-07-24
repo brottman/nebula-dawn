@@ -126,6 +126,6 @@ Each stage has its own looping track (see README). Menu and Endless use dedicate
 - Soft modulate tints differentiate mission variants that reuse an archetype.
 - Four parallax layers keep speed readable even when the playfield is busy.
 
-## Future sectors (not implemented)
+## Future sectors
 
-Sector 1 is structured so later sectors can append mission paths, music, and `gimmick_id` modules without rewriting the runner. Prefer new stage modules over growing `enemy_base.gd` forever.
+Sector 2 is implemented as missions 2-1…2-5 (`mirrors`, `ion`, `phantoms`, `scrap`, `flare`). Later sectors can keep appending mission paths, music, and `gimmick_id` modules without rewriting the runner. Prefer new stage modules over growing `enemy_base.gd` forever.

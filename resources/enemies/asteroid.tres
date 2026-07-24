@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_tv12l"]
 
@@ -9,7 +9,13 @@ display_name = "Asteroid"
 max_hp = 3.0
 move_speed = 70.0
 score_value = 60
+fire_interval = 0.0
+projectile_speed = 220.0
+contact_damage = 1
+fire_pattern = &"straight"
 color = Color(0.55, 0.5, 0.48, 1)
 size = Vector2(56, 56)
 is_hazard = true
+is_boss = false
+is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"

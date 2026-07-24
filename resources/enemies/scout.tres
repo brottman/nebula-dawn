@@ -1,11 +1,21 @@
-[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_5q4mm"]
 
 [resource]
 script = ExtResource("1_5q4mm")
+enemy_id = &"scout"
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
+score_value = 100
+fire_interval = 0.0
+projectile_speed = 220.0
+contact_damage = 1
+fire_pattern = &"straight"
+color = Color(1, 0.45, 0.45, 1)
 size = Vector2(40, 40)
+is_hazard = false
+is_boss = false
+is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"

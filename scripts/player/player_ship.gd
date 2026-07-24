@@ -85,6 +85,8 @@ var dead: bool = false
 var plasma_active: bool = false
 var damage_mult: float = 1.0
 var secondaries_disabled: bool = false
+## Sector 2 scrap conveyor horizontal shove (px/sec).
+var scrap_push: float = 0.0
 
 ## Stage 5 overdrive (filled by grazing singularities).
 var overdrive: float = 0.0
@@ -233,6 +235,7 @@ func exit_plasma() -> void:
 
 func clear_zone_effects() -> void:
 	exit_plasma()
+	scrap_push = 0.0
 	overdrive_time = 0.0
 	energy_time = 0.0
 	Engine.time_scale = 1.0
@@ -262,8 +265,8 @@ func _handle_movement(delta: float) -> void:
 	var speed_mult := 1.0 + SPEED_STACK_BONUS * float(speed_stacks)
 	if _touch_active:
 		# Match finger motion 1:1 while preserving the grab-time offset.
-		# Speed stacks make catch-up snappier without breaking relative control.
-		var follow := TOUCH_FOLLOW * (1.0 + 0.15 * float(speed_stacks))
+		# Speed stacks / settings make catch-up snappier without breaking relative control.
+		var follow := TOUCH_FOLLOW * GameState.touch_sensitivity * (1.0 + 0.15 * float(speed_stacks))
 		var target := _touch_world + _touch_grab_offset
 		global_position = global_position.lerp(target, 1.0 - exp(-follow * delta))
 		velocity = Vector2.ZERO
@@ -271,6 +274,8 @@ func _handle_movement(delta: float) -> void:
 		var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = dir * move_speed * speed_mult
 		move_and_slide()
+	if absf(scrap_push) > 0.01:
+		global_position.x += scrap_push * delta
 	global_position.x = clampf(global_position.x, PLAYFIELD_MARGIN, vp.x - PLAYFIELD_MARGIN)
 	global_position.y = clampf(global_position.y, PLAYFIELD_MARGIN, vp.y - PLAYFIELD_MARGIN)
 
@@ -633,9 +638,13 @@ func activate_bomb() -> void:
 	## Smart Cleaver — wipe enemy bullets and burst non-boss threats.
 	EventBus.gimmick_toast.emit("BOMB")
 	EventBus.screen_shake.emit(10.0, 0.22)
-	AudioBus.play_explode()
+	AudioBus.play_bomb()
 	var vp := get_viewport_rect().size
 	var center := vp * 0.5
+	var fx_parent := get_parent()
+	if fx_parent:
+		CombatFX.spawn_ring(fx_parent, global_position, Color(1.0, 0.75, 0.35), 28.0)
+		CombatFX.spawn_burst(fx_parent, global_position, Color(1.0, 0.6, 0.25), 16, 48.0)
 	if projectile_pool and projectile_pool.has_method("clear_enemy_in_radius"):
 		projectile_pool.clear_enemy_in_radius(center, maxf(vp.x, vp.y) * 1.2)
 	var tree := get_tree()
@@ -679,6 +688,10 @@ func _die() -> void:
 	set_physics_process(true) ## keep process for respawn scheduling via await
 	AudioBus.play_explode()
 	EventBus.screen_shake.emit(12.0, 0.28)
+	var fx_parent := get_parent()
+	if fx_parent:
+		CombatFX.spawn_ring(fx_parent, global_position, Color(0.55, 0.9, 1.0), 16.0)
+		CombatFX.spawn_burst(fx_parent, global_position, Color(0.7, 0.9, 1.0), 14, 34.0)
 	lives -= 1
 	EventBus.player_lives_changed.emit(lives)
 	if lives <= 0:

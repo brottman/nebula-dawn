@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless generator: 5 thematic campaign stages with unique gimmicks.
+## Headless generator: Sector 1 + Sector 2 campaign stages with unique gimmicks.
 ## Run: godot --headless --path . --script res://tools/generate_resources.gd
 
 
@@ -9,33 +9,64 @@ func _init() -> void:
 	var scout := _enemy(&"scout", "Interceptor", 1.0, 130.0, 100, 0.0, Color(1.0, 0.45, 0.45), Vector2(40, 40))
 	var strafer := _enemy(&"strafer", "Defense Drone", 2.0, 95.0, 150, 1.8, Color(1.0, 0.7, 0.35), Vector2(46, 38))
 	strafer.projectile_speed = 200.0
+	strafer.fire_pattern = &"side"
 	var drone := _enemy(&"drone", "Mining Drone", 3.0, 65.0, 200, 2.2, Color(0.7, 0.4, 1.0), Vector2(50, 50))
 	drone.projectile_speed = 170.0
+	drone.fire_pattern = &"burst"
 	var cruiser := _enemy(&"strafer", "Armored Cruiser", 4.0, 72.0, 280, 2.0, Color(0.85, 0.45, 0.3), Vector2(58, 42))
 	cruiser.projectile_speed = 185.0
+	cruiser.fire_pattern = &"spread"
 	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.55, 0.5, 0.48), Vector2(56, 56))
 	asteroid.is_hazard = true
 	asteroid.contact_damage = 1
 	var bio := _enemy(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.0, Color(0.55, 1.0, 0.75), Vector2(48, 48))
 	bio.projectile_speed = 165.0
+	bio.fire_pattern = &"burst"
 	var stealth := _enemy(&"scout", "Stealth Craft", 1.0, 150.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(38, 38))
 	var repair := _enemy(&"drone", "Repair Drone", 2.0, 88.0, 160, 2.1, Color(0.4, 0.95, 0.7), Vector2(44, 44))
+	repair.fire_pattern = &"aimed"
 	var turret := _enemy(&"strafer", "Heavy Turret", 4.0, 32.0, 240, 1.55, Color(1.0, 0.4, 0.5), Vector2(52, 44))
 	turret.projectile_speed = 220.0
+	turret.fire_pattern = &"aimed"
 	var ace := _enemy(&"strafer", "Ace Fighter", 3.0, 135.0, 300, 1.45, Color(1.0, 0.85, 0.4), Vector2(44, 40))
 	ace.projectile_speed = 230.0
+	ace.fire_pattern = &"aimed"
+	# Sector 2 denser fodder.
+	var mirror_drone := _enemy(&"drone", "Prism Drone", 3.0, 80.0, 240, 1.7, Color(0.55, 0.85, 1.0), Vector2(48, 46))
+	mirror_drone.projectile_speed = 200.0
+	mirror_drone.fire_pattern = &"spread"
+	var ion_raider := _enemy(&"strafer", "Ion Raider", 3.0, 110.0, 260, 1.5, Color(0.4, 0.9, 1.0), Vector2(46, 40))
+	ion_raider.projectile_speed = 240.0
+	ion_raider.fire_pattern = &"aimed"
+	var phantom := _enemy(&"scout", "Phantom Wisp", 2.0, 145.0, 200, 1.9, Color(0.35, 0.55, 0.95), Vector2(36, 36))
+	phantom.fire_pattern = &"aimed"
+	var scrap_bot := _enemy(&"drone", "Scrap Bot", 4.0, 70.0, 220, 2.0, Color(0.9, 0.55, 0.3), Vector2(50, 48))
+	scrap_bot.fire_pattern = &"burst"
+	var dawn_guard := _enemy(&"strafer", "Dawn Guard", 4.0, 100.0, 320, 1.35, Color(1.0, 0.7, 0.35), Vector2(48, 42))
+	dawn_guard.projectile_speed = 245.0
+	dawn_guard.fire_pattern = &"aimed"
 
 	var mid1 := _mid_boss("Heavy Transport", 36.0, 60.0, 1600, 1.55, Color(0.55, 0.8, 1.0), Vector2(84, 64), 190.0)
 	var mid2 := _mid_boss("Seismic Drill", 40.0, 48.0, 1800, 1.6, Color(0.8, 0.6, 0.4), Vector2(88, 70), 185.0)
 	var mid3 := _mid_boss("Quantum Stalker", 42.0, 78.0, 2000, 1.4, Color(0.7, 0.4, 1.0), Vector2(76, 66), 200.0)
 	var mid4 := _mid_boss("Core Overseer", 44.0, 52.0, 2100, 1.45, Color(0.45, 1.0, 0.75), Vector2(78, 78), 195.0)
 	var mid5 := _mid_boss("Twin Ace Lead", 38.0, 85.0, 1900, 1.25, Color(1.0, 0.7, 0.3), Vector2(70, 60), 220.0)
+	var mid6 := _mid_boss("Prism Warden", 48.0, 58.0, 2300, 1.35, Color(0.5, 0.9, 1.0), Vector2(80, 70), 210.0)
+	var mid7 := _mid_boss("Storm Coil", 50.0, 55.0, 2400, 1.3, Color(0.4, 0.85, 1.0), Vector2(82, 72), 220.0)
+	var mid8 := _mid_boss("Echo Revenant", 52.0, 70.0, 2500, 1.25, Color(0.4, 0.55, 1.0), Vector2(78, 68), 215.0)
+	var mid9 := _mid_boss("Belt Tyrant", 54.0, 50.0, 2600, 1.3, Color(0.95, 0.55, 0.3), Vector2(86, 74), 205.0)
+	var mid10 := _mid_boss("Solar Herald", 56.0, 62.0, 2800, 1.2, Color(1.0, 0.65, 0.3), Vector2(84, 72), 230.0)
 
 	var boss1 := _boss("Orbital Defense Platform", 100.0, 42.0, 6500, 1.4, Color(0.4, 0.75, 1.0), Vector2(120, 92), 200.0)
 	var boss2 := _boss("Megalith Dreadnought", 115.0, 38.0, 7500, 1.35, Color(0.75, 0.55, 0.4), Vector2(136, 98), 195.0)
 	var boss3 := _boss("Celestial Leviathan", 125.0, 46.0, 8500, 1.3, Color(0.85, 0.45, 1.0), Vector2(128, 100), 210.0)
 	var boss4 := _boss("Fabrication Matrix", 135.0, 42.0, 9000, 1.25, Color(0.5, 1.0, 0.7), Vector2(124, 96), 215.0)
 	var boss5 := _boss("Omega Engine", 160.0, 55.0, 12000, 1.15, Color(1.0, 0.35, 0.55), Vector2(136, 108), 235.0)
+	var boss6 := _boss("Kaleidoscope Array", 150.0, 48.0, 10000, 1.2, Color(0.45, 0.9, 1.0), Vector2(128, 96), 220.0)
+	var boss7 := _boss("Tempest Dynamo", 160.0, 50.0, 11000, 1.15, Color(0.35, 0.8, 1.0), Vector2(130, 100), 230.0)
+	var boss8 := _boss("Null Choir", 170.0, 52.0, 12000, 1.1, Color(0.4, 0.5, 1.0), Vector2(132, 102), 225.0)
+	var boss9 := _boss("Junkyard Colossus", 180.0, 44.0, 12500, 1.15, Color(0.9, 0.5, 0.28), Vector2(140, 108), 215.0)
+	var boss10 := _boss("Dawn Gate Core", 200.0, 58.0, 15000, 1.05, Color(1.0, 0.55, 0.25), Vector2(144, 112), 245.0)
 
 	_save(scout, "res://resources/enemies/scout.tres")
 	_save(strafer, "res://resources/enemies/strafer.tres")
@@ -50,8 +81,13 @@ func _init() -> void:
 	_save(_mission_03(scout, stealth, bio, mid3, boss3), "res://resources/missions/mission_03_nebula_anomaly.tres")
 	_save(_mission_04(scout, repair, turret, mid4, boss4), "res://resources/missions/mission_04_cybernetic_hive.tres")
 	_save(_mission_05(scout, ace, drone, mid5, boss5), "res://resources/missions/mission_05_flagship_core.tres")
+	_save(_mission_06(scout, mirror_drone, ace, mid6, boss6), "res://resources/missions/mission_06_mirror_field.tres")
+	_save(_mission_07(scout, ion_raider, turret, mid7, boss7), "res://resources/missions/mission_07_ion_storm.tres")
+	_save(_mission_08(phantom, stealth, bio, mid8, boss8), "res://resources/missions/mission_08_phantom_wake.tres")
+	_save(_mission_09(scrap_bot, cruiser, drone, mid9, boss9), "res://resources/missions/mission_09_scrap_gauntlet.tres")
+	_save(_mission_10(dawn_guard, ace, ion_raider, mid10, boss10), "res://resources/missions/mission_10_dawn_gate.tres")
 
-	print("Nebula Dawn: 5-stage campaign generated.")
+	print("Nebula Dawn: 10-stage campaign (Sector 1+2) generated.")
 	quit()
 
 
@@ -121,12 +157,12 @@ func _wave(label: String, start: float, entries: Array[SpawnEntry], clear := tru
 	return w
 
 
-func _mission_base(id: StringName, title: String, subtitle: String, scroll: float, tint: Color, boss: EnemyStats, gimmick: StringName, stage: int, intro: float = 1.8) -> MissionData:
+func _mission_base(id: StringName, title: String, subtitle: String, scroll: float, tint: Color, boss: EnemyStats, gimmick: StringName, stage: int, intro: float = 1.8, sector: int = 1) -> MissionData:
 	var m := MissionData.new()
 	m.mission_id = id
 	m.title = title
 	m.subtitle = subtitle
-	m.sector = 1
+	m.sector = sector
 	m.stage = stage
 	m.scroll_speed = scroll
 	m.background_tint = tint
@@ -431,6 +467,98 @@ func _mission_05(scout: EnemyStats, ace: EnemyStats, drone: EnemyStats, mid: Ene
 		], true, 22.0),
 	]
 	return m
+
+
+# Stage 6 — Mirror Field: bouncing plates
+func _mission_06(scout: EnemyStats, prism: EnemyStats, ace: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
+	var m := _mission_base(&"mission_06", "Mirror Field", "Ricochets rewrite the lane map.", 58.0, Color(0.12, 0.28, 0.42), boss, &"mirrors", 1, 2.3, 2)
+	m.waves = _sector2_wave_kit(scout, prism, ace, mid)
+	return m
+
+
+# Stage 7 — Ion Storm: lightning columns
+func _mission_07(scout: EnemyStats, raider: EnemyStats, turret: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
+	var m := _mission_base(&"mission_07", "Ion Storm", "Read the strike lanes — or burn.", 60.0, Color(0.1, 0.22, 0.38), boss, &"ion", 2, 2.3, 2)
+	m.waves = _sector2_wave_kit(scout, raider, turret, mid)
+	return m
+
+
+# Stage 8 — Phantom Wake: echo volleys
+func _mission_08(phantom: EnemyStats, stealth: EnemyStats, bio: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
+	var m := _mission_base(&"mission_08", "Phantom Wake", "They shoot where you were.", 62.0, Color(0.14, 0.16, 0.4), boss, &"phantoms", 3, 2.4, 2)
+	m.waves = _sector2_wave_kit(phantom, stealth, bio, mid)
+	return m
+
+
+# Stage 9 — Scrap Gauntlet: conveyors
+func _mission_09(scrap: EnemyStats, cruiser: EnemyStats, drone: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
+	var m := _mission_base(&"mission_09", "Scrap Gauntlet", "The belt decides your lane.", 64.0, Color(0.28, 0.14, 0.1), boss, &"scrap", 4, 2.4, 2)
+	m.waves = _sector2_wave_kit(scrap, cruiser, drone, mid)
+	return m
+
+
+# Stage 10 — Dawn Gate: solar flares
+func _mission_10(guard: EnemyStats, ace: EnemyStats, raider: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
+	var m := _mission_base(&"mission_10", "Dawn Gate", "Climb the flare. Break the dawn.", 68.0, Color(0.35, 0.12, 0.08), boss, &"flare", 5, 2.6, 2)
+	m.waves = _sector2_wave_kit(guard, ace, raider, mid, true)
+	return m
+
+
+func _sector2_wave_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemyStats, finale: bool = false) -> Array[WaveDef]:
+	## Shared Sector 2 pacing scaffold — denser than Sector 1, still hybrid clears.
+	var climax_clear := 22.0 if finale else 20.0
+	return [
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(a, 0.0, Vector2(240, -50), 5, &"v", 54.0, "s2_v1"),
+			_entry(b, 1.3, Vector2(240, -55), 4, &"line", 70.0),
+			_entry(a, 1.3, Vector2(240, -50), 5, &"arc", 50.0, "s2_a1"),
+			_entry(c, 1.2, Vector2(140, -55)),
+			_entry(c, 0.3, Vector2(340, -55)),
+		], true, 14.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(b, 0.0, Vector2(100, -50), 3, &"column", 40.0),
+			_entry(b, 0.3, Vector2(380, -50), 3, &"column", 40.0),
+			_entry(a, 1.2, Vector2(240, -55), 6, &"diamond", 48.0, "s2_d1"),
+			_entry(c, 1.2, Vector2(240, -50), 3, &"wave", 64.0),
+			_entry(a, 1.2, Vector2(240, -55), 5, &"inv_v", 52.0, "s2_i1"),
+		], true, 14.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(c, 0.0, Vector2(90, -50), 3, &"column", 38.0),
+			_entry(c, 0.3, Vector2(390, -50), 3, &"column", 38.0),
+			_entry(b, 1.1, Vector2(240, -55), 4, &"line", 68.0),
+			_entry(a, 1.1, Vector2(240, -50), 6, &"cross", 46.0, "s2_x1"),
+			_entry(b, 1.1, Vector2(240, -55), 4, &"arc", 58.0),
+			_entry(c, 1.0, Vector2(240, -50), 3, &"v", 70.0),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(b, 0.0, Vector2(240, -50), 4, &"wave", 62.0),
+			_entry(a, 1.1, Vector2(240, -55), 7, &"v", 48.0, "s2_v2"),
+			_entry(c, 1.0, Vector2(110, -50), 3, &"column", 38.0),
+			_entry(c, 0.2, Vector2(370, -50), 3, &"column", 38.0),
+			_entry(b, 1.1, Vector2(240, -55), 4, &"box", 58.0),
+			_entry(a, 1.2, Vector2(240, -50), 6, &"arc", 50.0, "s2_a2"),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.5, [_entry(mid, 0.0, Vector2(240, -75))], true, 0.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"v", 50.0, "s2_bv"),
+			_entry(b, 1.0, Vector2(100, -50), 3, &"column", 40.0),
+			_entry(b, 0.2, Vector2(380, -50), 3, &"column", 40.0),
+			_entry(c, 1.2, Vector2(240, -55), 4, &"line", 70.0),
+			_entry(a, 1.2, Vector2(240, -50), 6, &"diamond", 48.0, "s2_bd"),
+			_entry(c, 1.1, Vector2(240, -55), 3, &"wave", 66.0),
+		], true, 16.0),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(c, 0.0, Vector2(90, -50), 4, &"column", 36.0),
+			_entry(c, 0.0, Vector2(390, -50), 4, &"column", 36.0),
+			_entry(b, 1.0, Vector2(240, -55), 4, &"v", 60.0),
+			_entry(a, 0.9, Vector2(240, -50), 7, &"arc", 46.0, "s2_fa"),
+			_entry(b, 1.0, Vector2(240, -55), 4, &"box", 62.0),
+			_entry(c, 1.1, Vector2(240, -50), 4, &"wave", 64.0),
+			_entry(a, 1.0, Vector2(240, -55), 6, &"cross", 48.0, "s2_fx"),
+			_entry(b, 1.1, Vector2(160, -50)),
+			_entry(b, 0.3, Vector2(320, -50)),
+		], true, climax_clear),
+	]
 
 
 func _save(res: Resource, path: String) -> void:

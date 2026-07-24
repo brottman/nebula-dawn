@@ -37,6 +37,7 @@ var _wave_phase: float = 0.0
 var _hit_ids: Dictionary = {}
 var _target: Node2D = null
 var _retarget_timer: float = 0.0
+var _reflect_cd: float = 0.0
 
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
@@ -64,6 +65,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	_hit_ids.clear()
 	_target = null
 	_retarget_timer = 0.0
+	_reflect_cd = 0.0
 	pierce_left = int(opts.get("pierce", 0))
 	homing = float(opts.get("homing", 0.0))
 	wave_amp = float(opts.get("wave_amp", 0.0))
@@ -99,7 +101,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 		collision_mask = 1 | 32
 		add_to_group("enemy_projectiles")
 		if _poly:
-			_poly.color = Color(1.0, 0.55, 0.35)
+			_poly.color = opts.get("color", Color(1.0, 0.55, 0.35))
 
 
 func deactivate() -> void:
@@ -117,10 +119,24 @@ func deactivate() -> void:
 		_collision.set_deferred("disabled", true)
 
 
+func on_reflected() -> void:
+	## Called by mirror plates after flipping velocity.
+	_base_pos = global_position
+	_age = maxf(0.0, _age - 0.35)
+	_reflect_cd = 0.2
+	if velocity.length() > 0.001:
+		_perp = Vector2(-velocity.y, velocity.x).normalized()
+		rotation = velocity.angle() + PI * 0.5
+	if _poly and not from_player:
+		_poly.color = Color(0.65, 0.9, 1.0)
+
+
 func _physics_process(delta: float) -> void:
 	if not _active:
 		return
 	_age += delta
+	if _reflect_cd > 0.0:
+		_reflect_cd -= delta
 	if homing > 0.0:
 		_steer_homing(delta)
 	_base_pos += velocity * delta
@@ -219,6 +235,12 @@ func _try_hit(target: Node) -> void:
 		if target.is_in_group("player") and target.has_method("take_damage"):
 			target.take_damage(int(damage))
 			deactivate()
+		elif target.is_in_group("mirrors") and target.has_method("reflect_shot"):
+			# Sector 2 mirror plates bounce enemy fire instead of eating it.
+			if _reflect_cd > 0.0:
+				return
+			if target.reflect_shot(self):
+				return
 		elif target.is_in_group("hazards"):
 			# Rocks / barriers absorb enemy fire.
 			deactivate()
