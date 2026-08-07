@@ -106,11 +106,43 @@ theme_override_font_sizes/font_size = 13
 text = "1.00x"
 horizontal_alignment = 2
 
+[node name="ShakeRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Center/VBox/ShakeRow"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Shake"
+
+[node name="Slider" type="HSlider" parent="Center/VBox/ShakeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="Value" type="Label" parent="Center/VBox/ShakeRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="FlashRow" type="CheckButton" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Reduce screen flashes"
+
+[node name="LabelsRow" type="CheckButton" parent="Center/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Pickup letter labels"
+
 [node name="Hint" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.6, 0.75, 1)
 theme_override_font_sizes/font_size = 11
-text = "Touch sensitivity only affects drag follow speed."
+text = "Shake scales camera shake. Pickup labels overlay letters (R/B/G/P...) on weapon and power pickups."
 horizontal_alignment = 1
 autowrap_mode = 2
 

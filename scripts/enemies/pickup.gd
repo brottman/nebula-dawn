@@ -92,47 +92,69 @@ func setup(k: String) -> void:
 		if _poly:
 			_poly.visible = false
 		if _label:
-			_label.visible = false
+			# Colorblind aid: glyph over the sprite when enabled in settings.
+			_label.visible = GameState.show_pickup_labels
+			if _label.visible:
+				_label.text = _glyph_for(kind)
+				_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+				_label.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.1))
+				_label.add_theme_constant_override("outline_size", 4)
 		return
 	# Fallback polygons if a sprite is missing.
 	if _poly:
 		_poly.visible = true
 	if _label:
 		_label.visible = true
+		_label.text = _glyph_for(kind)
 	match kind:
 		"spread", "vulcan", "red":
 			_poly.color = Color(1.0, 0.28, 0.28)
-			_label.text = "R"
 		"laser", "beam", "blue":
 			_poly.color = Color(0.35, 0.65, 1.0)
-			_label.text = "B"
 		"homing", "missiles", "green":
 			_poly.color = Color(0.3, 0.95, 0.4)
-			_label.text = "G"
 		"power", "pchip", "p-chip", "gold", "power_orb", "orb":
 			_poly.color = Color(1.0, 0.85, 0.25)
-			_label.text = "P"
 		"option", "bit", "drone":
 			_poly.color = Color(0.55, 0.95, 1.0)
-			_label.text = "O"
 		"speed":
 			_poly.color = Color(0.55, 1.0, 0.75)
-			_label.text = ">"
 		"shield", "barrier":
 			_poly.color = Color(0.45, 0.75, 1.0)
-			_label.text = "B"
 		"bomb", "cleaver":
 			_poly.color = Color(1.0, 0.35, 0.45)
-			_label.text = "X"
 		"energy", "overdrive_pickup", "rapid":
 			_poly.color = Color(1.0, 0.9, 0.35)
-			_label.text = "E"
 		"heal":
 			_poly.color = Color(1.0, 0.4, 0.55)
-			_label.text = "+"
 		_:
 			_poly.color = Color.WHITE
-			_label.text = "?"
+
+
+func _glyph_for(k: String) -> String:
+	match k:
+		"spread", "vulcan", "red":
+			return "R"
+		"laser", "beam", "blue":
+			return "L"
+		"homing", "missiles", "green":
+			return "H"
+		"power", "pchip", "p-chip", "gold", "power_orb", "orb":
+			return "P"
+		"option", "bit", "drone":
+			return "O"
+		"speed":
+			return ">"
+		"shield", "barrier":
+			return "S"
+		"bomb", "cleaver":
+			return "X"
+		"energy", "overdrive_pickup", "rapid":
+			return "E"
+		"heal":
+			return "+"
+		_:
+			return "?"
 
 
 func set_volcano(enabled: bool = true) -> void:

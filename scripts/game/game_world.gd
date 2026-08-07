@@ -91,6 +91,7 @@ func _start_mode() -> void:
 				parallax.set_tint(Color(0.25, 0.08, 0.2))
 			if parallax.get("scroll_speed") != null:
 				parallax.scroll_speed = 50.0
+			stage_director.begin_endless()
 			runner.begin_endless()
 		_:
 			var path := GameState.get_mission_path()
@@ -130,7 +131,10 @@ func _toggle_pause() -> void:
 
 
 func _on_shake(amount: float, duration: float) -> void:
-	_shake_amount = amount
+	var scaled := amount * GameState.shake_intensity
+	if scaled <= 0.01:
+		return
+	_shake_amount = scaled
 	_shake_time = duration
 
 

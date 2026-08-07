@@ -43,6 +43,14 @@ var music_volume: float = 0.75
 var sfx_volume: float = 0.85
 var touch_sensitivity: float = 1.0
 
+## Accessibility settings.
+var shake_intensity: float = 1.0
+var reduce_flashes: bool = false
+var show_pickup_labels: bool = false
+
+## Longest endless survival time (seconds).
+var endless_best_time: float = 0.0
+
 ## Per-run statistics shown on the mission results screen.
 var run_active: bool = false
 var run_elapsed: float = 0.0
@@ -85,9 +93,13 @@ func load_progress() -> void:
 		return
 	highest_unlocked_mission = int(cfg.get_value("campaign", "unlocked", 0))
 	endless_high_score = int(cfg.get_value("endless", "high_score", 0))
+	endless_best_time = float(cfg.get_value("endless", "best_time", 0.0))
 	music_volume = float(cfg.get_value("settings", "music_volume", music_volume))
 	sfx_volume = float(cfg.get_value("settings", "sfx_volume", sfx_volume))
 	touch_sensitivity = float(cfg.get_value("settings", "touch_sensitivity", touch_sensitivity))
+	shake_intensity = float(cfg.get_value("settings", "shake_intensity", shake_intensity))
+	reduce_flashes = bool(cfg.get_value("settings", "reduce_flashes", reduce_flashes))
+	show_pickup_labels = bool(cfg.get_value("settings", "show_pickup_labels", show_pickup_labels))
 	for i in MISSION_PATHS.size():
 		best_ranks[i] = String(cfg.get_value("ranks", "m%d" % i, ""))
 
@@ -97,9 +109,13 @@ func save_progress() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", highest_unlocked_mission)
 	cfg.set_value("endless", "high_score", endless_high_score)
+	cfg.set_value("endless", "best_time", endless_best_time)
 	cfg.set_value("settings", "music_volume", music_volume)
 	cfg.set_value("settings", "sfx_volume", sfx_volume)
 	cfg.set_value("settings", "touch_sensitivity", touch_sensitivity)
+	cfg.set_value("settings", "shake_intensity", shake_intensity)
+	cfg.set_value("settings", "reduce_flashes", reduce_flashes)
+	cfg.set_value("settings", "show_pickup_labels", show_pickup_labels)
 	for i in MISSION_PATHS.size():
 		cfg.set_value("ranks", "m%d" % i, best_ranks[i])
 	cfg.save(SAVE_PATH)
@@ -121,6 +137,21 @@ func set_sfx_volume(v: float) -> void:
 
 func set_touch_sensitivity(v: float) -> void:
 	touch_sensitivity = clampf(v, 0.5, 1.5)
+	save_progress()
+
+
+func set_shake_intensity(v: float) -> void:
+	shake_intensity = clampf(v, 0.0, 1.0)
+	save_progress()
+
+
+func set_reduce_flashes(enabled: bool) -> void:
+	reduce_flashes = enabled
+	save_progress()
+
+
+func set_show_pickup_labels(enabled: bool) -> void:
+	show_pickup_labels = enabled
 	save_progress()
 
 
@@ -213,7 +244,9 @@ func record_mission_result(won: bool) -> void:
 	if mode == Mode.ENDLESS:
 		if session_score > endless_high_score:
 			endless_high_score = session_score
-			save_progress()
+		if run_elapsed > endless_best_time:
+			endless_best_time = run_elapsed
+		save_progress()
 
 
 func _record_best_rank(index: int, rank: String) -> void:
@@ -293,10 +326,12 @@ func next_mission_index() -> int:
 
 
 func format_run_time() -> String:
-	var t := int(run_elapsed)
-	var m := t / 60
-	var s := t % 60
-	return "%02d:%02d" % [m, s]
+	return format_seconds(run_elapsed)
+
+
+func format_seconds(t: float) -> String:
+	var total := int(t)
+	return "%02d:%02d" % [total / 60, total % 60]
 
 
 func is_mission_unlocked(index: int) -> bool:

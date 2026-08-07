@@ -17,6 +17,15 @@ var _singularities: Array[Node] = []
 var _runtime: Array[Node] = []
 var _flare_overlay: ColorRect
 
+## Endless mode rotates through a hazard-safe gimmick subset on a timer.
+const ENDLESS_GIMMICKS: Array[StringName] = [
+	&"nebula", &"mirrors", &"ion", &"phantoms", &"scrap", &"hive", &"gravity", &"flare",
+]
+const ENDLESS_FIRST_ROTATE := 20.0
+const ENDLESS_ROTATE_INTERVAL := 45.0
+var _endless_mode: bool = false
+var _rotate_timer: float = 0.0
+
 
 func setup(p_player: Node, p_pool: ProjectilePool, p_entities: Node2D, tracker: Node) -> void:
 	player = p_player
@@ -28,10 +37,35 @@ func setup(p_player: Node, p_pool: ProjectilePool, p_entities: Node2D, tracker: 
 
 func begin(data: MissionData) -> void:
 	mission = data
-	_gimmick = data.gimmick_id if data else &""
+	_endless_mode = false
 	_timer = 0.0
 	_pulse = 2.0
 	_clear_runtime()
+	_activate_gimmick(data.gimmick_id if data else &"")
+
+
+func begin_endless() -> void:
+	mission = null
+	_endless_mode = true
+	_timer = 0.0
+	_pulse = 2.0
+	_rotate_timer = ENDLESS_FIRST_ROTATE
+	_clear_runtime()
+	_gimmick = &""
+	EventBus.gimmick_toast.emit("ANOMALIES INBOUND")
+
+
+func stop() -> void:
+	_gimmick = &""
+	_endless_mode = false
+	mission = null
+	_clear_runtime()
+
+
+func _activate_gimmick(g: StringName) -> void:
+	_clear_runtime()
+	_gimmick = g
+	_pulse = 2.0
 	match _gimmick:
 		&"formations":
 			EventBus.gimmick_toast.emit("CHAIN FORMATIONS")
@@ -59,10 +93,14 @@ func begin(data: MissionData) -> void:
 			pass
 
 
-func stop() -> void:
-	_gimmick = &""
-	mission = null
-	_clear_runtime()
+func _rotate_gimmick() -> void:
+	var options: Array[StringName] = []
+	for g in ENDLESS_GIMMICKS:
+		if g != _gimmick:
+			options.append(g)
+	if options.is_empty():
+		return
+	_activate_gimmick(options[_rng.randi() % options.size()])
 
 
 func _clear_runtime() -> void:
@@ -94,7 +132,12 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	if mission == null or _gimmick == &"":
+	if _endless_mode:
+		_rotate_timer -= delta
+		if _rotate_timer <= 0.0:
+			_rotate_timer = ENDLESS_ROTATE_INTERVAL
+			_rotate_gimmick()
+	if _gimmick == &"" or (mission == null and not _endless_mode):
 		return
 	_timer += delta
 	_pulse -= delta
@@ -133,7 +176,8 @@ func _ensure_fog(color: Color = Color(0.45, 0.2, 0.55, 0.0)) -> void:
 func _tick_nebula(delta: float) -> void:
 	if _nebula_fog:
 		var pulse := 0.55 + 0.45 * sin(_timer * 0.7)
-		_nebula_fog.color.a = 0.08 + 0.22 * pulse
+		var amp := 0.10 if GameState.reduce_flashes else 0.22
+		_nebula_fog.color.a = 0.08 + amp * pulse
 		var vp := get_viewport().get_visible_rect().size
 		_nebula_fog.offset_top = vp.y * (0.45 + 0.08 * sin(_timer * 0.5))
 	if _pulse <= 0.0:
@@ -329,7 +373,8 @@ func _spawn_ion_column() -> void:
 func _tick_phantoms(delta: float) -> void:
 	if _nebula_fog:
 		var pulse := 0.5 + 0.5 * sin(_timer * 1.1)
-		_nebula_fog.color.a = 0.06 + 0.16 * pulse
+		var amp := 0.07 if GameState.reduce_flashes else 0.16
+		_nebula_fog.color.a = 0.06 + amp * pulse
 		var vp := get_viewport().get_visible_rect().size
 		_nebula_fog.offset_top = vp.y * (0.35 + 0.1 * sin(_timer * 0.7))
 	if _pulse <= 0.0:
@@ -456,8 +501,9 @@ func _trigger_flare() -> void:
 		if b.is_in_group("player") and b.has_method("take_damage"):
 			b.take_damage(1)
 	)
+	var peak_alpha := 0.12 if GameState.reduce_flashes else 0.35
 	var tw := create_tween()
-	tw.tween_property(_flare_overlay, "color:a", 0.35, 0.2)
+	tw.tween_property(_flare_overlay, "color:a", peak_alpha, 0.2)
 	tw.tween_interval(0.85)
 	tw.tween_property(_flare_overlay, "color:a", 0.0, 0.35)
 	tw.tween_callback(func() -> void:

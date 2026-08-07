@@ -870,7 +870,11 @@ func apply_pickup(kind: String) -> void:
 func _update_visuals(_delta: float) -> void:
 	var vis := _visual()
 	if invuln_time > 0.0 or energy_time > 0.0:
-		vis.modulate.a = 0.35 if int(Time.get_ticks_msec() / 60) % 2 == 0 else 1.0
+		if GameState.reduce_flashes:
+			# Smooth pulse instead of a hard strobe.
+			vis.modulate.a = 0.5 + 0.4 * sin(Time.get_ticks_msec() * 0.012)
+		else:
+			vis.modulate.a = 0.35 if int(Time.get_ticks_msec() / 60) % 2 == 0 else 1.0
 	else:
 		vis.modulate.a = 1.0
 	if _flash_timer > 0.0:

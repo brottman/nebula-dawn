@@ -64,10 +64,17 @@ func _fill_header() -> void:
 		mission_name.text = "ENDLESS"
 		subtitle.text = "Survive as long as you can"
 		var best := GameState.endless_high_score
+		var lines: Array[String] = []
 		if GameState.last_score >= best and GameState.last_score > 0:
-			detail.text = "New high score!"
+			lines.append("New high score!")
 		else:
-			detail.text = "High score  %06d" % best
+			lines.append("High score  %06d" % best)
+		if GameState.endless_best_time > 0.0:
+			if GameState.run_elapsed >= GameState.endless_best_time and GameState.run_elapsed > 0.0:
+				lines.append("New longest run — %s!" % GameState.format_seconds(GameState.endless_best_time))
+			else:
+				lines.append("Longest run  %s" % GameState.format_seconds(GameState.endless_best_time))
+		detail.text = "\n".join(lines)
 		return
 
 	var data: MissionData = GameState.get_mission_data()

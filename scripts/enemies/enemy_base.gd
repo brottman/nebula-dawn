@@ -509,6 +509,8 @@ func take_damage(amount: float, armor_pierce: bool = false) -> void:
 
 
 func _flash_hit() -> void:
+	if GameState.reduce_flashes:
+		return
 	if _sprite and _sprite.visible:
 		_sprite.modulate = Color(2.0, 2.0, 2.0)
 	if _poly:
