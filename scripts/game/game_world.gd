@@ -19,10 +19,12 @@ const HUD_TOP_HEIGHT := 72.0
 @onready var runner: Node = $PlayfieldHost/Playfield/MissionRunner
 @onready var formation_tracker: Node = $PlayfieldHost/Playfield/FormationTracker
 @onready var stage_director: Node = $PlayfieldHost/Playfield/StageDirector
+@onready var intro_card: CanvasLayer = $StageIntro
 
 var _shake_time: float = 0.0
 var _shake_amount: float = 0.0
 var _ending: bool = false
+var _intro_active: bool = false
 
 
 func _ready() -> void:
@@ -35,7 +37,9 @@ func _ready() -> void:
 	spawner.setup(pool, entities)
 	runner.setup(spawner, player)
 	runner.mission_complete.connect(_on_mission_complete)
+	runner.next_boss_requested.connect(_on_boss_rush_next)
 	EventBus.screen_shake.connect(_on_shake)
+	EventBus.hitstop_requested.connect(_on_hitstop)
 	if pause_menu.has_method("hide_menu"):
 		pause_menu.hide_menu()
 	get_viewport().size_changed.connect(_fit_playfield)
@@ -91,23 +95,105 @@ func _start_mode() -> void:
 				parallax.set_tint(Color(0.25, 0.08, 0.2))
 			if parallax.get("scroll_speed") != null:
 				parallax.scroll_speed = 50.0
+			await _play_intro_card("ENDLESS", "SURVIVE THE SWARM",
+				"The swarm never ends. Score as long as you last.")
 			stage_director.begin_endless()
 			runner.begin_endless()
+		GameState.Mode.BOSS_RUSH:
+			var rush_data := GameState.get_boss_rush_data()
+			if rush_data == null:
+				push_error("Missing boss rush data")
+				return
+			_apply_mission_ambience(rush_data)
+			await _play_intro_card("BOSS RUSH", "RAID %d / %d" % [GameState.boss_rush_index + 1, GameState.boss_rush_count()],
+				rush_data.boss.display_name if rush_data.boss else "Next target")
+			stage_director.begin(rush_data)
+			runner.begin_boss_rush(rush_data)
+		GameState.Mode.PRACTICE:
+			var path := GameState.get_mission_path()
+			var data: MissionData = load(path) if path != "" else null
+			if data == null:
+				push_error("Missing mission data: %s" % path)
+				return
+			_apply_mission_ambience(data)
+			if player.has_method("apply_starting_power") and GameState.practice_power >= 1:
+				player.apply_starting_power(GameState.practice_power)
+			await _play_intro_card("PRACTICE", data.title.to_upper(), data.subtitle)
+			stage_director.begin(data)
+			runner.begin_campaign(data, GameState.practice_wave)
 		_:
 			var path := GameState.get_mission_path()
 			var data: MissionData = load(path) if path != "" else null
 			if data == null:
 				push_error("Missing mission data: %s" % path)
 				return
-			if parallax.has_method("set_tint"):
-				parallax.set_tint(data.background_tint)
-			parallax.scroll_speed = data.scroll_speed
+			_apply_mission_ambience(data)
+			await _play_intro_card(GameState.stage_code(), data.title.to_upper(), data.subtitle)
 			stage_director.begin(data)
 			runner.begin_campaign(data)
 
 
+func _apply_mission_ambience(data: MissionData) -> void:
+	if parallax.has_method("set_tint"):
+		parallax.set_tint(data.background_tint)
+	parallax.scroll_speed = data.scroll_speed
+
+
+## Freeze combat while the title card plays (card runs in PROCESS_MODE_ALWAYS),
+## then hand control back to the mission runner.
+func _play_intro_card(code: String, title: String, subtitle: String) -> void:
+	if intro_card == null:
+		return
+	_intro_active = true
+	get_tree().paused = true
+	intro_card.visible = true
+	await intro_card.play(code, title, subtitle)
+	get_tree().paused = false
+	_intro_active = false
+
+
+## Boss Rush intermission: clean the field, repair the ship, swap arenas.
+func _on_boss_rush_next(data: MissionData) -> void:
+	if _ending:
+		return
+	if player and player.has_method("restore_full"):
+		player.restore_full()
+	if pool and pool.has_method("clear_enemy_in_radius"):
+		var vp := Vector2(playfield.size)
+		pool.clear_enemy_in_radius(vp * 0.5, maxf(vp.x, vp.y))
+	_apply_mission_ambience(data)
+	stage_director.begin(data)
+	AudioBus.play_game_music()
+	await _play_intro_card(
+		"BOSS RUSH", "RAID %d / %d" % [GameState.boss_rush_index + 1, GameState.boss_rush_count()],
+		data.boss.display_name if data.boss else "Next target")
+	if _ending:
+		return
+	# Boss defeat arrives from a physics callback — defer the next spawn out of the flush.
+	call_deferred("_continue_boss_rush", data)
+
+
+func _continue_boss_rush(data: MissionData) -> void:
+	if _ending or not is_inside_tree():
+		return
+	runner.continue_boss_rush(data)
+
+
+func _on_hitstop(seconds: float) -> void:
+	if _ending or seconds <= 0.0:
+		return
+	Engine.time_scale = 0.0
+	await get_tree().create_timer(seconds, true, false, true).timeout
+	if not is_inside_tree() or _ending:
+		return
+	var overdrive := false
+	if player and is_instance_valid(player) and player.get("overdrive_time") != null:
+		overdrive = float(player.overdrive_time) > 0.0
+	Engine.time_scale = 0.4 if overdrive else 1.0
+
+
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("pause") and not _ending:
+	if Input.is_action_just_pressed("pause") and not _ending and not _intro_active:
 		_toggle_pause()
 	if _shake_time > 0.0:
 		_shake_time -= delta

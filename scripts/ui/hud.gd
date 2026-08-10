@@ -16,6 +16,7 @@ const CHIP_SEGMENTS := 5
 @onready var chip_count_label: Label = $Root/TopBar/WeaponModule/ModuleMargin/ModuleVBox/ChipRow/ChipCountLabel
 @onready var score_label: Label = $Root/TopBar/ScoreLabel
 @onready var wave_label: Label = $Root/WaveLabel
+@onready var combo_label: Label = $Root/ComboLabel
 @onready var boss_bar: ProgressBar = $Root/BossBar
 @onready var boss_label: Label = $Root/BossLabel
 @onready var pickup_toast: Label = $Root/PickupToast
@@ -54,6 +55,7 @@ func _ready() -> void:
 	EventBus.overdrive_changed.connect(_on_overdrive)
 	EventBus.player_lives_changed.connect(_on_lives)
 	EventBus.bomb_stock_changed.connect(_on_bombs)
+	EventBus.combo_changed.connect(_on_combo)
 	_on_score(GameState.session_score)
 	_on_hp(5, 5)
 	_on_lives(3)
@@ -197,6 +199,16 @@ func _on_wave(_index: int, _total: int, label: String = "") -> void:
 		wave_label.text = label.to_upper()
 	else:
 		wave_label.text = "WAVE"
+
+
+func _on_combo(combo: int) -> void:
+	if combo >= 2:
+		combo_label.visible = true
+		combo_label.text = "CHAIN ×%d" % combo
+		var heat := clampf(0.4 + float(combo) * 0.02, 0.4, 1.0)
+		combo_label.modulate = Color(1.0, heat, heat * 0.4, 1.0)
+	else:
+		combo_label.visible = false
 
 
 func _on_boss_spawned(boss: Node) -> void:

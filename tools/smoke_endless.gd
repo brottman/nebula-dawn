@@ -11,6 +11,7 @@ func _run() -> void:
 	var gs: Node = root.get_node("GameState")
 	gs.call("start_endless")
 	change_scene_to_file("res://scenes/game/game_world.tscn")
-	await create_timer(2.0).timeout
+	## Stage intro card holds ~2s before waves start; wait past it.
+	await create_timer(3.5).timeout
 	print("ENDLESS SMOKE OK")
 	quit(0)

@@ -542,6 +542,9 @@ func _die() -> void:
 	AudioBus.play_explode()
 	var is_boss := stats != null and stats.is_boss
 	EventBus.screen_shake.emit(3.0 if not is_boss else 12.0, 0.15)
+	if is_boss:
+		# Brief freeze frame so boss takedowns land with real weight.
+		EventBus.hitstop_requested.emit(0.16 if not (stats and stats.is_mid_boss) else 0.09)
 	var fx_parent := get_parent()
 	if fx_parent:
 		var col := stats.color if stats else Color(1.0, 0.65, 0.3)
@@ -569,7 +572,18 @@ func _die() -> void:
 		call_deferred("_spawn_pickup")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
-	call_deferred("queue_free")
+	# Kill-flash: white pop + scale-out before the body disappears.
+	set_physics_process(false)
+	var vis: CanvasItem = _sprite if _sprite and _sprite.visible else _poly
+	if vis and not GameState.reduce_flashes:
+		vis.modulate = Color(3.0, 3.0, 3.0, 1.0)
+		var tw := create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(vis, "scale", vis.scale * 1.35, 0.13) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(vis, "modulate:a", 0.0, 0.13)
+		await tw.finished
+	queue_free()
 
 
 func _split_asteroid() -> void:

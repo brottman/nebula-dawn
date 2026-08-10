@@ -156,6 +156,11 @@ func play_bomb() -> void:
 	_play_sfx("bomb", -3.0, 0.02)
 
 
+func play_graze() -> void:
+	## High, soft blip for near-miss grazes (procedural, no sample needed).
+	_play_blip(1240.0, 0.06, -16.0)
+
+
 func _get_player() -> AudioStreamPlayer:
 	for p in _players:
 		if not p.playing:

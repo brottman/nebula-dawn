@@ -73,7 +73,19 @@ Unlocked after Flagship Core. Denser EX-style power floor (Lv2 + Bomb/Shield on 
 
 ### Endless
 
-Continuous enemy waves with a rising difficulty curve. No win condition — survive for score. Best score is persisted.
+Continuous enemy waves with a rising difficulty curve. No win condition — survive for score. Best score and top-5 runs are persisted.
+
+### Boss Rush
+
+Unlocks after Sector 2. All ten stage bosses back-to-back with no waves — fixed Homing Lv2 loadout, full hull repair between targets, and a brief raid title card for each arena. Best raid score is persisted.
+
+### Practice
+
+Free-play for any stage: choose the starting wave (or skip straight to the boss) and a starting power tier (Lv1–3). No ranks, no unlock progression, no records.
+
+### Records
+
+`scenes/ui/records.tscn` — local leaderboard: best score + rank per mission, endless top 5, and the best raid score.
 
 ---
 
@@ -117,6 +129,12 @@ Weapon **type** and **power level** are tracked separately.
 | **Death-Bomb** | If you hold a bomb, ~0.25s after a lethal hit you can press Bomb to cancel death, wipe the screen, and survive at 1 HP. |
 
 You start with **3 ships**. Bombs are stocked (max 3) from Bomb pickups — press **B** / **Shift** or the on-screen BOMB button.
+
+### Graze & chain scoring
+
+- **Graze** — enemy bullets passing within ~30px of the ship count as near-misses (+30 each, soft blip + cyan ring).
+- **Chain** — every kill or graze extends a 2.5s chain window. Consecutive steps pay +20 × step (a 20-chain kill is worth +380). Taking hull damage breaks the chain.
+- **End bonus** — finished runs bank `grazes × 30 + best chain × 10`, shown on the results screen alongside new Graze / Best Chain stats.
 
 ### Sub-system upgrades
 
@@ -236,6 +254,7 @@ Key data types:
 godot --headless --path . --script res://tools/validate_project.gd
 godot --headless --path . --script res://tools/smoke_test.gd
 godot --headless --path . --script res://tools/smoke_endless.gd
+godot --headless --path . --script res://tools/smoke_boss_rush.gd
 ```
 
 ---

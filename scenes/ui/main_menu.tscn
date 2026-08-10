@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://mainmenu001"]
+[gd_scene load_steps=3 format=3 uid="uid://mainmenu001"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/menu_bg.gd" id="2"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -11,32 +12,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Bg" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.04, 0.05, 0.12, 1)
-
-[node name="NebulaA" type="ColorRect" parent="."]
-modulate = Color(0.35, 0.45, 0.9, 0.2)
-layout_mode = 0
-offset_left = -40.0
-offset_top = 80.0
-offset_right = 260.0
-offset_bottom = 380.0
-rotation = -0.2
-
-[node name="NebulaB" type="ColorRect" parent="."]
-modulate = Color(0.9, 0.4, 0.35, 0.15)
-layout_mode = 0
-offset_left = 220.0
-offset_top = 300.0
-offset_right = 520.0
-offset_bottom = 620.0
-rotation = 0.15
+[node name="MenuBg" type="Node2D" parent="."]
+script = ExtResource("2")
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -77,6 +54,21 @@ text = "Campaign"
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 text = "Endless"
+
+[node name="PracticeButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Practice"
+
+[node name="BossRushButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Boss Rush"
+
+[node name="RecordsButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Records"
 
 [node name="SettingsButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 44)

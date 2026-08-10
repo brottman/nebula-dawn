@@ -23,3 +23,8 @@ signal overdrive_activated
 signal gimmick_toast(text: String)
 signal player_lives_changed(lives: int)
 signal bomb_stock_changed(bombs: int)
+## Graze/combo scoring (combo = kills+grazes within a short window).
+signal graze_occurred
+signal combo_changed(combo: int)
+## Brief Engine.time_scale freeze for impact (juice).
+signal hitstop_requested(seconds: float)

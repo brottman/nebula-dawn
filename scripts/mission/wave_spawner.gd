@@ -47,7 +47,8 @@ func _load_catalog() -> void:
 			_enemy_catalog.append(s)
 
 
-func start_mission(data: MissionData) -> void:
+## start_wave is 0-based (0 = first wave; waves.size() = start at the boss).
+func start_mission(data: MissionData, start_wave: int = 0) -> void:
 	mission = data
 	_endless = false
 	_wave_index = -1
@@ -58,6 +59,7 @@ func start_mission(data: MissionData) -> void:
 	_clear_timer = 0.0
 	_max_clear_time = 0.0
 	scroll_speed = data.scroll_speed if data else 40.0
+	_wave_index = clampi(start_wave, 0, data.waves.size() if data else 0) - 1
 	_next_wave()
 
 

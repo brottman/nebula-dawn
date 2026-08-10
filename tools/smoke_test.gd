@@ -19,6 +19,7 @@ func _run() -> void:
 		push_error("change_scene failed: %s" % err)
 		quit(1)
 		return
-	await create_timer(2.5).timeout
+	## Stage intro card holds ~2s before waves start; wait past it.
+	await create_timer(4.0).timeout
 	print("RUNTIME SMOKE OK score=", gs.get("session_score"))
 	quit(0)

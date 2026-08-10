@@ -24,7 +24,12 @@ const SECTOR_2 := 2
 const SECTOR_1_COUNT := 5
 const RANK_ORDER := {"S": 4, "A": 3, "B": 2, "C": 1}
 
-enum Mode { CAMPAIGN, ENDLESS }
+enum Mode { CAMPAIGN, ENDLESS, BOSS_RUSH, PRACTICE }
+
+## Combo chain: every kill/graze extends the window; a bigger chain pays more.
+const COMBO_WINDOW := 2.5
+const COMBO_BONUS_PER_KILL := 20
+const GRAZE_SCORE := 30
 
 var mode: Mode = Mode.CAMPAIGN
 var current_mission_index: int = 0
@@ -35,6 +40,19 @@ var endless_high_score: int = 0
 var session_score: int = 0
 ## Best clear rank per mission index ("", "C", "B", "A", "S").
 var best_ranks: Array[String] = []
+## Best score per mission index (campaign wins only).
+var best_scores: Array[int] = []
+## Endless leaderboard — top 5 run scores, descending.
+var endless_top: Array[int] = []
+## Best Boss Rush score.
+var boss_rush_high_score: int = 0
+## Practice session: start wave (0-based, waves.size() = boss) + starting power.
+var practice_wave: int = -1
+var practice_power: int = 0
+var boss_rush_index: int = 0
+## Live combo chain state.
+var run_combo: int = 0
+var run_combo_timer: float = 0.0
 
 var settings_return_scene: String = "res://scenes/ui/main_menu.tscn"
 
@@ -61,24 +79,35 @@ var run_hits_taken: int = 0
 var run_formations: int = 0
 var run_max_weapon_level: int = 1
 var run_bosses_defeated: int = 0
+var run_max_combo: int = 0
+var run_grazes: int = 0
 ## Letter rank from the last finished run ("" while in progress).
 var last_rank: String = ""
 var last_rank_bonus: int = 0
+## Graze + combo chain bonus from the last finished run.
+var last_chain_bonus: int = 0
 
 
 func _ready() -> void:
 	_ensure_rank_slots()
+	_ensure_score_slots()
 	load_progress()
 	EventBus.enemy_killed.connect(_on_enemy_killed)
 	EventBus.pickup_collected.connect(_on_pickup_collected)
 	EventBus.formation_cleared.connect(_on_formation_cleared)
 	EventBus.player_hull_hit.connect(_on_player_hull_hit)
 	EventBus.weapon_changed.connect(_on_weapon_changed)
+	EventBus.graze_occurred.connect(_on_graze)
 
 
 func _process(delta: float) -> void:
 	if run_active:
 		run_elapsed += delta
+		if run_combo > 0:
+			run_combo_timer -= delta
+			if run_combo_timer <= 0.0:
+				run_combo = 0
+				EventBus.combo_changed.emit(0)
 
 
 func _ensure_rank_slots() -> void:
@@ -86,14 +115,28 @@ func _ensure_rank_slots() -> void:
 		best_ranks.append("")
 
 
+func _ensure_score_slots() -> void:
+	while best_scores.size() < MISSION_PATHS.size():
+		best_scores.append(0)
+
+
 func load_progress() -> void:
 	_ensure_rank_slots()
+	_ensure_score_slots()
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	highest_unlocked_mission = int(cfg.get_value("campaign", "unlocked", 0))
 	endless_high_score = int(cfg.get_value("endless", "high_score", 0))
 	endless_best_time = float(cfg.get_value("endless", "best_time", 0.0))
+	boss_rush_high_score = int(cfg.get_value("boss_rush", "high_score", 0))
+	var top_str := String(cfg.get_value("endless", "top", ""))
+	endless_top.clear()
+	if top_str != "":
+		for part in top_str.split(","):
+			var v := int(part)
+			if v > 0:
+				endless_top.append(v)
 	music_volume = float(cfg.get_value("settings", "music_volume", music_volume))
 	sfx_volume = float(cfg.get_value("settings", "sfx_volume", sfx_volume))
 	touch_sensitivity = float(cfg.get_value("settings", "touch_sensitivity", touch_sensitivity))
@@ -102,14 +145,21 @@ func load_progress() -> void:
 	show_pickup_labels = bool(cfg.get_value("settings", "show_pickup_labels", show_pickup_labels))
 	for i in MISSION_PATHS.size():
 		best_ranks[i] = String(cfg.get_value("ranks", "m%d" % i, ""))
+		best_scores[i] = int(cfg.get_value("scores", "m%d" % i, 0))
 
 
 func save_progress() -> void:
 	_ensure_rank_slots()
+	_ensure_score_slots()
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", highest_unlocked_mission)
 	cfg.set_value("endless", "high_score", endless_high_score)
 	cfg.set_value("endless", "best_time", endless_best_time)
+	cfg.set_value("boss_rush", "high_score", boss_rush_high_score)
+	var top_parts := PackedStringArray()
+	for v in endless_top:
+		top_parts.append(str(v))
+	cfg.set_value("endless", "top", ",".join(top_parts))
 	cfg.set_value("settings", "music_volume", music_volume)
 	cfg.set_value("settings", "sfx_volume", sfx_volume)
 	cfg.set_value("settings", "touch_sensitivity", touch_sensitivity)
@@ -118,6 +168,7 @@ func save_progress() -> void:
 	cfg.set_value("settings", "show_pickup_labels", show_pickup_labels)
 	for i in MISSION_PATHS.size():
 		cfg.set_value("ranks", "m%d" % i, best_ranks[i])
+		cfg.set_value("scores", "m%d" % i, best_scores[i])
 	cfg.save(SAVE_PATH)
 
 
@@ -163,6 +214,9 @@ func start_campaign_mission(index: int) -> void:
 	last_won = false
 	last_rank = ""
 	last_rank_bonus = 0
+	last_chain_bonus = 0
+	practice_wave = -1
+	practice_power = 0
 	_reset_run_stats()
 
 
@@ -174,7 +228,51 @@ func start_endless() -> void:
 	last_won = false
 	last_rank = ""
 	last_rank_bonus = 0
+	last_chain_bonus = 0
+	practice_wave = -1
+	practice_power = 0
 	_reset_run_stats()
+
+
+## Free-play with a chosen start wave (0-based; waves.size() = boss) and power tier.
+func start_practice(mission_index: int, wave: int, power: int) -> void:
+	mode = Mode.PRACTICE
+	current_mission_index = clampi(mission_index, 0, MISSION_PATHS.size() - 1)
+	var data := get_mission_data()
+	var max_wave := data.waves.size() if data else 0
+	practice_wave = clampi(wave, 0, max_wave)
+	practice_power = clampi(power, 1, 3)
+	session_score = 0
+	last_score = 0
+	last_won = false
+	last_rank = ""
+	last_rank_bonus = 0
+	last_chain_bonus = 0
+	_reset_run_stats()
+
+
+func start_boss_rush() -> void:
+	mode = Mode.BOSS_RUSH
+	boss_rush_index = 0
+	current_mission_index = 0
+	session_score = 0
+	last_score = 0
+	last_won = false
+	last_rank = ""
+	last_rank_bonus = 0
+	last_chain_bonus = 0
+	practice_wave = -1
+	practice_power = 0
+	_reset_run_stats()
+
+
+func boss_rush_count() -> int:
+	return MISSION_PATHS.size()
+
+
+func get_boss_rush_data(index: int = -1) -> MissionData:
+	var i := boss_rush_index if index < 0 else index
+	return get_mission_data(i)
 
 
 func _reset_run_stats() -> void:
@@ -187,6 +285,10 @@ func _reset_run_stats() -> void:
 	run_formations = 0
 	run_max_weapon_level = 1
 	run_bosses_defeated = 0
+	run_combo = 0
+	run_combo_timer = 0.0
+	run_max_combo = 0
+	run_grazes = 0
 
 
 func get_power_floor(mission_index: int = -1) -> int:
@@ -195,6 +297,10 @@ func get_power_floor(mission_index: int = -1) -> int:
 	var i := current_mission_index if mission_index < 0 else mission_index
 	if mode == Mode.ENDLESS:
 		return 2 if run_elapsed > 90.0 else 1
+	if mode == Mode.BOSS_RUSH:
+		return 2
+	if mode == Mode.PRACTICE:
+		return clampi(practice_power, 1, 3)
 	if i < 0:
 		return 1
 	if i <= 2:
@@ -207,7 +313,7 @@ func get_power_floor(mission_index: int = -1) -> int:
 
 func is_ex_stage(mission_index: int = -1) -> bool:
 	var i := current_mission_index if mission_index < 0 else mission_index
-	return mode == Mode.CAMPAIGN and i >= SECTOR_1_COUNT
+	return (mode == Mode.CAMPAIGN or mode == Mode.PRACTICE) and i >= SECTOR_1_COUNT
 
 
 func get_mission_path(index: int = -1) -> String:
@@ -227,6 +333,12 @@ func record_mission_result(won: bool) -> void:
 	last_won = won
 	last_rank = ""
 	last_rank_bonus = 0
+	last_chain_bonus = 0
+	# Graze + combo chain bonus applies to any finished run.
+	var chain_bonus := run_grazes * 30 + run_max_combo * 10
+	if chain_bonus > 0:
+		session_score += chain_bonus
+		last_chain_bonus = chain_bonus
 	if won and mode == Mode.CAMPAIGN:
 		var rank_info := compute_clear_rank()
 		last_rank = String(rank_info.get("rank", "C"))
@@ -234,6 +346,7 @@ func record_mission_result(won: bool) -> void:
 		if last_rank_bonus > 0:
 			session_score += last_rank_bonus
 		_record_best_rank(current_mission_index, last_rank)
+		_record_best_score(current_mission_index, session_score)
 		var next := current_mission_index + 1
 		if next > highest_unlocked_mission and next < MISSION_PATHS.size():
 			highest_unlocked_mission = next
@@ -246,6 +359,11 @@ func record_mission_result(won: bool) -> void:
 			endless_high_score = session_score
 		if run_elapsed > endless_best_time:
 			endless_best_time = run_elapsed
+		_push_endless_top(session_score)
+		save_progress()
+	elif mode == Mode.BOSS_RUSH:
+		if session_score > boss_rush_high_score:
+			boss_rush_high_score = session_score
 		save_progress()
 
 
@@ -256,6 +374,31 @@ func _record_best_rank(index: int, rank: String) -> void:
 	var prev := best_ranks[index]
 	if prev == "" or RANK_ORDER.get(rank, 0) > RANK_ORDER.get(prev, 0):
 		best_ranks[index] = rank
+
+
+func _record_best_score(index: int, score: int) -> void:
+	_ensure_score_slots()
+	if index < 0 or index >= best_scores.size() or score <= 0:
+		return
+	if score > best_scores[index]:
+		best_scores[index] = score
+
+
+func get_best_score(index: int) -> int:
+	_ensure_score_slots()
+	if index < 0 or index >= best_scores.size():
+		return 0
+	return best_scores[index]
+
+
+func _push_endless_top(score: int) -> void:
+	if score <= 0:
+		return
+	endless_top.append(score)
+	endless_top.sort()
+	endless_top.reverse()
+	while endless_top.size() > 5:
+		endless_top.pop_back()
 
 
 func get_best_rank(index: int) -> String:
@@ -386,6 +529,26 @@ func _on_enemy_killed(is_hazard: bool, is_boss: bool) -> void:
 		run_kills += 1
 	if is_boss:
 		run_bosses_defeated += 1
+	_combo_gain()
+
+
+## Graze near-misses: score + extend the chain.
+func _on_graze() -> void:
+	if not run_active:
+		return
+	run_grazes += 1
+	_combo_gain()
+	add_score(GRAZE_SCORE)
+
+
+## Kills and grazes both bank one chain step; the chain multiplies returns.
+func _combo_gain() -> void:
+	run_combo += 1
+	run_combo_timer = COMBO_WINDOW
+	run_max_combo = maxi(run_max_combo, run_combo)
+	if run_combo > 1:
+		add_score(COMBO_BONUS_PER_KILL * (run_combo - 1))
+	EventBus.combo_changed.emit(run_combo)
 
 
 func _on_pickup_collected(_kind: String) -> void:
@@ -401,6 +564,11 @@ func _on_formation_cleared(_center: Vector2, _size: int) -> void:
 func _on_player_hull_hit() -> void:
 	if run_active:
 		run_hits_taken += 1
+	# Getting tagged kills the chain.
+	if run_combo > 0:
+		run_combo = 0
+		run_combo_timer = 0.0
+		EventBus.combo_changed.emit(0)
 
 
 func _on_weapon_changed(_weapon_name: String) -> void:

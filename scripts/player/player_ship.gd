@@ -15,6 +15,8 @@ const CHIPS_PER_LEVEL := 5
 const MAX_BITS := 2
 const MAX_SPEED_STACKS := 3
 const SPEED_STACK_BONUS := 0.12 ## +12% move speed per stack
+## Graze ring radius around the ship (larger than the hitbox on purpose).
+const GRAZE_RADIUS := 30.0
 
 enum Weapon { BLASTER, VULCAN, LASER, HOMING }
 
@@ -102,6 +104,10 @@ var _touch_world: Vector2 = Vector2.ZERO
 var _touch_grab_offset: Vector2 = Vector2.ZERO
 var _cinematic: bool = false
 
+## Graze ring + per-bullet tracking so a single bullet only pays once per pass.
+var _graze_zone: Area2D
+var _grazed: Dictionary = {}
+
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _shield_visual: Polygon2D = $ShieldVisual
@@ -119,10 +125,50 @@ func _ready() -> void:
 	_shield_visual.visible = false
 	if _sprite and _sprite.texture:
 		_poly.visible = false
+	_build_graze_zone()
+	if GameState.mode == GameState.Mode.BOSS_RUSH:
+		set_boss_rush_loadout()
 	EventBus.player_hp_changed.emit(hp, max_hp)
 	EventBus.player_lives_changed.emit(lives)
 	EventBus.bomb_stock_changed.emit(bomb_stock)
 	_emit_weapon_changed()
+
+
+func _build_graze_zone() -> void:
+	_graze_zone = Area2D.new()
+	_graze_zone.name = "GrazeZone"
+	_graze_zone.collision_layer = 0
+	_graze_zone.collision_mask = 8 ## enemy projectiles only
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = GRAZE_RADIUS
+	shape.shape = circle
+	_graze_zone.add_child(shape)
+	add_child(_graze_zone)
+	_graze_zone.area_entered.connect(_on_graze_entered)
+	_graze_zone.area_exited.connect(_on_graze_exited)
+
+
+func _on_graze_entered(area: Area2D) -> void:
+	if dead or not visible or not is_instance_valid(area):
+		return
+	if not area.is_in_group("enemy_projectiles"):
+		return
+	var id := area.get_instance_id()
+	if _grazed.has(id):
+		var stored: Node = _grazed[id]
+		if stored == area and area.is_active():
+			return
+		_grazed.erase(id)
+	_grazed[id] = area
+	EventBus.graze_occurred.emit()
+	AudioBus.play_graze()
+	if not GameState.reduce_flashes:
+		CombatFX.spawn_ring(get_parent(), global_position, Color(0.55, 0.95, 1.0), 9.0)
+
+
+func _on_graze_exited(area: Area2D) -> void:
+	_grazed.erase(area.get_instance_id())
 
 
 func _visual() -> CanvasItem:
@@ -426,6 +472,32 @@ func _reset_weapon() -> void:
 	_emit_weapon_changed()
 
 
+## Practice mode: start with the stock blaster at the chosen tier.
+func apply_starting_power(level: int) -> void:
+	weapon = Weapon.BLASTER
+	weapon_level = clampi(level, 1, MAX_WEAPON_LEVEL)
+	chip_progress = CHIPS_PER_LEVEL if weapon_level >= MAX_WEAPON_LEVEL else 0
+	_note_peak_loadout()
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
+	_emit_weapon_changed()
+
+
+## Boss Rush: fixed loadout so every run starts on equal footing.
+func set_boss_rush_loadout() -> void:
+	weapon = Weapon.HOMING
+	weapon_level = 2
+	chip_progress = 0
+	_note_peak_loadout()
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
+	_emit_weapon_changed()
+
+
+## Boss Rush intermission: full hull repair between targets.
+func restore_full() -> void:
+	hp = max_hp
+	EventBus.player_hp_changed.emit(hp, max_hp)
+
+
 func _emit_weapon_changed() -> void:
 	var slot: String = WEAPON_NAMES.get(weapon, "BLASTER")
 	var parts: PackedStringArray = []
@@ -587,6 +659,7 @@ func take_damage(amount: int) -> void:
 	EventBus.player_hull_hit.emit()
 	AudioBus.play_player_hurt()
 	EventBus.screen_shake.emit(8.0, 0.18)
+	EventBus.hitstop_requested.emit(0.07)
 	EventBus.player_hp_changed.emit(hp, max_hp)
 
 
@@ -638,6 +711,7 @@ func activate_bomb() -> void:
 	## Smart Cleaver — wipe enemy bullets and burst non-boss threats.
 	EventBus.gimmick_toast.emit("BOMB")
 	EventBus.screen_shake.emit(10.0, 0.22)
+	EventBus.hitstop_requested.emit(0.08)
 	AudioBus.play_bomb()
 	var vp := get_viewport_rect().size
 	var center := vp * 0.5
@@ -688,6 +762,7 @@ func _die() -> void:
 	set_physics_process(true) ## keep process for respawn scheduling via await
 	AudioBus.play_explode()
 	EventBus.screen_shake.emit(12.0, 0.28)
+	EventBus.hitstop_requested.emit(0.18)
 	var fx_parent := get_parent()
 	if fx_parent:
 		CombatFX.spawn_ring(fx_parent, global_position, Color(0.55, 0.9, 1.0), 16.0)
@@ -746,6 +821,13 @@ func _respawn() -> void:
 
 func _spawn_volcano_drop() -> void:
 	## Eject 3–4 large Power Orbs that rebuild 50–75% of lost peak power (in P-Chips).
+	## Deferred: death usually lands inside a physics callback.
+	call_deferred("_spawn_volcano_drop_now")
+
+
+func _spawn_volcano_drop_now() -> void:
+	if not is_inside_tree() or dead:
+		return
 	var parent := get_parent()
 	if parent == null:
 		return
