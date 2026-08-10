@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_6cai4"]
 
@@ -6,16 +6,11 @@
 script = ExtResource("1_6cai4")
 enemy_id = &"strafer"
 display_name = "Defense Drone"
-max_hp = 2.0
 move_speed = 95.0
 score_value = 150
 fire_interval = 1.8
 projectile_speed = 200.0
-contact_damage = 1
 fire_pattern = &"side"
 color = Color(1, 0.7, 0.35, 1)
 size = Vector2(46, 38)
-is_hazard = false
-is_boss = false
-is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"

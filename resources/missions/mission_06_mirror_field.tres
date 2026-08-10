@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MissionData" load_steps=55 format=3]
+[gd_resource type="Resource" script_class="MissionData" format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_jusr5"]
 [ext_resource type="Script" path="res://scripts/mission/mission_data.gd" id="2_5h7bx"]
@@ -13,38 +13,24 @@ max_hp = 150.0
 move_speed = 48.0
 score_value = 10000
 fire_interval = 1.2
-projectile_speed = 220.0
 contact_damage = 2
-fire_pattern = &"straight"
 color = Color(0.45, 0.9, 1, 1)
 size = Vector2(128, 96)
-is_hazard = false
 is_boss = true
-is_mid_boss = false
+boss_archetype = &"fabrication"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_gxu35"]
 script = ExtResource("1_jusr5")
-enemy_id = &"scout"
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
-score_value = 100
-fire_interval = 0.0
-projectile_speed = 220.0
-contact_damage = 1
-fire_pattern = &"straight"
-color = Color(1, 0.45, 0.45, 1)
 size = Vector2(40, 40)
-is_hazard = false
-is_boss = false
-is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_axlfp"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_gxu35")
-delay = 0.0
 position = Vector2(240, -50)
 count = 5
 spacing = Vector2(56, 0)
@@ -61,13 +47,9 @@ move_speed = 80.0
 score_value = 240
 fire_interval = 1.7
 projectile_speed = 200.0
-contact_damage = 1
 fire_pattern = &"spread"
 color = Color(0.55, 0.85, 1, 1)
 size = Vector2(48, 46)
-is_hazard = false
-is_boss = false
-is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_ficue"]
@@ -77,8 +59,6 @@ delay = 1.3
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 70.0
 
 [sub_resource type="Resource" id="Resource_hgt3h"]
@@ -101,13 +81,9 @@ move_speed = 135.0
 score_value = 300
 fire_interval = 1.45
 projectile_speed = 230.0
-contact_damage = 1
 fire_pattern = &"aimed"
 color = Color(1, 0.85, 0.4, 1)
 size = Vector2(44, 40)
-is_hazard = false
-is_boss = false
-is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_iypvf"]
@@ -115,10 +91,7 @@ script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_nv5fr")
 delay = 1.2
 position = Vector2(140, -55)
-count = 1
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 56.0
 
 [sub_resource type="Resource" id="Resource_u6amu"]
@@ -126,10 +99,7 @@ script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_nv5fr")
 delay = 0.3
 position = Vector2(340, -55)
-count = 1
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 56.0
 
 [sub_resource type="Resource" id="Resource_qxe84"]
@@ -137,17 +107,14 @@ script = ExtResource("3_ubniq")
 label = "Act 1 — Opener"
 start_delay = 1.0
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_axlfp"), SubResource("Resource_ficue"), SubResource("Resource_hgt3h"), SubResource("Resource_iypvf"), SubResource("Resource_u6amu")])
-clear_required = true
 max_clear_time = 14.0
 
 [sub_resource type="Resource" id="Resource_g2esw"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_uyo8x")
-delay = 0.0
 position = Vector2(100, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 40.0
 
@@ -158,7 +125,6 @@ delay = 0.3
 position = Vector2(380, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 40.0
 
@@ -180,7 +146,6 @@ delay = 1.2
 position = Vector2(240, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"wave"
 pattern_spread = 64.0
 
@@ -193,24 +158,20 @@ count = 5
 spacing = Vector2(56, 0)
 formation_id = "s2_i1"
 pattern = &"inv_v"
-pattern_spread = 52.0
 
 [sub_resource type="Resource" id="Resource_36hvy"]
 script = ExtResource("3_ubniq")
 label = "Act 1 — Sweep"
 start_delay = 1.4
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_g2esw"), SubResource("Resource_60bbq"), SubResource("Resource_5pwna"), SubResource("Resource_s3nmv"), SubResource("Resource_yhvce")])
-clear_required = true
 max_clear_time = 14.0
 
 [sub_resource type="Resource" id="Resource_hcvjs"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_nv5fr")
-delay = 0.0
 position = Vector2(90, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -221,7 +182,6 @@ delay = 0.3
 position = Vector2(390, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -232,8 +192,6 @@ delay = 1.1
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 68.0
 
 [sub_resource type="Resource" id="Resource_sc7kv"]
@@ -254,7 +212,6 @@ delay = 1.1
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"arc"
 pattern_spread = 58.0
 
@@ -265,7 +222,6 @@ delay = 1.0
 position = Vector2(240, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"v"
 pattern_spread = 70.0
 
@@ -274,17 +230,14 @@ script = ExtResource("3_ubniq")
 label = "Act 2 — Escalation"
 start_delay = 1.5
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_hcvjs"), SubResource("Resource_tysem"), SubResource("Resource_j77my"), SubResource("Resource_sc7kv"), SubResource("Resource_vv3ly"), SubResource("Resource_5r6u1")])
-clear_required = true
 max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_h1gjr"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_uyo8x")
-delay = 0.0
 position = Vector2(240, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"wave"
 pattern_spread = 62.0
 
@@ -306,7 +259,6 @@ delay = 1.0
 position = Vector2(110, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -317,7 +269,6 @@ delay = 0.2
 position = Vector2(370, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -328,7 +279,6 @@ delay = 1.1
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"box"
 pattern_spread = 58.0
 
@@ -348,7 +298,6 @@ script = ExtResource("3_ubniq")
 label = "Act 2 — Pressure"
 start_delay = 1.5
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_h1gjr"), SubResource("Resource_htxkn"), SubResource("Resource_7gfs8"), SubResource("Resource_h4uee"), SubResource("Resource_t15kk"), SubResource("Resource_jacl1")])
-clear_required = true
 max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_lvufw"]
@@ -360,24 +309,18 @@ move_speed = 58.0
 score_value = 2300
 fire_interval = 1.35
 projectile_speed = 210.0
-contact_damage = 1
-fire_pattern = &"straight"
 color = Color(0.5, 0.9, 1, 1)
 size = Vector2(80, 70)
-is_hazard = false
 is_boss = true
 is_mid_boss = true
+boss_archetype = &"overseer"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_mvkuu"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_lvufw")
-delay = 0.0
 position = Vector2(240, -75)
-count = 1
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 56.0
 
 [sub_resource type="Resource" id="Resource_5bgm6"]
@@ -385,13 +328,11 @@ script = ExtResource("3_ubniq")
 label = "Act 3 — Mid-Boss"
 start_delay = 2.5
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_mvkuu")])
-clear_required = true
 max_clear_time = 0.0
 
 [sub_resource type="Resource" id="Resource_eqo1e"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_gxu35")
-delay = 0.0
 position = Vector2(240, -55)
 count = 6
 spacing = Vector2(56, 0)
@@ -406,7 +347,6 @@ delay = 1.0
 position = Vector2(100, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 40.0
 
@@ -417,7 +357,6 @@ delay = 0.2
 position = Vector2(380, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 40.0
 
@@ -428,8 +367,6 @@ delay = 1.2
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 70.0
 
 [sub_resource type="Resource" id="Resource_p60td"]
@@ -450,7 +387,6 @@ delay = 1.1
 position = Vector2(240, -55)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"wave"
 pattern_spread = 66.0
 
@@ -459,28 +395,23 @@ script = ExtResource("3_ubniq")
 label = "Act 4 — Build"
 start_delay = 2.3
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_eqo1e"), SubResource("Resource_g1clk"), SubResource("Resource_ltwlq"), SubResource("Resource_ynfx3"), SubResource("Resource_p60td"), SubResource("Resource_g3b0c")])
-clear_required = true
 max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_swupd"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_nv5fr")
-delay = 0.0
 position = Vector2(90, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 36.0
 
 [sub_resource type="Resource" id="Resource_rxfif"]
 script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_nv5fr")
-delay = 0.0
 position = Vector2(390, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 36.0
 
@@ -491,7 +422,6 @@ delay = 1.0
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"v"
 pattern_spread = 60.0
 
@@ -513,7 +443,6 @@ delay = 1.0
 position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"box"
 pattern_spread = 62.0
 
@@ -524,7 +453,6 @@ delay = 1.1
 position = Vector2(240, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"wave"
 pattern_spread = 64.0
 
@@ -544,10 +472,7 @@ script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_uyo8x")
 delay = 1.1
 position = Vector2(160, -50)
-count = 1
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 56.0
 
 [sub_resource type="Resource" id="Resource_iy4nj"]
@@ -555,10 +480,7 @@ script = ExtResource("4_msbnf")
 enemy = SubResource("Resource_uyo8x")
 delay = 0.3
 position = Vector2(320, -50)
-count = 1
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 56.0
 
 [sub_resource type="Resource" id="Resource_1vfck"]
@@ -566,7 +488,6 @@ script = ExtResource("3_ubniq")
 label = "Act 5 — Climax"
 start_delay = 2.7
 entries = Array[ExtResource("4_msbnf")]([SubResource("Resource_swupd"), SubResource("Resource_rxfif"), SubResource("Resource_6xdnq"), SubResource("Resource_sqyal"), SubResource("Resource_3gjga"), SubResource("Resource_l1drx"), SubResource("Resource_5t36q"), SubResource("Resource_xhi7s"), SubResource("Resource_iy4nj")])
-clear_required = true
 max_clear_time = 20.0
 
 [resource]
@@ -575,7 +496,6 @@ mission_id = &"mission_06"
 title = "Mirror Field"
 subtitle = "Ricochets rewrite the lane map."
 sector = 2
-stage = 1
 scroll_speed = 58.0
 waves = Array[ExtResource("3_ubniq")]([SubResource("Resource_qxe84"), SubResource("Resource_36hvy"), SubResource("Resource_t3agv"), SubResource("Resource_g0ej2"), SubResource("Resource_5bgm6"), SubResource("Resource_5bmvp"), SubResource("Resource_1vfck")])
 win_on_waves_cleared = false

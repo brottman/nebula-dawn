@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MissionData" load_steps=53 format=3]
+[gd_resource type="Resource" script_class="MissionData" format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_0hyco"]
 [ext_resource type="Script" path="res://scripts/mission/mission_data.gd" id="2_f3xy4"]
@@ -15,36 +15,23 @@ score_value = 6500
 fire_interval = 1.4
 projectile_speed = 200.0
 contact_damage = 2
-fire_pattern = &"straight"
 color = Color(0.4, 0.75, 1, 1)
 size = Vector2(120, 92)
-is_hazard = false
 is_boss = true
-is_mid_boss = false
+boss_archetype = &"orbital"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_gxu35"]
 script = ExtResource("1_0hyco")
-enemy_id = &"scout"
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
-score_value = 100
-fire_interval = 0.0
-projectile_speed = 220.0
-contact_damage = 1
-fire_pattern = &"straight"
-color = Color(1, 0.45, 0.45, 1)
 size = Vector2(40, 40)
-is_hazard = false
-is_boss = false
-is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_rwn5r"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_gxu35")
-delay = 0.0
 position = Vector2(240, -50)
 count = 5
 spacing = Vector2(56, 0)
@@ -60,7 +47,6 @@ position = Vector2(240, -50)
 count = 5
 spacing = Vector2(56, 0)
 formation_id = "line1"
-pattern = &"line"
 pattern_spread = 58.0
 
 [sub_resource type="Resource" id="Resource_xt76o"]
@@ -83,7 +69,6 @@ count = 5
 spacing = Vector2(56, 0)
 formation_id = "wave1"
 pattern = &"wave"
-pattern_spread = 52.0
 
 [sub_resource type="Resource" id="Resource_5wujg"]
 script = ExtResource("4_uuo61")
@@ -101,13 +86,11 @@ script = ExtResource("3_hg51s")
 label = "Act 1 — Opener"
 start_delay = 1.0
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_rwn5r"), SubResource("Resource_l2226"), SubResource("Resource_xt76o"), SubResource("Resource_a7rug"), SubResource("Resource_5wujg")])
-clear_required = true
 max_clear_time = 14.0
 
 [sub_resource type="Resource" id="Resource_gf8li"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_gxu35")
-delay = 0.0
 position = Vector2(120, -50)
 count = 4
 spacing = Vector2(56, 0)
@@ -164,35 +147,27 @@ script = ExtResource("3_hg51s")
 label = "Act 1 — Sweep"
 start_delay = 1.4
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_gf8li"), SubResource("Resource_wryxj"), SubResource("Resource_etlq2"), SubResource("Resource_u285r"), SubResource("Resource_1p8fg")])
-clear_required = true
 max_clear_time = 14.0
 
 [sub_resource type="Resource" id="Resource_yhisg"]
 script = ExtResource("1_0hyco")
 enemy_id = &"strafer"
 display_name = "Defense Drone"
-max_hp = 2.0
 move_speed = 95.0
 score_value = 150
 fire_interval = 1.8
 projectile_speed = 200.0
-contact_damage = 1
 fire_pattern = &"side"
 color = Color(1, 0.7, 0.35, 1)
 size = Vector2(46, 38)
-is_hazard = false
-is_boss = false
-is_mid_boss = false
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_bxeri"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_yhisg")
-delay = 0.0
 position = Vector2(100, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 42.0
 
@@ -203,7 +178,6 @@ delay = 0.3
 position = Vector2(380, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 42.0
 
@@ -236,8 +210,6 @@ delay = 1.2
 position = Vector2(240, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 70.0
 
 [sub_resource type="Resource" id="Resource_moa7o"]
@@ -256,17 +228,14 @@ script = ExtResource("3_hg51s")
 label = "Act 2 — Escalation"
 start_delay = 1.6
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_bxeri"), SubResource("Resource_tbq08"), SubResource("Resource_325gf"), SubResource("Resource_p4mq5"), SubResource("Resource_c4mir"), SubResource("Resource_moa7o")])
-clear_required = true
 max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_vs2ek"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_yhisg")
-delay = 0.0
 position = Vector2(240, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"wave"
 pattern_spread = 62.0
 
@@ -288,7 +257,6 @@ delay = 1.0
 position = Vector2(90, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -299,7 +267,6 @@ delay = 0.2
 position = Vector2(390, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -323,14 +290,12 @@ count = 6
 spacing = Vector2(56, 0)
 formation_id = "arc2"
 pattern = &"arc"
-pattern_spread = 52.0
 
 [sub_resource type="Resource" id="Resource_xpub4"]
 script = ExtResource("3_hg51s")
 label = "Act 2 — Pressure"
 start_delay = 1.5
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_vs2ek"), SubResource("Resource_of3fk"), SubResource("Resource_6qolb"), SubResource("Resource_mp6q6"), SubResource("Resource_q6gfv"), SubResource("Resource_gxoqe")])
-clear_required = true
 max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_6jdya"]
@@ -342,11 +307,8 @@ move_speed = 60.0
 score_value = 1600
 fire_interval = 1.55
 projectile_speed = 190.0
-contact_damage = 1
-fire_pattern = &"straight"
 color = Color(0.55, 0.8, 1, 1)
 size = Vector2(84, 64)
-is_hazard = false
 is_boss = true
 is_mid_boss = true
 scene_path = "res://scenes/entities/enemy_base.tscn"
@@ -354,12 +316,8 @@ scene_path = "res://scenes/entities/enemy_base.tscn"
 [sub_resource type="Resource" id="Resource_u3e3e"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_6jdya")
-delay = 0.0
 position = Vector2(240, -70)
-count = 1
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 56.0
 
 [sub_resource type="Resource" id="Resource_jgoms"]
@@ -367,13 +325,11 @@ script = ExtResource("3_hg51s")
 label = "Act 3 — Mid-Boss"
 start_delay = 2.4
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_u3e3e")])
-clear_required = true
 max_clear_time = 0.0
 
 [sub_resource type="Resource" id="Resource_fno87"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_gxu35")
-delay = 0.0
 position = Vector2(240, -55)
 count = 6
 spacing = Vector2(56, 0)
@@ -388,7 +344,6 @@ delay = 1.0
 position = Vector2(110, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 40.0
 
@@ -399,7 +354,6 @@ delay = 0.2
 position = Vector2(370, -50)
 count = 3
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 40.0
 
@@ -432,8 +386,6 @@ delay = 1.2
 position = Vector2(240, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
-pattern = &"line"
 pattern_spread = 68.0
 
 [sub_resource type="Resource" id="Resource_av4m7"]
@@ -441,13 +393,11 @@ script = ExtResource("3_hg51s")
 label = "Act 4 — Build"
 start_delay = 2.2
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_fno87"), SubResource("Resource_mtc4r"), SubResource("Resource_70gyr"), SubResource("Resource_3uc0r"), SubResource("Resource_yl13c"), SubResource("Resource_ut36f")])
-clear_required = true
 max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_stxfs"]
 script = ExtResource("4_uuo61")
 enemy = SubResource("Resource_gxu35")
-delay = 0.0
 position = Vector2(240, -55)
 count = 7
 spacing = Vector2(56, 0)
@@ -462,7 +412,6 @@ delay = 0.9
 position = Vector2(120, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -473,7 +422,6 @@ delay = 0.2
 position = Vector2(360, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"column"
 pattern_spread = 38.0
 
@@ -506,7 +454,6 @@ delay = 1.1
 position = Vector2(240, -50)
 count = 4
 spacing = Vector2(56, 0)
-formation_id = ""
 pattern = &"wave"
 pattern_spread = 60.0
 
@@ -537,16 +484,11 @@ script = ExtResource("3_hg51s")
 label = "Act 5 — Climax"
 start_delay = 2.6
 entries = Array[ExtResource("4_uuo61")]([SubResource("Resource_stxfs"), SubResource("Resource_1rc60"), SubResource("Resource_ndh38"), SubResource("Resource_yyd2l"), SubResource("Resource_he8n6"), SubResource("Resource_nij82"), SubResource("Resource_ciwrb"), SubResource("Resource_fleks")])
-clear_required = true
 max_clear_time = 20.0
 
 [resource]
 script = ExtResource("2_f3xy4")
-mission_id = &"mission_01"
-title = "Planetary Ascent"
 subtitle = "Break low orbit over the metropolis."
-sector = 1
-stage = 1
 scroll_speed = 38.0
 waves = Array[ExtResource("3_hg51s")]([SubResource("Resource_x2sm4"), SubResource("Resource_asift"), SubResource("Resource_qskpm"), SubResource("Resource_xpub4"), SubResource("Resource_jgoms"), SubResource("Resource_av4m7"), SubResource("Resource_u1sqc")])
 win_on_waves_cleared = false

@@ -18,4 +18,9 @@ extends Resource
 @export var is_boss: bool = false
 ## Mid-boss: uses boss HUD/pattern but does not end the mission when defeated.
 @export var is_mid_boss: bool = false
+## Boss attack routine key (orbital | megalith | leviathan | fabrication |
+## omega | stalker | drill | overseer | ace | storm). Drives BossPatterns.
+## New bosses = a new archetype + a pattern branch in scripts/enemies/boss_patterns.gd,
+## never string-matching display_name.
+@export var boss_archetype: StringName = &""
 @export var scene_path: String = "res://scenes/entities/enemy_scout.tscn"

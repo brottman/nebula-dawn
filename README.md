@@ -246,7 +246,9 @@ Key data types:
 - `MissionData` — title, sector/stage, waves, boss, `gimmick_id`, tint, scroll
 - `WaveDef` — label, entries, `clear_required`, `max_clear_time`
 - `SpawnEntry` — enemy, delay, position, count, spacing, optional `formation_id`
-- `EnemyStats` — HP, speed, fire rate, flags (`is_hazard`, `is_boss`, `is_mid_boss`)
+- `EnemyStats` — HP, speed, fire rate, flags (`is_hazard`, `is_boss`, `is_mid_boss`), `boss_archetype`
+
+Boss behavior lives in `scripts/enemies/boss_patterns.gd`, keyed by `EnemyStats.boss_archetype` (`orbital`, `megalith`, `leviathan`, `fabrication`, `omega` for stage bosses; `stalker`, `drill`, `overseer`, `ace`, `storm` for mid-bosses). Adding a boss = one archetype value in `generate_resources.gd` + one branch in `boss_patterns.gd` — never string-match `display_name`.
 
 ### Validation / smoke tests
 

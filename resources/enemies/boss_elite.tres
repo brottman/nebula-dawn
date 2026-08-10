@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
 
 [ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_43wia"]
 
@@ -12,10 +12,8 @@ score_value = 12000
 fire_interval = 1.15
 projectile_speed = 235.0
 contact_damage = 2
-fire_pattern = &"straight"
 color = Color(1, 0.35, 0.55, 1)
 size = Vector2(136, 108)
-is_hazard = false
 is_boss = true
-is_mid_boss = false
+boss_archetype = &"omega"
 scene_path = "res://scenes/entities/enemy_base.tscn"

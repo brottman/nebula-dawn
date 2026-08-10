@@ -221,27 +221,7 @@ func _move(delta: float) -> void:
 			rotation += delta * 0.8 if stats and stats.is_hazard else 0.0
 		Pattern.BOSS:
 			_armor_angle += delta * 1.4
-			var name_l := String(stats.display_name).to_lower() if stats else ""
-			# Quantum Stalker: teleport periodically.
-			if "stalker" in name_l or "quantum" in name_l:
-				_teleport_cd -= delta
-				if _teleport_cd <= 0.0:
-					_teleport_cd = randf_range(3.4, 5.0)
-					var vp2 := get_viewport_rect().size
-					global_position = Vector2(randf_range(80.0, vp2.x - 80.0), randf_range(80.0, 200.0))
-					_origin_x = global_position.x
-					EventBus.gimmick_toast.emit("RELOCATING")
-			var target_y := 120.0
-			if "megalith" in name_l or "dreadnought" in name_l:
-				target_y = 100.0
-			if global_position.y < target_y:
-				global_position.y += speed * delta
-			else:
-				var sway := 140.0
-				if "platform" in name_l or "orbital" in name_l:
-					sway = 100.0
-				global_position.x = _origin_x + sin(_t * 0.8) * sway
-				global_position.x = clampf(global_position.x, 60.0, get_viewport_rect().size.x - 60.0)
+			BossPatterns.move(self, delta)
 
 
 func _try_fire(delta: float) -> void:
@@ -268,18 +248,18 @@ func _fodder_fire() -> void:
 	var pat := String(stats.fire_pattern) if stats.fire_pattern != &"" else _default_fodder_pattern()
 	match pat:
 		"aimed":
-			_fire_aimed(muzzle, spd, dmg, 1, 0.0)
+			BossPatterns.aimed(self, muzzle, spd, dmg, 1, 0.0)
 		"side":
 			var side := _strafe_dir if absf(_strafe_dir) > 0.1 else (1.0 if randf() > 0.5 else -1.0)
-			_spawn_enemy_shot(muzzle, Vector2(side * 0.55, 1).normalized() * spd, dmg)
-			_spawn_enemy_shot(muzzle, Vector2(0, 1) * spd * 0.95, dmg)
+			BossPatterns.spawn_shot(self, muzzle, Vector2(side * 0.55, 1).normalized() * spd, dmg)
+			BossPatterns.spawn_shot(self, muzzle, Vector2(0, 1) * spd * 0.95, dmg)
 		"burst":
-			_fire_spread_fan(muzzle, spd * 0.92, dmg, 3, 0.28)
+			BossPatterns.spread_fan(self, muzzle, spd * 0.92, dmg, 3, 0.28)
 			_fire_timer = stats.fire_interval * 1.15
 		"spread":
-			_fire_spread_fan(muzzle, spd, dmg, 3, 0.4)
+			BossPatterns.spread_fan(self, muzzle, spd, dmg, 3, 0.4)
 		_:
-			_spawn_enemy_shot(muzzle, Vector2(0, spd), dmg)
+			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
 
 
 func _default_fodder_pattern() -> String:
@@ -295,187 +275,10 @@ func _default_fodder_pattern() -> String:
 
 
 func _boss_fire() -> void:
+	## Phase + archetype dispatch live in BossPatterns (scripts/enemies/boss_patterns.gd).
 	var ratio := hp / maxf(stats.max_hp, 1.0)
 	_boss_phase = 0 if ratio > 0.66 else (1 if ratio > 0.33 else 2)
-	var name_l := String(stats.display_name).to_lower() if stats else ""
-	var muzzle := global_position + Vector2(0, 24)
-	var spd := stats.projectile_speed
-	var dmg := float(stats.contact_damage)
-
-	# Mid-bosses keep readable pressure with a light signature pattern.
-	if stats.is_mid_boss:
-		_mid_boss_fire(name_l, muzzle, spd, dmg)
-		AudioBus.play_enemy_shoot()
-		return
-
-	# Stage bosses each teach a different reading skill.
-	if "platform" in name_l or "orbital" in name_l:
-		_fire_orbital_platform(muzzle, spd, dmg)
-	elif "megalith" in name_l or "dreadnought" in name_l or "colossus" in name_l or "junkyard" in name_l:
-		_fire_megalith(muzzle, spd, dmg)
-	elif "leviathan" in name_l or "celestial" in name_l or "choir" in name_l or "null" in name_l:
-		_fire_leviathan(muzzle, spd, dmg)
-	elif "matrix" in name_l or "fabrication" in name_l or "kaleidoscope" in name_l or "array" in name_l:
-		_fire_fabrication(muzzle, spd, dmg)
-		if randf() < (0.14 + 0.08 * float(_boss_phase)):
-			_spawn_fabricated_drone()
-	elif "omega" in name_l or "dawn" in name_l or "tempest" in name_l or "dynamo" in name_l:
-		_fire_omega(muzzle, spd, dmg)
-	else:
-		_fire_spread_fan(muzzle, spd, dmg, 1 + _boss_phase * 2, 0.55)
-	AudioBus.play_enemy_shoot()
-
-
-func _mid_boss_fire(name_l: String, muzzle: Vector2, spd: float, dmg: float) -> void:
-	if "stalker" in name_l or "quantum" in name_l or "echo" in name_l or "revenant" in name_l:
-		_fire_aimed(muzzle, spd * 1.05, dmg, 3 + _boss_phase, 0.18)
-		_fire_timer = stats.fire_interval * (0.9 - 0.1 * float(_boss_phase))
-	elif "drill" in name_l or "seismic" in name_l or "belt" in name_l or "tyrant" in name_l:
-		_fire_spread_fan(muzzle, spd * 0.9, dmg, 3 + _boss_phase, 0.7)
-		_fire_timer = stats.fire_interval * 0.95
-	elif "overseer" in name_l or "prism" in name_l or "warden" in name_l:
-		_fire_cross(muzzle, spd, dmg)
-		if _boss_phase >= 1:
-			_fire_spread_fan(muzzle, spd * 0.85, dmg, 3, 0.35)
-		_fire_timer = stats.fire_interval * (0.9 - 0.08 * float(_boss_phase))
-	elif "ace" in name_l or "twin" in name_l or "herald" in name_l or "solar" in name_l:
-		_fire_aimed(muzzle, spd * 1.1, dmg, 2 + _boss_phase, 0.12)
-		_fire_spread_fan(muzzle, spd, dmg, 3, 0.4)
-		_fire_timer = stats.fire_interval * 0.85
-	elif "storm" in name_l or "coil" in name_l:
-		_fire_ring(muzzle, spd * 0.75, dmg, 6 + _boss_phase)
-		_fire_aimed(muzzle, spd, dmg, 1 + _boss_phase, 0.1)
-		_fire_timer = stats.fire_interval * 0.88
-	else:
-		_fire_spread_fan(muzzle, spd, dmg, 3 + _boss_phase, 0.5)
-		_fire_timer = stats.fire_interval * (0.95 - 0.08 * float(_boss_phase))
-
-
-func _fire_orbital_platform(muzzle: Vector2, spd: float, dmg: float) -> void:
-	## Rotating armor boss: sweeping arcs that punish standing in one lane.
-	var arms := 3 + _boss_phase
-	var base := _armor_angle
-	for i in arms:
-		var a := base + TAU * float(i) / float(arms)
-		var dir := Vector2(sin(a) * 0.85, 0.55 + 0.35 * absf(cos(a))).normalized()
-		_spawn_enemy_shot(muzzle, dir * spd, dmg)
-	if _boss_phase >= 1:
-		_fire_aimed(muzzle, spd * 0.95, dmg, 1 + _boss_phase, 0.08)
-	_fire_timer = stats.fire_interval * (0.9 - 0.12 * float(_boss_phase))
-
-
-func _fire_megalith(muzzle: Vector2, spd: float, dmg: float) -> void:
-	## Heavy wide volleys — slow, chunky, hard to squeeze through.
-	var count := 5 + _boss_phase * 2
-	_fire_spread_fan(muzzle, spd * 0.72, dmg, count, 0.95, {"scale": 1.35, "lifetime": 4.0})
-	if _boss_phase >= 2 and int(_t * 2.0) % 2 == 0:
-		# Occasional side sweep.
-		for side in [-1.0, 1.0]:
-			_spawn_enemy_shot(muzzle + Vector2(side * 40.0, 0), Vector2(side * 0.35, 1).normalized() * spd * 0.8, dmg, {"scale": 1.2})
-	_fire_timer = stats.fire_interval * (1.05 - 0.1 * float(_boss_phase))
-
-
-func _fire_leviathan(muzzle: Vector2, spd: float, dmg: float) -> void:
-	## Ethereal wavy shots + faint "illusion" extras that drift oddly.
-	var count := 4 + _boss_phase
-	for i in count:
-		var t := float(i) / float(maxi(count - 1, 1))
-		var a := lerpf(-0.55, 0.55, t)
-		var dir := Vector2(a, 1).normalized()
-		_spawn_enemy_shot(muzzle, dir * spd * 0.9, dmg, {
-			"wave_amp": 18.0 + 8.0 * float(_boss_phase),
-			"wave_freq": 6.0,
-			"color": Color(0.85, 0.45, 1.0),
-			"scale": 0.9,
-		})
-	# Illusions: slower, dimmer decoys that still hurt if ignored.
-	var illusions := 2 + _boss_phase
-	for i in illusions:
-		var a2 := randf_range(-0.7, 0.7)
-		_spawn_enemy_shot(muzzle + Vector2(randf_range(-30.0, 30.0), 0), Vector2(a2, 1).normalized() * spd * 0.55, dmg * 0.75, {
-			"wave_amp": 28.0,
-			"wave_freq": 4.5,
-			"color": Color(0.7, 0.35, 0.95, 0.55),
-			"scale": 0.7,
-			"lifetime": 3.5,
-		})
-	_fire_timer = stats.fire_interval * (0.85 - 0.1 * float(_boss_phase))
-
-
-func _fire_fabrication(muzzle: Vector2, spd: float, dmg: float) -> void:
-	## Grid / cross denial while adds chew DPS.
-	_fire_cross(muzzle, spd * 0.95, dmg)
-	if _boss_phase >= 1:
-		_fire_spread_fan(muzzle, spd, dmg, 3 + _boss_phase, 0.4)
-	if _boss_phase >= 2:
-		_fire_ring(muzzle, spd * 0.65, dmg, 8)
-	_fire_timer = stats.fire_interval * (0.88 - 0.1 * float(_boss_phase))
-
-
-func _fire_omega(muzzle: Vector2, spd: float, dmg: float) -> void:
-	## Peak density: ring bursts + aimed stitch fire.
-	var ring_n := 8 + _boss_phase * 2
-	_fire_ring(muzzle, spd * 0.7, dmg, ring_n)
-	_fire_aimed(muzzle, spd * 1.05, dmg, 2 + _boss_phase, 0.1)
-	if _boss_phase >= 2:
-		_fire_spread_fan(muzzle, spd * 0.85, dmg, 5, 0.55)
-	_fire_timer = stats.fire_interval * (0.75 - 0.08 * float(_boss_phase))
-
-
-func _fire_spread_fan(muzzle: Vector2, spd: float, dmg: float, count: int, width: float, opts: Dictionary = {}) -> void:
-	count = maxi(count, 1)
-	for i in count:
-		var t := 0.5 if count == 1 else float(i) / float(count - 1)
-		var a := lerpf(-width, width, t)
-		_spawn_enemy_shot(muzzle, Vector2(a, 1).normalized() * spd, dmg, opts)
-
-
-func _fire_aimed(muzzle: Vector2, spd: float, dmg: float, count: int, spread: float, opts: Dictionary = {}) -> void:
-	var aim := Vector2(0, 1)
-	var player := get_tree().get_first_node_in_group("player")
-	if player is Node2D and is_instance_valid(player):
-		aim = ((player as Node2D).global_position - muzzle).normalized()
-		if aim.y < 0.2:
-			aim.y = 0.2
-			aim = aim.normalized()
-	for i in count:
-		var t := 0.5 if count == 1 else float(i) / float(count - 1)
-		var angled := aim.rotated(lerpf(-spread, spread, t))
-		_spawn_enemy_shot(muzzle, angled * spd, dmg, opts)
-
-
-func _fire_cross(muzzle: Vector2, spd: float, dmg: float, opts: Dictionary = {}) -> void:
-	for dir in [Vector2(0, 1), Vector2(0.7, 0.7), Vector2(-0.7, 0.7), Vector2(0.9, 0.35), Vector2(-0.9, 0.35)]:
-		_spawn_enemy_shot(muzzle, dir.normalized() * spd, dmg, opts)
-
-
-func _fire_ring(muzzle: Vector2, spd: float, dmg: float, count: int, opts: Dictionary = {}) -> void:
-	for i in count:
-		var a := TAU * float(i) / float(count) + _t * 0.4
-		# Bias downward so portrait play stays fair.
-		var dir := Vector2(sin(a), absf(cos(a)) * 0.35 + 0.65).normalized()
-		_spawn_enemy_shot(muzzle, dir * spd, dmg, opts)
-
-
-func _spawn_enemy_shot(muzzle: Vector2, velocity: Vector2, dmg: float, opts: Dictionary = {}) -> void:
-	if projectile_pool == null:
-		return
-	projectile_pool.spawn_enemy(muzzle, velocity, dmg, opts)
-
-
-func _spawn_fabricated_drone() -> void:
-	var parent := get_parent()
-	if parent == null or projectile_pool == null:
-		return
-	var scene: PackedScene = load("res://scenes/entities/enemy_base.tscn")
-	var stats_drone: EnemyStats = load("res://resources/enemies/drone.tres")
-	if scene == null or stats_drone == null:
-		return
-	var e: Node = scene.instantiate()
-	parent.add_child(e)
-	e.global_position = global_position + Vector2(randf_range(-60.0, 60.0), 40.0)
-	if e.has_method("setup"):
-		e.setup(stats_drone, projectile_pool, scroll_speed)
+	BossPatterns.fire(self)
 
 
 func take_damage(amount: float, armor_pierce: bool = false) -> void:
@@ -484,12 +287,10 @@ func take_damage(amount: float, armor_pierce: bool = false) -> void:
 	# Orbital Defense Platform: rotating plating reduces frontal hits
 	# unless the shot has armor pierce (Focused Laser Lv2+).
 	if not armor_pierce and stats and stats.is_boss and not stats.is_mid_boss:
-		var name_l := String(stats.display_name).to_lower()
-		if "platform" in name_l or "orbital" in name_l:
-			var facing := absf(sin(_armor_angle))
-			if facing > 0.65:
-				amount *= 0.55
-				EventBus.gimmick_toast.emit("ARMORED")
+		var mult: float = BossPatterns.armor_mult(stats, _armor_angle)
+		if mult < 1.0:
+			amount *= mult
+			EventBus.gimmick_toast.emit("ARMORED")
 	hp -= amount
 	_flash_hit()
 	if amount >= 0.75 and _spark_cooldown <= 0.0 and get_parent():

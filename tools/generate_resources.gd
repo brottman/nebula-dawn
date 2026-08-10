@@ -68,6 +68,29 @@ func _init() -> void:
 	var boss9 := _boss("Junkyard Colossus", 180.0, 44.0, 12500, 1.15, Color(0.9, 0.5, 0.28), Vector2(140, 108), 215.0)
 	var boss10 := _boss("Dawn Gate Core", 200.0, 58.0, 15000, 1.05, Color(1.0, 0.55, 0.25), Vector2(144, 112), 245.0)
 
+	# Boss archetypes drive BossPatterns (scripts/enemies/boss_patterns.gd).
+	boss1.boss_archetype = &"orbital"
+	boss2.boss_archetype = &"megalith"
+	boss3.boss_archetype = &"leviathan"
+	boss4.boss_archetype = &"fabrication"
+	boss5.boss_archetype = &"omega"
+	boss6.boss_archetype = &"fabrication"
+	boss7.boss_archetype = &"omega"
+	boss8.boss_archetype = &"leviathan"
+	boss9.boss_archetype = &"megalith"
+	boss10.boss_archetype = &"omega"
+
+	# Mid-boss archetypes.
+	mid2.boss_archetype = &"drill"
+	mid3.boss_archetype = &"stalker"
+	mid4.boss_archetype = &"overseer"
+	mid5.boss_archetype = &"ace"
+	mid6.boss_archetype = &"overseer"
+	mid7.boss_archetype = &"storm"
+	mid8.boss_archetype = &"stalker"
+	mid9.boss_archetype = &"drill"
+	mid10.boss_archetype = &"ace"
+
 	_save(scout, "res://resources/enemies/scout.tres")
 	_save(strafer, "res://resources/enemies/strafer.tres")
 	_save(drone, "res://resources/enemies/drone.tres")
