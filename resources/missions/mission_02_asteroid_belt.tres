@@ -167,7 +167,7 @@ spacing = Vector2(56, 0)
 pattern = &"arc"
 pattern_spread = 62.0
 
-[sub_resource type="Resource" id="Resource_yhisg"]
+[sub_resource type="Resource" id="Resource_bxeri"]
 script = ExtResource("1_3m4dp")
 enemy_id = &"strafer"
 display_name = "Defense Drone"
@@ -182,7 +182,7 @@ scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_gf8un"]
 script = ExtResource("4_rhg3f")
-enemy = SubResource("Resource_yhisg")
+enemy = SubResource("Resource_bxeri")
 delay = 0.7
 position = Vector2(90, -50)
 count = 3
@@ -192,7 +192,7 @@ pattern_spread = 40.0
 
 [sub_resource type="Resource" id="Resource_u600g"]
 script = ExtResource("4_rhg3f")
-enemy = SubResource("Resource_yhisg")
+enemy = SubResource("Resource_bxeri")
 delay = 0.3
 position = Vector2(390, -50)
 count = 3
@@ -292,7 +292,7 @@ pattern_spread = 60.0
 
 [sub_resource type="Resource" id="Resource_mo8l0"]
 script = ExtResource("4_rhg3f")
-enemy = SubResource("Resource_yhisg")
+enemy = SubResource("Resource_bxeri")
 delay = 1.0
 position = Vector2(100, -50)
 count = 3
@@ -302,7 +302,7 @@ pattern_spread = 38.0
 
 [sub_resource type="Resource" id="Resource_7c5ja"]
 script = ExtResource("4_rhg3f")
-enemy = SubResource("Resource_yhisg")
+enemy = SubResource("Resource_bxeri")
 delay = 0.2
 position = Vector2(380, -50)
 count = 3
@@ -448,7 +448,7 @@ pattern_spread = 58.0
 
 [sub_resource type="Resource" id="Resource_jw2gs"]
 script = ExtResource("4_rhg3f")
-enemy = SubResource("Resource_yhisg")
+enemy = SubResource("Resource_bxeri")
 delay = 0.9
 position = Vector2(100, -50)
 count = 4
@@ -458,7 +458,7 @@ pattern_spread = 36.0
 
 [sub_resource type="Resource" id="Resource_kh4sk"]
 script = ExtResource("4_rhg3f")
-enemy = SubResource("Resource_yhisg")
+enemy = SubResource("Resource_bxeri")
 delay = 0.2
 position = Vector2(380, -50)
 count = 4
@@ -516,3 +516,4 @@ boss = SubResource("Resource_8qial")
 boss_intro_delay = 2.2
 background_tint = Color(0.32, 0.22, 0.14, 1)
 gimmick_id = &"asteroids"
+terrain_id = &"mines"

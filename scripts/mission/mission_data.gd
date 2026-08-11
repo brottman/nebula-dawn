@@ -17,3 +17,6 @@ extends Resource
 @export var background_tint: Color = Color(0.15, 0.2, 0.45)
 ## Stage gimmick module id: formations | asteroids | nebula | hive | gravity
 @export var gimmick_id: StringName = &""
+## Ground-base terrain style under the playfield (city | mines | biolum |
+## factory | fleet | mirror | storm | wake | scrap | flare). Empty = none.
+@export var terrain_id: StringName = &"city"

@@ -122,7 +122,7 @@ Each stage has its own looping track (see README). Menu and Endless use dedicate
 
 ## Visual identity
 
-- Illustrated sprites for core enemy archetypes and pickups (`assets/sprites/`).
+- Hand-authored vector sprites (SVG, imported by Godot) for enemy archetypes, the player ship, and pickups (`assets/sprites/`). Enemy art is grayscale so the per-mission `stats.color` tint reads clearly; the player ship carries its own palette.
 - Soft modulate tints differentiate mission variants that reuse an archetype.
 - Four parallax layers keep speed readable even when the playfield is busy.
 

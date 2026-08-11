@@ -31,12 +31,12 @@ var _spark_cooldown: float = 0.0
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 
 const SPRITE_PATHS := {
-	"scout": "res://assets/sprites/enemy_scout.png",
-	"strafer": "res://assets/sprites/enemy_strafer.png",
-	"drone": "res://assets/sprites/enemy_drone.png",
-	"asteroid": "res://assets/sprites/enemy_asteroid.png",
-	"boss": "res://assets/sprites/enemy_boss.png",
-	"mid_boss": "res://assets/sprites/enemy_mid_boss.png",
+	"scout": "res://assets/sprites/enemy_scout.svg",
+	"strafer": "res://assets/sprites/enemy_strafer.svg",
+	"drone": "res://assets/sprites/enemy_drone.svg",
+	"asteroid": "res://assets/sprites/enemy_asteroid.svg",
+	"boss": "res://assets/sprites/enemy_boss.svg",
+	"mid_boss": "res://assets/sprites/enemy_mid_boss.svg",
 }
 
 
@@ -258,6 +258,16 @@ func _fodder_fire() -> void:
 			_fire_timer = stats.fire_interval * 1.15
 		"spread":
 			BossPatterns.spread_fan(self, muzzle, spd, dmg, 3, 0.4)
+		"ring":
+			# Full-circle burst (slower shells so it stays readable).
+			BossPatterns.ring(self, muzzle, spd * 0.8, dmg, 6, {"scale": 0.85})
+			_fire_timer = stats.fire_interval * 1.2
+		"tri":
+			# Three-way aimed star.
+			BossPatterns.aimed(self, muzzle, spd, dmg, 3, 0.5)
+		"cross":
+			# Five-way cross denial.
+			BossPatterns.cross(self, muzzle, spd * 0.9, dmg)
 		_:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
 
@@ -369,7 +379,7 @@ func _die() -> void:
 		call_deferred("_split_asteroid")
 	if stats and stats.is_mid_boss:
 		call_deferred("_spawn_major_reward")
-	elif not (stats and stats.is_hazard) and randf() < (0.10 if not (stats and stats.is_boss) else 1.0):
+	elif not (stats and stats.is_hazard) and randf() < (0.05 if not (stats and stats.is_boss) else 1.0):
 		call_deferred("_spawn_pickup")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)

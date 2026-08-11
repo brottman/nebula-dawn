@@ -165,10 +165,11 @@ Scrolling depth (ratios relative to playfield `scroll_speed`):
 |-------|-------|------|
 | Far background | 0.1× | Nebula, stars, planet horizons |
 | Midground | 0.5× | Stations, terrain, capital silhouettes |
+| Ground base | 0.72× | Planet surface you fly over — per-stage terrain strip |
 | Playfield grid | 1.0× | Combat plane (player, enemies, bullets) |
 | Foreground | 1.5× | Debris / wisps drawn over the ship |
 
-Mission `background_tint` and `scroll_speed` drive the look per stage.
+Mission `background_tint` and `scroll_speed` drive the look per stage. The `terrain_id` picks the ground-base style (`city`, `mines`, `biolum`, `factory`, `fleet`, `mirror`, `storm`, `wake`, `scrap`, `flare`) — structures drift past from the horizon with atmospheric haze. Endless mode picks a random style.
 
 ---
 
@@ -245,7 +246,9 @@ Key data types:
 
 - `MissionData` — title, sector/stage, waves, boss, `gimmick_id`, tint, scroll
 - `WaveDef` — label, entries, `clear_required`, `max_clear_time`
-- `SpawnEntry` — enemy, delay, position, count, spacing, optional `formation_id`
+- `SpawnEntry` — enemy, delay, position, count, spacing, optional `formation_id`, `pattern` + `pattern_spread`
+
+Spawn formations are geometric layouts in `SpawnEntry.pattern_offsets()`: `line`, `column`, `v`, `inv_v`, `diamond`, `arc`, `box`, `cross`, `wave`, `circle`, `star`, `spiral`, `chevron`. Fodder bullet styles (`EnemyStats.fire_pattern`): `straight`, `aimed`, `side`, `burst`, `spread`, `ring`, `tri`, `cross`.
 - `EnemyStats` — HP, speed, fire rate, flags (`is_hazard`, `is_boss`, `is_mid_boss`), `boss_archetype`
 
 Boss behavior lives in `scripts/enemies/boss_patterns.gd`, keyed by `EnemyStats.boss_archetype` (`orbital`, `megalith`, `leviathan`, `fabrication`, `omega` for stage bosses; `stalker`, `drill`, `overseer`, `ace`, `storm` for mid-bosses). Adding a boss = one archetype value in `generate_resources.gd` + one branch in `boss_patterns.gd` — never string-match `display_name`.

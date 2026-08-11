@@ -9,6 +9,8 @@ const SPEED_FAR := 0.1
 const SPEED_MID := 0.5
 const SPEED_GRID := 1.0
 const SPEED_FG := 1.5
+## Ground terrain drifts a touch faster than midground so it reads as near.
+const SPEED_GROUND := 0.72
 
 @export var scroll_speed: float = 40.0
 @export var tint: Color = Color(0.12, 0.16, 0.38)
@@ -17,6 +19,7 @@ var _far: _FarLayer
 var _mid: _MidLayer
 var _grid: _GridLayer
 var _fg: _ForegroundLayer
+var _terrain: _TerrainLayer
 var _rng := RandomNumberGenerator.new()
 
 
@@ -37,6 +40,11 @@ func _ready() -> void:
 	_grid.z_index = -10
 	add_child(_grid)
 
+	_terrain = _TerrainLayer.new()
+	_terrain.name = "GroundBase"
+	_terrain.z_index = -15
+	add_child(_terrain)
+
 	_fg = _ForegroundLayer.new()
 	_fg.name = "ForegroundHazards"
 	# Absolute Z so this draws above Entities / Player / Projectiles.
@@ -49,6 +57,7 @@ func _ready() -> void:
 	_mid.setup(vp, tint, _rng)
 	_grid.setup(vp, tint, _rng)
 	_fg.setup(vp, tint, _rng)
+	_terrain.setup(vp, tint, _rng)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 
 
@@ -58,6 +67,17 @@ func _on_viewport_resized() -> void:
 	_mid.on_resize(vp)
 	_grid.on_resize(vp)
 	_fg.on_resize(vp)
+	_terrain.on_resize(vp)
+
+
+func set_terrain(style: StringName) -> void:
+	if _terrain:
+		_terrain.set_style(style)
+
+
+func set_terrain_random() -> void:
+	if _terrain:
+		_terrain.set_random_style()
 
 
 func set_tint(c: Color) -> void:
@@ -74,6 +94,9 @@ func set_tint(c: Color) -> void:
 	if _fg:
 		_fg.tint = c
 		_fg.queue_redraw()
+	if _terrain:
+		_terrain.tint = c
+		_terrain.queue_redraw()
 
 
 func _process(delta: float) -> void:
@@ -82,6 +105,7 @@ func _process(delta: float) -> void:
 	_mid.tick(delta, scroll_speed * SPEED_MID, vp)
 	_grid.tick(delta, scroll_speed * SPEED_GRID, vp)
 	_fg.tick(delta, scroll_speed * SPEED_FG, vp)
+	_terrain.tick(delta, scroll_speed * SPEED_GROUND, vp)
 
 
 # ---------------------------------------------------------------------------
@@ -378,3 +402,320 @@ class _ForegroundLayer extends Node2D:
 			draw_colored_polygon(world, Color(0.55, 0.52, 0.5, 0.55))
 			if world.size() >= 2:
 				draw_polyline(world + PackedVector2Array([world[0]]), Color(0.85, 0.8, 0.75, 0.35), 1.0)
+
+
+# ---------------------------------------------------------------------------
+# Ground Base — terrain you fly over (0.72x)
+# ---------------------------------------------------------------------------
+class _TerrainLayer extends Node2D:
+	## A fixed ground band with a scrolling strip of structures. Far structures
+	## sit at the horizon (atmospheric haze), near ones read dark at the bottom.
+
+	const GROUND_RATIO := 0.66 ## Top edge of the ground band.
+	const STRUCT_COUNT := 9
+
+	var style: StringName = &""
+	var tint: Color = Color(0.12, 0.16, 0.38)
+	var structures: Array[Dictionary] = []
+	var _rng: RandomNumberGenerator
+	var _time: float = 0.0
+
+	## style -> kinds + palette (haze = far band, deep = near band, edge = glow).
+	const STYLES := {
+		&"city": {
+			"kinds": [&"tower", &"block", &"block", &"dome", &"antenna"],
+			"haze": Color(0.30, 0.26, 0.20),
+			"deep": Color(0.05, 0.04, 0.03),
+			"edge": Color(1.0, 0.62, 0.28),
+		},
+		&"mines": {
+			"kinds": [&"crater", &"crater", &"block", &"antenna", &"tower"],
+			"haze": Color(0.26, 0.22, 0.18),
+			"deep": Color(0.04, 0.035, 0.03),
+			"edge": Color(1.0, 0.75, 0.35),
+		},
+		&"biolum": {
+			"kinds": [&"pod", &"pod", &"dome", &"crater", &"ruin"],
+			"haze": Color(0.16, 0.22, 0.20),
+			"deep": Color(0.02, 0.05, 0.04),
+			"edge": Color(0.55, 1.0, 0.75),
+		},
+		&"factory": {
+			"kinds": [&"crane", &"block", &"block", &"pylon", &"tower"],
+			"haze": Color(0.22, 0.24, 0.26),
+			"deep": Color(0.035, 0.045, 0.05),
+			"edge": Color(0.45, 0.9, 1.0),
+		},
+		&"fleet": {
+			"kinds": [&"deck", &"deck", &"bunker", &"antenna", &"block"],
+			"haze": Color(0.18, 0.22, 0.30),
+			"deep": Color(0.03, 0.04, 0.07),
+			"edge": Color(0.4, 0.7, 1.0),
+		},
+		&"mirror": {
+			"kinds": [&"crystal", &"crystal", &"dome", &"spire"],
+			"haze": Color(0.16, 0.24, 0.30),
+			"deep": Color(0.02, 0.045, 0.06),
+			"edge": Color(0.55, 0.9, 1.0),
+		},
+		&"storm": {
+			"kinds": [&"pylon", &"pylon", &"block", &"antenna"],
+			"haze": Color(0.14, 0.20, 0.28),
+			"deep": Color(0.02, 0.035, 0.06),
+			"edge": Color(0.55, 0.8, 1.0),
+		},
+		&"wake": {
+			"kinds": [&"ruin", &"ruin", &"antenna", &"block", &"crystal"],
+			"haze": Color(0.18, 0.16, 0.26),
+			"deep": Color(0.03, 0.025, 0.05),
+			"edge": Color(0.7, 0.55, 1.0),
+		},
+		&"scrap": {
+			"kinds": [&"junk", &"junk", &"crane", &"block", &"deck"],
+			"haze": Color(0.26, 0.20, 0.14),
+			"deep": Color(0.05, 0.035, 0.02),
+			"edge": Color(1.0, 0.6, 0.3),
+		},
+		&"flare": {
+			"kinds": [&"spire", &"spire", &"deck", &"bunker", &"block"],
+			"haze": Color(0.28, 0.20, 0.12),
+			"deep": Color(0.055, 0.03, 0.015),
+			"edge": Color(1.0, 0.85, 0.4),
+		},
+	}
+	const STYLE_KEYS: Array[StringName] = [
+		&"city", &"mines", &"biolum", &"factory", &"fleet",
+		&"mirror", &"storm", &"wake", &"scrap", &"flare",
+	]
+
+	func setup(_vp: Vector2, t: Color, rng: RandomNumberGenerator) -> void:
+		tint = t
+		_rng = rng
+
+	func on_resize(_vp: Vector2) -> void:
+		queue_redraw()
+
+	func set_random_style() -> void:
+		set_style(STYLE_KEYS[_rng.randi() % STYLE_KEYS.size()])
+
+	func set_style(s: StringName) -> void:
+		style = s
+		structures.clear()
+		var vp := get_viewport_rect().size
+		if style == &"":
+			queue_redraw()
+			return
+		for i in STRUCT_COUNT:
+			structures.append(_new_structure(vp, true))
+		queue_redraw()
+
+	func _new_structure(vp: Vector2, prefill: bool = false) -> Dictionary:
+		var kinds: Array = STYLES.get(style, {}).get("kinds", [&"block"])
+		var kind: StringName = kinds[_rng.randi() % kinds.size()]
+		var w := _rng.randf_range(26.0, 64.0)
+		var h := _rng.randf_range(34.0, 88.0)
+		if kind == &"deck" or kind == &"bunker" or kind == &"block":
+			h = minf(h, 56.0)
+		var ground_y := vp.y * GROUND_RATIO
+		return {
+			"kind": kind,
+			"x": _rng.randf_range(24.0, vp.x - 24.0),
+			"w": w,
+			"h": h,
+			"y": -h - _rng.randf_range(0.0, 120.0) if prefill else -h - 30.0,
+			"seed": _rng.randi(),
+			"flip": _rng.randf() > 0.5,
+			"grow": _rng.randf_range(0.8, 1.3),
+		}
+
+	func tick(delta: float, speed: float, vp: Vector2) -> void:
+		_time += delta
+		if style == &"":
+			return
+		var ground_y := vp.y * GROUND_RATIO
+		for i in structures.size():
+			var s: Dictionary = structures[i]
+			s["y"] = float(s["y"]) + speed * delta
+			if float(s["y"]) > vp.y - ground_y + float(s["h"]) + 40.0:
+				structures[i] = _new_structure(vp)
+			else:
+				structures[i] = s
+		queue_redraw()
+
+	func _palette() -> Dictionary:
+		return STYLES.get(style, STYLES[&"city"])
+
+	func _structure_color(y: float, vp_h: float, ground_y: float) -> Color:
+		## Far structures near the horizon sit in haze; near ones go dark.
+		var t := clampf((y - ground_y) / maxf(1.0, vp_h - ground_y), 0.0, 1.0)
+		var pal: Dictionary = _palette()
+		return pal["haze"].lerp(pal["deep"], t)
+
+	func _draw() -> void:
+		var vp := get_viewport_rect().size
+		if style == &"" or vp.y <= 0.0:
+			return
+		var pal: Dictionary = _palette()
+		var ground_y := vp.y * GROUND_RATIO
+		var band_h := vp.y - ground_y
+		# Band: haze at the horizon, deep at the camera.
+		var bands := 12
+		for i in bands:
+			var t := float(i) / float(bands - 1)
+			var c: Color = pal["haze"].lerp(pal["deep"], t)
+			draw_rect(Rect2(0.0, ground_y + i * band_h / bands, vp.x, band_h / bands + 1.0), c)
+		# Horizon glow + faint accent wash.
+		var edge: Color = pal["edge"]
+		draw_rect(Rect2(0.0, ground_y - 2.0, vp.x, 3.0), Color(edge.r, edge.g, edge.b, 0.5))
+		draw_rect(Rect2(0.0, ground_y, vp.x, band_h * 0.45), Color(edge.r, edge.g, edge.b, 0.05))
+		for s in structures:
+			_draw_structure(s, vp, ground_y, edge)
+
+	func _hash01(seed: int, i: int) -> float:
+		var v := sin(float(seed * 97 + i * 131)) * 43758.5453
+		return v - floor(v)
+
+	func _light(seed: int, i: int, x: float, y: float, w: float, h: float) -> void:
+		var lit := _hash01(seed, i)
+		if lit < 0.35:
+			return
+		var col := Color(1.0, 0.85, 0.55, 0.85) if lit < 0.8 else Color(0.6, 0.9, 1.0, 0.7)
+		draw_rect(Rect2(x, y, w, h), col)
+
+	func _beacon(seed: int, x: float, y: float) -> void:
+		var blink := 0.5 + 0.5 * sin(_time * 4.0 + float(seed))
+		var a := 0.8 if GameState.reduce_flashes else 0.4 + 0.6 * blink
+		draw_circle(Vector2(x, y), 2.2, Color(1.0, 0.3, 0.25, a))
+
+	func _draw_structure(s: Dictionary, vp: Vector2, ground_y: float, edge: Color) -> void:
+		var kind: StringName = s["kind"]
+		var x: float = s["x"]
+		var w: float = s["w"] * float(s["grow"])
+		var h: float = s["h"] * float(s["grow"])
+		var y: float = ground_y + float(s["y"]) ## top of the structure
+		var bottom := ground_y + float(s["y"]) + h
+		if bottom < 0.0 or y > vp.y:
+			return
+		var col := _structure_color(y, vp.y, ground_y)
+		var seed: int = s["seed"]
+		var accent := Color(edge.r, edge.g, edge.b, 0.9)
+		var dark := col.darkened(0.45)
+		var x0 := x - w * 0.5
+		match kind:
+			&"tower":
+				var top_w := w * 0.34
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x0, bottom), Vector2(x0 + w, bottom),
+					Vector2(x0 + w * 0.5 + top_w * 0.5, y + h * 0.1), Vector2(x0 + w * 0.5 - top_w * 0.5, y + h * 0.1),
+				]), col)
+				draw_rect(Rect2(x0 + w * 0.4, y + h * 0.05, w * 0.2, h * 0.16), dark)
+				for i in 3:
+					_light(seed, i, x0 + w * (0.2 + i * 0.26), y + h * (0.35 + i * 0.2), w * 0.14, h * 0.09)
+				draw_line(Vector2(x, y + h * 0.08), Vector2(x, y - 4.0), accent, 1.5)
+				draw_circle(Vector2(x, y - 4.0), 1.8, accent)
+			&"block":
+				draw_rect(Rect2(x0, y, w, h), col)
+				draw_rect(Rect2(x0, y, w, h * 0.12), dark)
+				for r in 2:
+					for c in 3:
+						_light(seed, r * 3 + c, x0 + w * (0.12 + c * 0.28), y + h * (0.3 + r * 0.32), w * 0.12, h * 0.12)
+				if _hash01(seed, 99) < 0.6:
+					var rx := x0 + w * 0.2
+					var rw := w * 0.24
+					draw_rect(Rect2(rx, y - 5.0, rw, 6.0), dark)
+			&"dome":
+				draw_circle(Vector2(x, bottom), w * 0.5, col)
+				draw_rect(Rect2(x0, bottom - 3.0, w, 3.0), dark)
+				for i in 4:
+					_light(seed, i, x + (i - 1.5) * w * 0.2, bottom - w * 0.36, w * 0.08, w * 0.18)
+			&"antenna":
+				draw_rect(Rect2(x0 + w * 0.4, bottom - 6.0, w * 0.2, 6.0), dark)
+				draw_line(Vector2(x, bottom), Vector2(x, y), col, 2.5)
+				draw_line(Vector2(x - w * 0.28, y + h * 0.45), Vector2(x + w * 0.28, y + h * 0.45), col, 2.0)
+				draw_line(Vector2(x - w * 0.22, y + h * 0.7), Vector2(x + w * 0.22, y + h * 0.7), col, 1.6)
+				_beacon(seed, x, y - 2.0)
+			&"pylon":
+				draw_line(Vector2(x0 + w * 0.12, bottom), Vector2(x - w * 0.08, y + h * 0.08), col, 2.5)
+				draw_line(Vector2(x0 + w * 0.88, bottom), Vector2(x + w * 0.08, y + h * 0.08), col, 2.5)
+				for i in 3:
+					var by := bottom - h * (0.2 + i * 0.28)
+					draw_line(Vector2(x - w * 0.35, by), Vector2(x + w * 0.35, by), col, 1.5)
+					draw_circle(Vector2(x - w * 0.35, by), 1.6, accent)
+					draw_circle(Vector2(x + w * 0.35, by), 1.6, accent)
+				draw_circle(Vector2(x, y + h * 0.05), 2.0, accent)
+			&"crystal":
+				for i in 3:
+					var cw := w * 0.28 * (1.0 - i * 0.22)
+					var ch := h * (0.7 - i * 0.15)
+					var cx := x + (i - 1) * w * 0.24
+					var cy := bottom - ch * 0.2
+					draw_colored_polygon(PackedVector2Array([
+						Vector2(cx - cw * 0.5, bottom), Vector2(cx, cy), Vector2(cx + cw * 0.5, bottom),
+					]), col)
+					draw_line(Vector2(cx, cy), Vector2(cx, bottom), accent.lightened(0.4), 1.2)
+				draw_rect(Rect2(x0, bottom - 3.0, w, 3.0), dark)
+			&"crater":
+				draw_circle(Vector2(x, bottom - h * 0.25), w * 0.42, dark.darkened(0.25))
+				draw_arc(Vector2(x, bottom - h * 0.25), w * 0.42, PI, TAU, 12, accent, 1.6)
+				draw_line(Vector2(x - w * 0.2, bottom - h * 0.5), Vector2(x + w * 0.25, bottom - h * 0.85), col, 2.0)
+				draw_line(Vector2(x + w * 0.25, bottom - h * 0.85), Vector2(x + w * 0.25, bottom - h * 0.55), col, 2.0)
+				_beacon(seed, x + w * 0.25, bottom - h * 0.9)
+			&"pod":
+				for i in 3:
+					var pr := w * (0.3 - i * 0.08)
+					var px := x + (i - 1) * w * 0.22
+					var py := bottom - h * (0.45 - i * 0.12)
+					draw_circle(Vector2(px, py), pr, col)
+					draw_circle(Vector2(px + pr * 0.3, py - pr * 0.3), pr * 0.35, Color(0.35, 0.9, 0.6, 0.7))
+				for i in 4:
+					var gx := x + (i - 1.5) * w * 0.3
+					draw_circle(Vector2(gx, bottom - 2.0), 1.6, Color(0.55, 1.0, 0.7, 0.8))
+			&"crane":
+				var pivot := Vector2(x + w * 0.1, bottom)
+				var top_p := Vector2(x + w * 0.1, bottom - h)
+				draw_line(pivot, top_p, col, 3.0)
+				draw_line(top_p, Vector2(x + w * 0.95, bottom - h * 0.85), col, 2.5)
+				draw_line(Vector2(x + w * 0.5, bottom), top_p, col, 2.0)
+				draw_line(Vector2(x + w * 0.95, bottom - h * 0.85), Vector2(x + w * 0.95, bottom - h * 0.3), col, 1.5)
+				draw_circle(Vector2(x + w * 0.95, bottom - h * 0.3), 2.0, accent)
+				for i in 3:
+					_beacon(seed + i, x + w * 0.5, bottom - h * (0.35 + i * 0.25))
+			&"spire":
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x0, bottom), Vector2(x + w * 0.5, y), Vector2(x0 + w, bottom),
+				]), col)
+				draw_line(Vector2(x, bottom), Vector2(x, y + h * 0.1), accent, 1.5)
+				for i in 3:
+					var by := bottom - h * (0.25 + i * 0.24)
+					draw_line(Vector2(x0 + w * 0.1, by), Vector2(x0 + w * 0.9, by), Color(edge.r, edge.g, edge.b, 0.4), 1.0)
+				draw_circle(Vector2(x, y - 2.0), 2.0, accent)
+			&"deck":
+				draw_rect(Rect2(x0, y + h * 0.25, w, h * 0.75), col)
+				draw_rect(Rect2(x0, y, w, h * 0.25), dark)
+				for i in 4:
+					draw_line(Vector2(x0 + w * (0.15 + i * 0.2), y + h * 0.4), Vector2(x0 + w * (0.35 + i * 0.2), y + h * 0.55), accent, 1.4)
+				for i in 2:
+					var sh := Vector2(x + (i - 0.5) * w * 0.4, y + h * 0.1)
+					draw_colored_polygon(PackedVector2Array([
+						sh + Vector2(-w * 0.07, 0), sh + Vector2(0, -h * 0.12), sh + Vector2(w * 0.07, 0),
+					]), dark.lightened(0.15))
+			&"junk":
+				var pts := PackedVector2Array([
+					Vector2(x0, bottom), Vector2(x0 + w * 0.1, bottom - h * 0.4),
+					Vector2(x0 + w * 0.32, bottom - h * 0.22), Vector2(x0 + w * 0.5, bottom - h * 0.62),
+					Vector2(x0 + w * 0.68, bottom - h * 0.2), Vector2(x0 + w * 0.9, bottom - h * 0.45),
+					Vector2(x0 + w, bottom),
+				])
+				draw_colored_polygon(pts, col)
+				for i in 5:
+					draw_circle(Vector2(x0 + w * (0.15 + i * 0.18), bottom - h * (0.12 + _hash01(seed, i) * 0.3)), 1.8, dark.lightened(0.2))
+				draw_line(Vector2(x + w * 0.3, bottom - h * 0.3), Vector2(x + w * 0.55, bottom - h * 0.75), accent, 2.0)
+				draw_circle(Vector2(x + w * 0.55, bottom - h * 0.75), 1.8, accent)
+			&"ruin":
+				draw_rect(Rect2(x0, y + h * 0.2, w * 0.4, h * 0.8), col)
+				draw_rect(Rect2(x0 + w * 0.6, y + h * 0.45, w * 0.4, h * 0.55), col.darkened(0.25))
+				draw_line(Vector2(x0 + w * 0.4, y + h * 0.2), Vector2(x0 + w * 0.6, y + h * 0.2), accent, 2.0)
+				for i in 3:
+					draw_circle(Vector2(x + (i - 1) * w * 0.22, y + h * 0.5), 1.4, Color(edge.r, edge.g, edge.b, 0.35 + 0.3 * _hash01(seed, i)))
+			_:
+				draw_rect(Rect2(x0, y, w, h), col)

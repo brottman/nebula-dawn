@@ -10,7 +10,8 @@ extends Resource
 @export var spacing: Vector2 = Vector2(40, 0)
 ## Non-empty = all units in this entry share a formation for chain-reaction clears.
 @export var formation_id: String = ""
-## Geometric layout: line, column, v, inv_v, wedge, diamond, arc, box, cross, wave.
+## Geometric layout: line, column, v, inv_v, wedge, diamond, arc, box, cross,
+## wave, circle, ring, star, spiral, chevron.
 @export var pattern: StringName = &"line"
 ## Distance between members in named patterns (pixels).
 @export var pattern_spread: float = 52.0
@@ -62,6 +63,14 @@ static func pattern_offsets(
 			_fill_box(out, n, spread)
 		"cross":
 			_fill_cross(out, n, spread)
+		"circle", "ring":
+			_fill_circle(out, n, spread)
+		"star":
+			_fill_star(out, n, spread)
+		"spiral":
+			_fill_spiral(out, n, spread)
+		"chevron":
+			_fill_chevron(out, n, spread)
 		"wave":
 			for i in n:
 				out.append(Vector2(float(i) * spread, sin(float(i) * 1.1) * spread * 0.65))
@@ -128,3 +137,47 @@ static func _fill_cross(out: Array[Vector2], n: int, spread: float) -> void:
 		out.append(d * spread)
 	while out.size() < n:
 		out.append(Vector2(float(out.size()) * spread * 0.3, -spread))
+
+
+static func _fill_circle(out: Array[Vector2], n: int, spread: float) -> void:
+	## Even ring, first member at the top (facing the player).
+	var radius := spread * (0.9 + float(n) * 0.14)
+	for i in n:
+		var a := TAU * float(i) / float(n) - PI * 0.5
+		out.append(Vector2(cos(a), sin(a)) * radius)
+
+
+static func _fill_star(out: Array[Vector2], n: int, spread: float) -> void:
+	## Alternating outer/inner radius reads as a star or sparkle.
+	var outer := spread * (1.4 + float(n) * 0.12)
+	var inner := outer * 0.42
+	for i in n:
+		var a := TAU * float(i) / float(n) - PI * 0.5
+		var r := outer if i % 2 == 0 else inner
+		out.append(Vector2(cos(a), sin(a)) * r)
+
+
+static func _fill_spiral(out: Array[Vector2], n: int, spread: float) -> void:
+	## Members unwind outward from the center in ~1.25 turns.
+	var turns := 1.25
+	for i in n:
+		var t := float(i) / float(maxi(n - 1, 1))
+		var a := t * TAU * turns - PI * 0.5
+		var r := spread * t * (1.4 + float(n) * 0.2)
+		out.append(Vector2(cos(a), sin(a)) * r)
+
+
+static func _fill_chevron(out: Array[Vector2], n: int, spread: float) -> void:
+	## Stacked V rows — rows get wider behind the leader (classic bomber wedge).
+	var i := 0
+	var row := 0
+	while i < n:
+		var width := row + 1
+		var mid := float(width - 1) * 0.5
+		for j in width:
+			if i >= n:
+				return
+			var d := float(j) - mid
+			out.append(Vector2(d * spread, float(row) * spread * 0.9))
+			i += 1
+		row += 1

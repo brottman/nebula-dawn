@@ -107,7 +107,7 @@ func _advance_from_wave(full_clear: bool = false) -> void:
 
 func _try_rare_wave_reward() -> void:
 	## Full wipe (not a timeout) — sparse defensive / utility drop.
-	if _rng.randf() > 0.40:
+	if _rng.randf() > 0.25:
 		return
 	if enemy_container == null:
 		return
@@ -147,7 +147,7 @@ func _spawn_endless_group(difficulty: float) -> void:
 			if s.enemy_id == &"strafer" or s.enemy_id == &"drone":
 				stats = s
 				break
-	var patterns: Array[StringName] = [&"v", &"arc", &"wave", &"line", &"diamond", &"column"]
+	var patterns: Array[StringName] = [&"v", &"arc", &"wave", &"line", &"diamond", &"column", &"circle", &"star", &"spiral", &"chevron"]
 	var pat: StringName = patterns[_rng.randi() % patterns.size()]
 	var origin := Vector2(_rng.randf_range(90.0, vp_w - 90.0), -50.0)
 	var spread := 48.0 + difficulty * 2.0

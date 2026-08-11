@@ -50,7 +50,8 @@ func _trigger_chain(center: Vector2) -> void:
 	GameState.add_score(250)
 	# Occasional bonus drop — not every formation clear.
 	if randf() < 0.35:
-		_spawn_bonus(center)
+		# Deferred: chain clears land inside a physics callback.
+		call_deferred("_spawn_bonus", center)
 
 
 func _spawn_bonus(pos: Vector2) -> void:

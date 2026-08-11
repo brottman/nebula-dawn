@@ -495,3 +495,4 @@ boss = SubResource("Resource_4los8")
 boss_intro_delay = 2.3
 background_tint = Color(0.15, 0.35, 0.28, 1)
 gimmick_id = &"hive"
+terrain_id = &"factory"

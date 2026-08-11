@@ -95,6 +95,8 @@ func _start_mode() -> void:
 				parallax.set_tint(Color(0.25, 0.08, 0.2))
 			if parallax.get("scroll_speed") != null:
 				parallax.scroll_speed = 50.0
+			if parallax.has_method("set_terrain_random"):
+				parallax.set_terrain_random()
 			await _play_intro_card("ENDLESS", "SURVIVE THE SWARM",
 				"The swarm never ends. Score as long as you last.")
 			stage_director.begin_endless()
@@ -137,6 +139,8 @@ func _apply_mission_ambience(data: MissionData) -> void:
 	if parallax.has_method("set_tint"):
 		parallax.set_tint(data.background_tint)
 	parallax.scroll_speed = data.scroll_speed
+	if parallax.has_method("set_terrain"):
+		parallax.set_terrain(data.terrain_id)
 
 
 ## Freeze combat while the title card plays (card runs in PROCESS_MODE_ALWAYS),
