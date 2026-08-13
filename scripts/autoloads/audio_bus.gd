@@ -14,7 +14,6 @@ const MISSION_MUSIC := [
 	"res://assets/audio/Hull_Breach_Protocol.mp3", # 2-4 Scrap Gauntlet
 	"res://assets/audio/Last_Sector_Approach.mp3", # 2-5 Dawn Gate
 ]
-const ENDLESS_MUSIC := "res://assets/audio/Last_Sector_Approach.mp3"
 
 const SFX_PATHS := {
 	"shoot": "res://assets/audio/sfx/shoot.wav",
@@ -83,9 +82,6 @@ func play_menu_music() -> void:
 
 
 func play_game_music() -> void:
-	if GameState.mode == GameState.Mode.ENDLESS:
-		_play_path(ENDLESS_MUSIC, 0.0)
-		return
 	var idx := clampi(GameState.current_mission_index, 0, MISSION_MUSIC.size() - 1)
 	_play_path(MISSION_MUSIC[idx], 0.0)
 

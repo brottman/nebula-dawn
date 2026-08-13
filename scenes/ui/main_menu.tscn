@@ -50,25 +50,10 @@ custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 text = "Campaign"
 
-[node name="EndlessButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(240, 44)
-layout_mode = 2
-text = "Endless"
-
-[node name="PracticeButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(240, 44)
-layout_mode = 2
-text = "Practice"
-
 [node name="BossRushButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 text = "Boss Rush"
-
-[node name="RecordsButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(240, 44)
-layout_mode = 2
-text = "Records"
 
 [node name="SettingsButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 44)
@@ -84,7 +69,7 @@ text = "Quit"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.65, 0.85, 1)
 theme_override_font_sizes/font_size = 12
-text = "ENDLESS BEST  000000"
+text = "RAID BEST  000000"
 horizontal_alignment = 1
 
 [node name="Controls" type="Label" parent="."]

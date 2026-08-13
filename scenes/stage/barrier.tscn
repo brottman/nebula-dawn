@@ -16,3 +16,10 @@ polygon = PackedVector2Array(-60, -7, 60, -7, 60, 7, -60, 7)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_1")
+
+[node name="Solid" type="StaticBody2D" parent="."]
+collision_layer = 64
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Solid"]
+shape = SubResource("RectangleShape2D_1")

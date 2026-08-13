@@ -442,7 +442,7 @@ func _spawn_pickup() -> void:
 	var kinds := [
 		"spread", "laser", "homing",
 		"power", "power",
-		"option", "speed",
+		"drone", "speed",
 	]
 	_spawn_pickup_at(global_position, kinds[randi() % kinds.size()])
 

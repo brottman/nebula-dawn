@@ -12,7 +12,7 @@ const TOUCH_FOLLOW := 28.0
 const MAX_WEAPON_LEVEL := 3
 ## P-Chips needed to climb one tier (segmented HUD bar).
 const CHIPS_PER_LEVEL := 5
-const MAX_BITS := 2
+const MAX_DRONES := 2
 const MAX_SPEED_STACKS := 3
 const SPEED_STACK_BONUS := 0.12 ## +12% move speed per stack
 ## Graze ring radius around the ship (larger than the hitbox on purpose).
@@ -75,10 +75,10 @@ var _life_peak_level: int = 1
 var _life_peak_chips: int = 0
 var _death_bomb_time: float = 0.0
 var _respawning: bool = false
-## Stackable sub-systems (persist through hull hits; cleared on death / new run).
-var bit_count: int = 0
+## Stackable sub-systems (drones lost on hit; cleared on death / new run).
+var drone_count: int = 0
 var speed_stacks: int = 0
-var _bits: Array[BitDrone] = []
+var _drones: Array[Drone] = []
 var _fire_timer: float = 0.0
 var _flash_timer: float = 0.0
 var dead: bool = false
@@ -177,9 +177,9 @@ func _visual() -> CanvasItem:
 
 func setup(pool: ProjectilePool) -> void:
 	projectile_pool = pool
-	for bit in _bits:
-		if is_instance_valid(bit):
-			bit.projectile_pool = pool
+	for drone in _drones:
+		if is_instance_valid(drone):
+			drone.projectile_pool = pool
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -324,6 +324,29 @@ func _handle_movement(delta: float) -> void:
 		global_position.x += scrap_push * delta
 	global_position.x = clampf(global_position.x, PLAYFIELD_MARGIN, vp.x - PLAYFIELD_MARGIN)
 	global_position.y = clampf(global_position.y, PLAYFIELD_MARGIN, vp.y - PLAYFIELD_MARGIN)
+	_resolve_barrier_overlap()
+
+
+## Touch control lerps the ship straight to the finger, so barriers need a
+## manual push-out on top of the physics layer used by keyboard movement.
+func _resolve_barrier_overlap() -> void:
+	if not is_inside_tree():
+		return
+	var half := Vector2(15.0, 16.0) ## matches player.tscn collision shape
+	var ship := Rect2(global_position - half, half * 2.0)
+	for b in get_tree().get_nodes_in_group("barriers"):
+		if not b.has_method("get_solid_rect"):
+			continue
+		var r: Rect2 = b.get_solid_rect()
+		if r.size.x <= 0.0 or not ship.intersects(r):
+			continue
+		var overlap := ship.intersection(r)
+		if overlap.size.y < overlap.size.x:
+			var dir := 1.0 if global_position.y < r.get_center().y else -1.0
+			global_position.y = r.position.y + r.size.y * (0.0 if dir < 0.0 else 1.0) + dir * half.y
+		else:
+			var dir := 1.0 if global_position.x < r.get_center().x else -1.0
+			global_position.x = r.position.x + r.size.x * (0.0 if dir < 0.0 else 1.0) + dir * half.x
 
 
 func _weapon_cooldown() -> float:
@@ -355,7 +378,6 @@ func _handle_fire(delta: float) -> void:
 	cd *= 0.45 if (rapid_time > 0.0 or energy_time > 0.0) else 1.0
 	_fire_timer = cd
 	_shoot()
-	_fire_bits()
 
 
 func _set_weapon(w: int) -> void:
@@ -421,17 +443,17 @@ func _note_peak_loadout() -> void:
 		_life_peak_chips = maxi(_life_peak_chips, chip_progress)
 
 
-func _add_bit() -> void:
-	if bit_count >= MAX_BITS:
+func _add_drone() -> void:
+	if drone_count >= MAX_DRONES:
 		GameState.add_score(120)
-		EventBus.gimmick_toast.emit("BITS MAX")
+		EventBus.gimmick_toast.emit("DRONES MAX")
 		return
-	var bit := BitDrone.new()
-	add_child(bit)
-	bit.setup(self, projectile_pool, bit_count)
-	_bits.append(bit)
-	bit_count = _bits.size()
-	EventBus.gimmick_toast.emit("BIT  ×%d" % bit_count)
+	var drone := Drone.new()
+	add_child(drone)
+	drone.setup(self, projectile_pool, drone_count)
+	_drones.append(drone)
+	drone_count = _drones.size()
+	EventBus.gimmick_toast.emit("DRONE  ×%d" % drone_count)
 	_emit_weapon_changed()
 
 
@@ -445,20 +467,23 @@ func _add_speed() -> void:
 	_emit_weapon_changed()
 
 
-func _fire_bits() -> void:
-	if secondaries_disabled:
+func _lose_drone() -> void:
+	if _drones.is_empty():
 		return
-	for bit in _bits:
-		if is_instance_valid(bit):
-			bit.fire(damage_mult)
+	var drone: Node = _drones.pop_back()
+	if is_instance_valid(drone):
+		drone.queue_free()
+	drone_count = _drones.size()
+	EventBus.gimmick_toast.emit("DRONE LOST" if drone_count == 0 else "DRONE  ×%d" % drone_count)
+	_emit_weapon_changed()
 
 
-func _clear_bits() -> void:
-	for bit in _bits:
-		if is_instance_valid(bit):
-			bit.queue_free()
-	_bits.clear()
-	bit_count = 0
+func _clear_drones() -> void:
+	for drone in _drones:
+		if is_instance_valid(drone):
+			drone.queue_free()
+	_drones.clear()
+	drone_count = 0
 
 
 ## Losing hull integrity knocks the ship back to the stock blaster (power tier resets).
@@ -469,16 +494,6 @@ func _reset_weapon() -> void:
 	weapon = Weapon.BLASTER
 	weapon_level = 1
 	chip_progress = 0
-	_emit_weapon_changed()
-
-
-## Practice mode: start with the stock blaster at the chosen tier.
-func apply_starting_power(level: int) -> void:
-	weapon = Weapon.BLASTER
-	weapon_level = clampi(level, 1, MAX_WEAPON_LEVEL)
-	chip_progress = CHIPS_PER_LEVEL if weapon_level >= MAX_WEAPON_LEVEL else 0
-	_note_peak_loadout()
-	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, weapon_level)
 	_emit_weapon_changed()
 
 
@@ -506,8 +521,8 @@ func _emit_weapon_changed() -> void:
 	elif weapon_level > 1:
 		parts.append("BLASTER Lv%d" % weapon_level)
 	var extras_parts: PackedStringArray = []
-	if bit_count > 0:
-		extras_parts.append("BIT×%d" % bit_count)
+	if drone_count > 0:
+		extras_parts.append("DRONE×%d" % drone_count)
 	if speed_stacks > 0:
 		extras_parts.append("SPD×%d" % speed_stacks)
 	parts.append_array(extras_parts)
@@ -637,12 +652,14 @@ func take_damage(amount: int) -> void:
 		AudioBus.play_player_hurt()
 		EventBus.screen_shake.emit(4.0, 0.12)
 		EventBus.gimmick_toast.emit("SHIELD BREAK" if shield_charges <= 0 else "SHIELD  ×%d" % shield_charges)
+		_lose_drone()
 		return
 	# Lethal hit → brief death-bomb window if a bomb is stocked.
 	if hp - amount <= 0:
 		if bomb_stock > 0:
 			hp = 0
 			EventBus.player_hp_changed.emit(hp, max_hp)
+			_lose_drone()
 			_death_bomb_time = DEATH_BOMB_WINDOW
 			invuln_time = DEATH_BOMB_WINDOW
 			EventBus.gimmick_toast.emit("DEATH BOMB!")
@@ -654,6 +671,7 @@ func take_damage(amount: int) -> void:
 		return
 	hp = maxi(0, hp - amount)
 	_reset_weapon()
+	_lose_drone()
 	invuln_time = 1.35
 	_flash_timer = 0.2
 	EventBus.player_hull_hit.emit()
@@ -752,7 +770,7 @@ func _die() -> void:
 	_touch_active = false
 	_touch_index = -1
 	_spawn_volcano_drop()
-	_clear_bits()
+	_clear_drones()
 	speed_stacks = 0
 	shield_charges = 0
 	rapid_time = 0.0
@@ -890,9 +908,9 @@ func play_victory_exit() -> void:
 	invuln_time = 999.0
 	velocity = Vector2.ZERO
 	clear_zone_effects()
-	for bit in _bits:
-		if is_instance_valid(bit):
-			bit.visible = false
+	for drone in _drones:
+		if is_instance_valid(drone):
+			drone.visible = false
 	if _engine:
 		_engine.emitting = true
 	var vis := _visual()
@@ -933,7 +951,7 @@ func apply_pickup(kind: String) -> void:
 		"power_orb", "orb":
 			apply_power_orb(2.0) ## fallback chips if orb_restore wasn't set
 		"option", "bit", "drone":
-			_add_bit()
+			_add_drone()
 		"speed":
 			_add_speed()
 		"shield", "barrier":

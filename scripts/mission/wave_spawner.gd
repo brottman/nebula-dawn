@@ -1,5 +1,5 @@
 extends Node
-## Spawns waves from MissionData or endless difficulty ramp.
+## Spawns waves from MissionData.
 ## Campaign waves use hybrid clear: advance when the wave is destroyed OR max_clear_time expires.
 
 signal wave_started(index: int, total: int)
@@ -18,39 +18,17 @@ var _active_enemies: int = 0
 var _wave_enemies_alive: int = 0
 var _clear_timer: float = 0.0
 var _max_clear_time: float = 0.0
-var _endless: bool = false
-var _endless_time: float = 0.0
-var _endless_spawn_cd: float = 2.0
-var _endless_next: float = 1.0
 var _rng := RandomNumberGenerator.new()
-
-var _enemy_catalog: Array[EnemyStats] = []
 
 
 func setup(pool: ProjectilePool, container: Node2D) -> void:
 	projectile_pool = pool
 	enemy_container = container
 	_rng.randomize()
-	_load_catalog()
 
 
-func _load_catalog() -> void:
-	_enemy_catalog.clear()
-	for path in [
-		"res://resources/enemies/scout.tres",
-		"res://resources/enemies/strafer.tres",
-		"res://resources/enemies/drone.tres",
-		"res://resources/enemies/asteroid.tres",
-	]:
-		var s: EnemyStats = load(path)
-		if s:
-			_enemy_catalog.append(s)
-
-
-## start_wave is 0-based (0 = first wave; waves.size() = start at the boss).
-func start_mission(data: MissionData, start_wave: int = 0) -> void:
+func start_mission(data: MissionData) -> void:
 	mission = data
-	_endless = false
 	_wave_index = -1
 	_spawning = false
 	_waiting_clear = false
@@ -59,26 +37,10 @@ func start_mission(data: MissionData, start_wave: int = 0) -> void:
 	_clear_timer = 0.0
 	_max_clear_time = 0.0
 	scroll_speed = data.scroll_speed if data else 40.0
-	_wave_index = clampi(start_wave, 0, data.waves.size() if data else 0) - 1
 	_next_wave()
 
 
-func start_endless() -> void:
-	mission = null
-	_endless = true
-	_endless_time = 0.0
-	_endless_spawn_cd = 2.2
-	_endless_next = 1.0
-	_active_enemies = 0
-	_wave_enemies_alive = 0
-	_waiting_clear = false
-	scroll_speed = 50.0
-
-
 func _process(delta: float) -> void:
-	if _endless:
-		_process_endless(delta)
-		return
 	if not _waiting_clear or _spawning:
 		return
 	# Hybrid: clear this wave's enemies OR hit the max timer.
@@ -123,37 +85,6 @@ func _try_rare_wave_reward() -> void:
 	if p.has_method("setup"):
 		p.setup(kind)
 	EventBus.gimmick_toast.emit("WAVE BONUS")
-
-
-func _process_endless(delta: float) -> void:
-	_endless_time += delta
-	_endless_next -= delta
-	var difficulty := 1.0 + _endless_time / 45.0
-	scroll_speed = 50.0 + difficulty * 8.0
-	_endless_spawn_cd = maxf(0.55, 2.2 - difficulty * 0.25)
-	if _endless_next <= 0.0:
-		_endless_next = _endless_spawn_cd
-		_spawn_endless_group(difficulty)
-
-
-func _spawn_endless_group(difficulty: float) -> void:
-	if _enemy_catalog.is_empty():
-		return
-	var count := mini(3 + int(difficulty * 0.6), 7)
-	var vp_w := get_viewport().get_visible_rect().size.x
-	var stats: EnemyStats = _enemy_catalog[_rng.randi() % _enemy_catalog.size()]
-	if difficulty > 2.0 and _rng.randf() < 0.45:
-		for s in _enemy_catalog:
-			if s.enemy_id == &"strafer" or s.enemy_id == &"drone":
-				stats = s
-				break
-	var patterns: Array[StringName] = [&"v", &"arc", &"wave", &"line", &"diamond", &"column", &"circle", &"star", &"spiral", &"chevron"]
-	var pat: StringName = patterns[_rng.randi() % patterns.size()]
-	var origin := Vector2(_rng.randf_range(90.0, vp_w - 90.0), -50.0)
-	var spread := 48.0 + difficulty * 2.0
-	var offs := SpawnEntry.pattern_offsets(pat, count, spread, Vector2(spread, 0))
-	for off in offs:
-		_spawn_enemy(stats, origin + off, false, "")
 
 
 func _next_wave() -> void:

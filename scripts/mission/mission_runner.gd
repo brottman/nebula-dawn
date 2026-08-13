@@ -1,5 +1,5 @@
 extends Node
-## Owns win/lose for campaign, practice, or endless; drives WaveSpawner.
+## Owns win/lose for campaign or boss rush; drives WaveSpawner.
 ## Boss Rush runs all ten stage bosses back-to-back with no waves.
 
 signal mission_complete(won: bool)
@@ -11,7 +11,6 @@ var spawner: Node
 var player: Node
 var _boss_alive: bool = false
 var _finished: bool = false
-var _endless: bool = false
 var _boss_rush: bool = false
 
 
@@ -24,10 +23,8 @@ func setup(wave_spawner: Node, player_node: Node) -> void:
 		EventBus.boss_defeated.connect(_on_boss_defeated)
 
 
-## start_wave lets practice skip ahead (0 = first wave, waves.size() = boss).
-func begin_campaign(data: MissionData, start_wave: int = 0) -> void:
+func begin_campaign(data: MissionData) -> void:
 	mission = data
-	_endless = false
 	_boss_rush = false
 	_finished = false
 	_boss_alive = false
@@ -35,21 +32,12 @@ func begin_campaign(data: MissionData, start_wave: int = 0) -> void:
 		spawner.all_waves_cleared.connect(_on_waves_cleared)
 	if spawner.has_signal("boss_requested") and not spawner.boss_requested.is_connected(_on_boss_requested):
 		spawner.boss_requested.connect(_on_boss_requested)
-	spawner.start_mission(data, start_wave)
-
-
-func begin_endless() -> void:
-	mission = null
-	_endless = true
-	_boss_rush = false
-	_finished = false
-	spawner.start_endless()
+	spawner.start_mission(data)
 
 
 ## Boss Rush: drop straight into the stage boss, no waves.
 func begin_boss_rush(data: MissionData) -> void:
 	mission = data
-	_endless = false
 	_boss_rush = true
 	_finished = false
 	_boss_alive = false
@@ -69,7 +57,7 @@ func continue_boss_rush(data: MissionData) -> void:
 
 
 func _on_waves_cleared() -> void:
-	if _finished or _endless:
+	if _finished:
 		return
 	if mission and mission.boss:
 		return

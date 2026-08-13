@@ -6,8 +6,6 @@ func _init() -> void:
 	var paths := [
 		"res://scenes/ui/main_menu.tscn",
 		"res://scenes/ui/campaign_select.tscn",
-		"res://scenes/ui/practice_select.tscn",
-		"res://scenes/ui/records.tscn",
 		"res://scenes/ui/mission_results.tscn",
 		"res://scenes/ui/settings_menu.tscn",
 		"res://scenes/game/game_world.tscn",

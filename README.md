@@ -2,7 +2,7 @@
 
 Vertical-scrolling space shooter built with **Godot 4.7** (GDScript).
 
-Campaign has two sectors (ten stages) with unique gimmicks. An Endless survival mode is also included. Built for desktop and Android (portrait).
+Campaign has two sectors (ten stages) with unique gimmicks. Built for desktop and Android (portrait).
 
 ---
 
@@ -71,21 +71,9 @@ Unlocked after Flagship Core. Denser EX-style power floor (Lv2 + Bomb/Shield on 
 | **2-4** | Scrap Gauntlet | Horizontal scrap conveyors shove the ship |
 | **2-5** | Dawn Gate | Solar flares scorch the lower field; residual gravity wells |
 
-### Endless
-
-Continuous enemy waves with a rising difficulty curve. No win condition — survive for score. Best score and top-5 runs are persisted.
-
 ### Boss Rush
 
 Unlocks after Sector 2. All ten stage bosses back-to-back with no waves — fixed Homing Lv2 loadout, full hull repair between targets, and a brief raid title card for each arena. Best raid score is persisted.
-
-### Practice
-
-Free-play for any stage: choose the starting wave (or skip straight to the boss) and a starting power tier (Lv1–3). No ranks, no unlock progression, no records.
-
-### Records
-
-`scenes/ui/records.tscn` — local leaderboard: best score + rank per mission, endless top 5, and the best raid score.
 
 ---
 
@@ -141,7 +129,7 @@ You start with **3 ships**. Bombs are stocked (max 3) from Bomb pickups — pres
 | Pickup | Effect | Cap |
 |--------|--------|-----|
 | P-Chip (Gold) | Raises shared power tier | Lv 3 |
-| Bit | Orbiting option drone (mirrors fire or seeks) | 2 |
+| Drone | Orbiting auto-turret (fires at enemies every 3s); max 2, lost on hit | 2 |
 | Speed | +12% move speed per stack | 3 |
 
 ### Rare utility drops
@@ -169,7 +157,7 @@ Scrolling depth (ratios relative to playfield `scroll_speed`):
 | Playfield grid | 1.0× | Combat plane (player, enemies, bullets) |
 | Foreground | 1.5× | Debris / wisps drawn over the ship |
 
-Mission `background_tint` and `scroll_speed` drive the look per stage. The `terrain_id` picks the ground-base style (`city`, `mines`, `biolum`, `factory`, `fleet`, `mirror`, `storm`, `wake`, `scrap`, `flare`) — structures drift past from the horizon with atmospheric haze. Endless mode picks a random style.
+Mission `background_tint` and `scroll_speed` drive the look per stage. The `terrain_id` picks the ground-base style (`city`, `mines`, `biolum`, `factory`, `fleet`, `mirror`, `storm`, `wake`, `scrap`, `flare`) — base structures (hangars, radar dishes, silos, watchtowers, control towers, AA turrets, barracks, gates) drift past from the horizon with atmospheric haze, over scrolling floor markings (runway centerlines, taxiway bands, perimeter lights).
 
 ---
 
@@ -188,7 +176,6 @@ Mission `background_tint` and `scroll_speed` drive the look per stage. The `terr
 | 2-3 | `Zero_G_Intercept.mp3` |
 | 2-4 | `Hull_Breach_Protocol.mp3` |
 | 2-5 | `Last_Sector_Approach.mp3` |
-| Endless | `Last_Sector_Approach.mp3` |
 
 Sampled SFX live in `assets/audio/sfx/`. Mapping is in `scripts/autoloads/audio_bus.gd`.
 
@@ -258,7 +245,6 @@ Boss behavior lives in `scripts/enemies/boss_patterns.gd`, keyed by `EnemyStats.
 ```bash
 godot --headless --path . --script res://tools/validate_project.gd
 godot --headless --path . --script res://tools/smoke_test.gd
-godot --headless --path . --script res://tools/smoke_endless.gd
 godot --headless --path . --script res://tools/smoke_boss_rush.gd
 ```
 

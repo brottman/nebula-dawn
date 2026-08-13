@@ -54,9 +54,9 @@ const TOAST_NAMES := {
 	"gold": "P-CHIP",
 	"power_orb": "POWER ORB",
 	"orb": "POWER ORB",
-	"option": "BIT",
-	"bit": "BIT",
-	"drone": "BIT",
+	"option": "DRONE",
+	"bit": "DRONE",
+	"drone": "DRONE",
 	"speed": "SPEED",
 	"shield": "SHIELD",
 	"barrier": "SHIELD",
@@ -142,7 +142,7 @@ func _glyph_for(k: String) -> String:
 		"power", "pchip", "p-chip", "gold", "power_orb", "orb":
 			return "P"
 		"option", "bit", "drone":
-			return "O"
+			return "D"
 		"speed":
 			return ">"
 		"shield", "barrier":

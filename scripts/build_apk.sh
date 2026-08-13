@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# Build a signed debug APK (export + sign only — does not install).
+# Build a signed release APK (export + sign only — does not install).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/build/NebulaDawn-debug.apk"
+OUT="$ROOT/NebulaDawn-release.apk"
 UNSIGNED="$ROOT/build/NebulaDawn-unsigned.apk"
 KEYSTORE="${KEYSTORE:-$HOME/.local/share/godot/keystores/debug.keystore}"
+KEYSTORE_ALIAS="${KEYSTORE_ALIAS:-androiddebugkey}"
+KEYSTORE_PASS="${KEYSTORE_PASS:-android}"
+KEYSTORE_KEY_PASS="${KEYSTORE_KEY_PASS:-$KEYSTORE_PASS}"
 PRESETS="$ROOT/export_presets.cfg"
 PACKAGE_UNIQUE_NAME="com.nebuladawn.game"
 PACKAGE_NAME="Nebula Dawn"
@@ -40,7 +43,7 @@ BUILD_TOOLS="${BUILD_TOOLS:?No build-tools under $ANDROID_HOME}"
 export ANDROID_HOME ANDROID_SDK_ROOT JAVA_HOME
 export PATH="$JAVA_HOME/bin:$PATH"
 
-# export_presets.cfg is gitignored (may hold keystore paths); create a debug preset if missing.
+# export_presets.cfg is gitignored (may hold keystore paths); create a preset if missing.
 if [[ ! -f "$PRESETS" ]]; then
   cat >"$PRESETS" <<EOF
 [preset.0]
@@ -92,7 +95,7 @@ fi
 mkdir -p "$ROOT/build"
 rm -f "$UNSIGNED" "$OUT"
 
-"$GODOT" --headless --path "$ROOT" --export-debug "Android" "$UNSIGNED"
+"$GODOT" --headless --path "$ROOT" --export-release "Android" "$UNSIGNED"
 
 if [[ ! -f "$UNSIGNED" ]]; then
   echo "Export failed: no APK at $UNSIGNED" >&2
@@ -102,9 +105,9 @@ fi
 # NixOS: apksigner shebang may point at a missing /bin/bash — invoke via bash.
 bash "${BUILD_TOOLS}apksigner" sign \
   --ks "$KEYSTORE" \
-  --ks-key-alias androiddebugkey \
-  --ks-pass pass:android \
-  --key-pass pass:android \
+  --ks-key-alias "$KEYSTORE_ALIAS" \
+  --ks-pass "pass:$KEYSTORE_PASS" \
+  --key-pass "pass:$KEYSTORE_KEY_PASS" \
   --out "$OUT" \
   "$UNSIGNED"
 rm -f "$UNSIGNED" "$OUT.idsig"

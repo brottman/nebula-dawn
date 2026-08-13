@@ -118,7 +118,7 @@ Victory outro (center → hover → zoom off) sells the “sortie complete” be
 
 ## Audio identity
 
-Each stage has its own looping track (see README). Menu and Endless use dedicated themes so campaign stages keep a distinct musical memory.
+Each stage has its own looping track (see README). Menu and Boss Rush use dedicated themes so campaign stages keep a distinct musical memory.
 
 ## Visual identity
 

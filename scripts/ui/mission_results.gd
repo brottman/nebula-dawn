@@ -63,26 +63,6 @@ func _fill_header() -> void:
 	score.text = "SCORE  %06d" % GameState.last_score
 	_fill_rank()
 
-	if GameState.mode == GameState.Mode.ENDLESS:
-		title.text = "RUN OVER"
-		mission_name.text = "ENDLESS"
-		subtitle.text = "Survive as long as you can"
-		var best := GameState.endless_high_score
-		var lines: Array[String] = []
-		if GameState.last_score >= best and GameState.last_score > 0:
-			lines.append("New high score!")
-		else:
-			lines.append("High score  %06d" % best)
-		if GameState.endless_best_time > 0.0:
-			if GameState.run_elapsed >= GameState.endless_best_time and GameState.run_elapsed > 0.0:
-				lines.append("New longest run — %s!" % GameState.format_seconds(GameState.endless_best_time))
-			else:
-				lines.append("Longest run  %s" % GameState.format_seconds(GameState.endless_best_time))
-		if GameState.last_chain_bonus > 0:
-			lines.append("Chain bonus  +%d" % GameState.last_chain_bonus)
-		detail.text = "\n".join(lines)
-		return
-
 	if GameState.mode == GameState.Mode.BOSS_RUSH:
 		var raid_note := ""
 		if GameState.last_won:
@@ -102,20 +82,6 @@ func _fill_header() -> void:
 		if GameState.last_chain_bonus > 0:
 			lines.append("Chain bonus  +%d" % GameState.last_chain_bonus)
 		detail.text = "\n".join(lines)
-		return
-
-	if GameState.mode == GameState.Mode.PRACTICE:
-		var data: MissionData = GameState.get_mission_data()
-		mission_name.text = "PRACTICE  %s  %s" % [GameState.stage_code(), data.title if data else ""]
-		subtitle.text = "Free-play run — no rank, no progress"
-		if GameState.last_won:
-			title.text = "STAGE CLEARED"
-			detail.text = "Practice complete"
-		else:
-			title.text = "SHIP DESTROYED"
-			detail.text = "Try again, pilot"
-		if GameState.last_chain_bonus > 0:
-			detail.text += "\nChain bonus  +%d" % GameState.last_chain_bonus
 		return
 
 	var data: MissionData = GameState.get_mission_data()
@@ -171,21 +137,9 @@ func _fill_rank() -> void:
 
 
 func _configure_buttons() -> void:
-	if GameState.mode == GameState.Mode.ENDLESS:
-		next_btn.visible = false
-		again_btn.text = "Play Again"
-		campaign_btn.text = "Sector Select"
-		return
-
 	if GameState.mode == GameState.Mode.BOSS_RUSH:
 		next_btn.visible = false
 		again_btn.text = "Retry Raid"
-		campaign_btn.text = "Main Menu"
-		return
-
-	if GameState.mode == GameState.Mode.PRACTICE:
-		next_btn.visible = false
-		again_btn.text = "Retry Practice"
 		campaign_btn.text = "Main Menu"
 		return
 
@@ -224,13 +178,8 @@ func _on_next() -> void:
 func _on_again() -> void:
 	AudioBus.play_ui()
 	match GameState.mode:
-		GameState.Mode.ENDLESS:
-			GameState.start_endless()
 		GameState.Mode.BOSS_RUSH:
 			GameState.start_boss_rush()
-		GameState.Mode.PRACTICE:
-			GameState.start_practice(GameState.current_mission_index,
-				GameState.practice_wave, GameState.practice_power)
 		_:
 			GameState.start_campaign_mission(GameState.current_mission_index)
 	get_tree().change_scene_to_file("res://scenes/game/game_world.tscn")
@@ -238,7 +187,7 @@ func _on_again() -> void:
 
 func _on_campaign() -> void:
 	AudioBus.play_ui()
-	if GameState.mode == GameState.Mode.BOSS_RUSH or GameState.mode == GameState.Mode.PRACTICE:
+	if GameState.mode == GameState.Mode.BOSS_RUSH:
 		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 	else:
 		get_tree().change_scene_to_file("res://scenes/ui/campaign_select.tscn")

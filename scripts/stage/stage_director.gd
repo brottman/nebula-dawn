@@ -17,15 +17,6 @@ var _singularities: Array[Node] = []
 var _runtime: Array[Node] = []
 var _flare_overlay: ColorRect
 
-## Endless mode rotates through a hazard-safe gimmick subset on a timer.
-const ENDLESS_GIMMICKS: Array[StringName] = [
-	&"nebula", &"mirrors", &"ion", &"phantoms", &"scrap", &"hive", &"gravity", &"flare",
-]
-const ENDLESS_FIRST_ROTATE := 20.0
-const ENDLESS_ROTATE_INTERVAL := 45.0
-var _endless_mode: bool = false
-var _rotate_timer: float = 0.0
-
 
 func setup(p_player: Node, p_pool: ProjectilePool, p_entities: Node2D, tracker: Node) -> void:
 	player = p_player
@@ -33,31 +24,20 @@ func setup(p_player: Node, p_pool: ProjectilePool, p_entities: Node2D, tracker: 
 	entities = p_entities
 	formation_tracker = tracker
 	_rng.randomize()
+	EventBus.boss_spawned.connect(_on_boss_spawned)
+	EventBus.boss_defeated.connect(_on_boss_defeated)
 
 
 func begin(data: MissionData) -> void:
 	mission = data
-	_endless_mode = false
 	_timer = 0.0
 	_pulse = 2.0
 	_clear_runtime()
 	_activate_gimmick(data.gimmick_id if data else &"")
 
 
-func begin_endless() -> void:
-	mission = null
-	_endless_mode = true
-	_timer = 0.0
-	_pulse = 2.0
-	_rotate_timer = ENDLESS_FIRST_ROTATE
-	_clear_runtime()
-	_gimmick = &""
-	EventBus.gimmick_toast.emit("ANOMALIES INBOUND")
-
-
 func stop() -> void:
 	_gimmick = &""
-	_endless_mode = false
 	mission = null
 	_clear_runtime()
 
@@ -93,16 +73,6 @@ func _activate_gimmick(g: StringName) -> void:
 			pass
 
 
-func _rotate_gimmick() -> void:
-	var options: Array[StringName] = []
-	for g in ENDLESS_GIMMICKS:
-		if g != _gimmick:
-			options.append(g)
-	if options.is_empty():
-		return
-	_activate_gimmick(options[_rng.randi() % options.size()])
-
-
 func _clear_runtime() -> void:
 	for b in _barriers:
 		if is_instance_valid(b):
@@ -132,12 +102,7 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	if _endless_mode:
-		_rotate_timer -= delta
-		if _rotate_timer <= 0.0:
-			_rotate_timer = ENDLESS_ROTATE_INTERVAL
-			_rotate_gimmick()
-	if _gimmick == &"" or (mission == null and not _endless_mode):
+	if _gimmick == &"" or mission == null:
 		return
 	_timer += delta
 	_pulse -= delta
@@ -223,11 +188,25 @@ func _spawn_plasma_pool() -> void:
 
 
 func _tick_hive(_delta: float) -> void:
-	if _pulse <= 0.0:
+	if _pulse <= 0.0 and get_tree().get_nodes_in_group("boss").is_empty():
 		_pulse = _rng.randf_range(6.5, 10.0)
 		_spawn_barrier_pair()
 		if _rng.randf() < 0.7:
 			_spawn_terminal()
+
+
+func _on_boss_spawned(_boss: Node) -> void:
+	# Boss fights stay clear of sweeping fences; drop any that are on screen.
+	for b in _barriers:
+		if is_instance_valid(b):
+			b.queue_free()
+	_barriers.clear()
+	_pulse = 3.0
+
+
+func _on_boss_defeated() -> void:
+	# Let the dust settle before the hive resumes spawning.
+	_pulse = 3.0
 
 
 func _spawn_barrier_pair() -> void:

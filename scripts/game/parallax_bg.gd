@@ -405,82 +405,101 @@ class _ForegroundLayer extends Node2D:
 
 
 # ---------------------------------------------------------------------------
-# Ground Base — terrain you fly over (0.72x)
+
+
+# ---------------------------------------------------------------------------
+# Ground Base — military / space base terrain you fly over (0.72x)
 # ---------------------------------------------------------------------------
 class _TerrainLayer extends Node2D:
-	## A fixed ground band with a scrolling strip of structures. Far structures
-	## sit at the horizon (atmospheric haze), near ones read dark at the bottom.
+	## A fixed ground band with a scrolling strip of base structures. Far
+	## structures sit at the horizon (atmospheric haze), near ones read dark at
+	## the bottom. The band itself carries scrolling base detail (runways,
+	## taxiways, perimeter lights) so the ground reads as a built-up base.
 
 	const GROUND_RATIO := 0.66 ## Top edge of the ground band.
 	const STRUCT_COUNT := 9
+	const WIDE_KINDS := [&"barracks", &"hangar", &"deck", &"gate", &"silo", &"block"]
+	const TALL_KINDS := [&"watchtower", &"radar_dish", &"antenna", &"spire", &"pylon", &"floodlight"]
 
 	var style: StringName = &""
 	var tint: Color = Color(0.12, 0.16, 0.38)
 	var structures: Array[Dictionary] = []
 	var _rng: RandomNumberGenerator
 	var _time: float = 0.0
+	var _scroll_accum: float = 0.0
 
 	## style -> kinds + palette (haze = far band, deep = near band, edge = glow).
+	## detail: runway | road | glow | none  (scrolling base-floor markings).
 	const STYLES := {
 		&"city": {
-			"kinds": [&"tower", &"block", &"block", &"dome", &"antenna"],
+			"kinds": [&"barracks", &"hangar", &"watchtower", &"radar_dish", &"block", &"gate"],
 			"haze": Color(0.30, 0.26, 0.20),
 			"deep": Color(0.05, 0.04, 0.03),
 			"edge": Color(1.0, 0.62, 0.28),
+			"detail": &"runway",
 		},
 		&"mines": {
-			"kinds": [&"crater", &"crater", &"block", &"antenna", &"tower"],
+			"kinds": [&"silo", &"silo", &"watchtower", &"barracks", &"crater", &"gate"],
 			"haze": Color(0.26, 0.22, 0.18),
 			"deep": Color(0.04, 0.035, 0.03),
 			"edge": Color(1.0, 0.75, 0.35),
+			"detail": &"road",
 		},
 		&"biolum": {
-			"kinds": [&"pod", &"pod", &"dome", &"crater", &"ruin"],
+			"kinds": [&"hangar", &"pod", &"pod", &"dome", &"silo", &"gate"],
 			"haze": Color(0.16, 0.22, 0.20),
 			"deep": Color(0.02, 0.05, 0.04),
 			"edge": Color(0.55, 1.0, 0.75),
+			"detail": &"glow",
 		},
 		&"factory": {
-			"kinds": [&"crane", &"block", &"block", &"pylon", &"tower"],
+			"kinds": [&"hangar", &"crane", &"block", &"silo", &"watchtower", &"floodlight"],
 			"haze": Color(0.22, 0.24, 0.26),
 			"deep": Color(0.035, 0.045, 0.05),
 			"edge": Color(0.45, 0.9, 1.0),
+			"detail": &"road",
 		},
 		&"fleet": {
-			"kinds": [&"deck", &"deck", &"bunker", &"antenna", &"block"],
+			"kinds": [&"deck", &"control_tower", &"hangar", &"aa_turret", &"radar_dish", &"gate"],
 			"haze": Color(0.18, 0.22, 0.30),
 			"deep": Color(0.03, 0.04, 0.07),
 			"edge": Color(0.4, 0.7, 1.0),
+			"detail": &"runway",
 		},
 		&"mirror": {
-			"kinds": [&"crystal", &"crystal", &"dome", &"spire"],
+			"kinds": [&"crystal", &"crystal", &"gate", &"watchtower", &"dome", &"floodlight"],
 			"haze": Color(0.16, 0.24, 0.30),
 			"deep": Color(0.02, 0.045, 0.06),
 			"edge": Color(0.55, 0.9, 1.0),
+			"detail": &"glow",
 		},
 		&"storm": {
-			"kinds": [&"pylon", &"pylon", &"block", &"antenna"],
+			"kinds": [&"pylon", &"pylon", &"silo", &"watchtower", &"barracks", &"aa_turret"],
 			"haze": Color(0.14, 0.20, 0.28),
 			"deep": Color(0.02, 0.035, 0.06),
 			"edge": Color(0.55, 0.8, 1.0),
+			"detail": &"road",
 		},
 		&"wake": {
-			"kinds": [&"ruin", &"ruin", &"antenna", &"block", &"crystal"],
+			"kinds": [&"ruin", &"ruin", &"gate", &"barracks", &"radar_dish", &"water_tower"],
 			"haze": Color(0.18, 0.16, 0.26),
 			"deep": Color(0.03, 0.025, 0.05),
 			"edge": Color(0.7, 0.55, 1.0),
+			"detail": &"none",
 		},
 		&"scrap": {
-			"kinds": [&"junk", &"junk", &"crane", &"block", &"deck"],
+			"kinds": [&"junk", &"junk", &"hangar", &"crane", &"aa_turret", &"barracks"],
 			"haze": Color(0.26, 0.20, 0.14),
 			"deep": Color(0.05, 0.035, 0.02),
 			"edge": Color(1.0, 0.6, 0.3),
+			"detail": &"road",
 		},
 		&"flare": {
-			"kinds": [&"spire", &"spire", &"deck", &"bunker", &"block"],
+			"kinds": [&"spire", &"spire", &"gate", &"control_tower", &"aa_turret", &"floodlight"],
 			"haze": Color(0.28, 0.20, 0.12),
 			"deep": Color(0.055, 0.03, 0.015),
 			"edge": Color(1.0, 0.85, 0.4),
+			"detail": &"runway",
 		},
 	}
 	const STYLE_KEYS: Array[StringName] = [
@@ -501,6 +520,7 @@ class _TerrainLayer extends Node2D:
 	func set_style(s: StringName) -> void:
 		style = s
 		structures.clear()
+		_scroll_accum = 0.0
 		var vp := get_viewport_rect().size
 		if style == &"":
 			queue_redraw()
@@ -512,24 +532,30 @@ class _TerrainLayer extends Node2D:
 	func _new_structure(vp: Vector2, prefill: bool = false) -> Dictionary:
 		var kinds: Array = STYLES.get(style, {}).get("kinds", [&"block"])
 		var kind: StringName = kinds[_rng.randi() % kinds.size()]
-		var w := _rng.randf_range(26.0, 64.0)
+		var wide := kind in WIDE_KINDS
+		var tall := kind in TALL_KINDS
+		var w := _rng.randf_range(30.0, 64.0)
 		var h := _rng.randf_range(34.0, 88.0)
-		if kind == &"deck" or kind == &"bunker" or kind == &"block":
-			h = minf(h, 56.0)
+		if wide:
+			w = _rng.randf_range(52.0, 88.0)
+			h = _rng.randf_range(26.0, 48.0)
+		if tall:
+			w = _rng.randf_range(18.0, 30.0)
+			h = _rng.randf_range(56.0, 110.0)
 		var ground_y := vp.y * GROUND_RATIO
 		return {
 			"kind": kind,
-			"x": _rng.randf_range(24.0, vp.x - 24.0),
+			"x": _rng.randf_range(28.0, vp.x - 28.0),
 			"w": w,
 			"h": h,
 			"y": -h - _rng.randf_range(0.0, 120.0) if prefill else -h - 30.0,
 			"seed": _rng.randi(),
-			"flip": _rng.randf() > 0.5,
 			"grow": _rng.randf_range(0.8, 1.3),
 		}
 
 	func tick(delta: float, speed: float, vp: Vector2) -> void:
 		_time += delta
+		_scroll_accum += speed * delta
 		if style == &"":
 			return
 		var ground_y := vp.y * GROUND_RATIO
@@ -558,6 +584,7 @@ class _TerrainLayer extends Node2D:
 		var pal: Dictionary = _palette()
 		var ground_y := vp.y * GROUND_RATIO
 		var band_h := vp.y - ground_y
+		var edge: Color = pal["edge"]
 		# Band: haze at the horizon, deep at the camera.
 		var bands := 12
 		for i in bands:
@@ -565,11 +592,44 @@ class _TerrainLayer extends Node2D:
 			var c: Color = pal["haze"].lerp(pal["deep"], t)
 			draw_rect(Rect2(0.0, ground_y + i * band_h / bands, vp.x, band_h / bands + 1.0), c)
 		# Horizon glow + faint accent wash.
-		var edge: Color = pal["edge"]
 		draw_rect(Rect2(0.0, ground_y - 2.0, vp.x, 3.0), Color(edge.r, edge.g, edge.b, 0.5))
 		draw_rect(Rect2(0.0, ground_y, vp.x, band_h * 0.45), Color(edge.r, edge.g, edge.b, 0.05))
+		_draw_ground_detail(vp, ground_y, band_h, pal, edge)
 		for s in structures:
 			_draw_structure(s, vp, ground_y, edge)
+
+	func _draw_ground_detail(vp: Vector2, ground_y: float, band_h: float, pal: Dictionary, edge: Color) -> void:
+		## Scrolling base-floor markings so the ground reads as an installation.
+		var detail: StringName = pal.get("detail", &"none")
+		var light := Color(edge.r, edge.g, edge.b, 0.35)
+		var faint := Color(edge.r, edge.g, edge.b, 0.14)
+		var dash := 60.0
+		var off := fmod(_scroll_accum, dash)
+		match detail:
+			&"runway":
+				# Centerline dashes + edge lights, like a flight deck / airbase strip.
+				var cx := vp.x * 0.5
+				for y in range(-60, int(band_h) + 60, int(dash)):
+					var dy := ground_y + float(y) + off
+					draw_rect(Rect2(cx - 2.5, dy, 5.0, 26.0), light)
+					draw_circle(Vector2(cx - 38.0, dy + 13.0), 1.5, faint)
+					draw_circle(Vector2(cx + 38.0, dy + 13.0), 1.5, faint)
+			&"road":
+				# Twin taxiway bands with dashed center lines.
+				for rx in [vp.x * 0.18, vp.x * 0.82]:
+					draw_rect(Rect2(rx - 6.0, ground_y, 12.0, band_h), Color(pal["haze"].r, pal["haze"].g, pal["haze"].b, 0.45))
+					for y in range(-60, int(band_h) + 60, int(dash)):
+						var dy := ground_y + float(y) + off
+						draw_rect(Rect2(rx - 1.5, dy, 3.0, 20.0), light)
+			&"glow":
+				# Scattered bio / crystal luminescence on the floor.
+				for i in 8:
+					var gx := fmod(float(_hash01(int(_scroll_accum * 0.5), i)) * vp.x + off * 0.4, vp.x)
+					var gy := ground_y + fmod(float(_hash01(7, i * 3)) * band_h + off, band_h)
+					draw_circle(Vector2(gx, gy), 1.8, faint)
+					draw_circle(Vector2(gx, gy), 4.0, Color(edge.r, edge.g, edge.b, 0.06))
+			_:
+				pass
 
 	func _hash01(seed: int, i: int) -> float:
 		var v := sin(float(seed * 97 + i * 131)) * 43758.5453
@@ -602,6 +662,131 @@ class _TerrainLayer extends Node2D:
 		var dark := col.darkened(0.45)
 		var x0 := x - w * 0.5
 		match kind:
+			&"barracks":
+				# Long low building with a pitched roof and window row.
+				draw_rect(Rect2(x0, y + h * 0.18, w, h * 0.82), col)
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x0, y + h * 0.18), Vector2(x + w * 0.5, y), Vector2(x0 + w, y + h * 0.18),
+				]), dark)
+				draw_line(Vector2(x - w * 0.4, y + h * 0.16), Vector2(x + w * 0.4, y + h * 0.16), accent, 1.2)
+				draw_rect(Rect2(x - w * 0.08, bottom - h * 0.42, w * 0.16, h * 0.42), dark)
+				for i in 6:
+					_light(seed, i, x0 + w * (0.1 + i * 0.13), y + h * 0.32, w * 0.07, h * 0.12)
+			&"hangar":
+				# Half-cylinder hangar with a big dark door.
+				var pts := PackedVector2Array()
+				var seg := 10
+				for i in seg + 1:
+					var a := PI - PI * float(i) / float(seg)
+					pts.append(Vector2(x + cos(a) * w * 0.5, bottom - h + sin(a) * h))
+				pts.append(Vector2(x0 + w, bottom))
+				pts.append(Vector2(x0, bottom))
+				draw_colored_polygon(pts, col)
+				for i in 3:
+					var ry := bottom - h * (0.35 + i * 0.25)
+					draw_line(Vector2(x0 + w * 0.25, ry), Vector2(x0 + w * 0.75, ry), dark, 1.4)
+				draw_rect(Rect2(x - w * 0.16, bottom - h * 0.52, w * 0.32, h * 0.52), dark)
+				draw_rect(Rect2(x - w * 0.16, bottom - h * 0.52, w * 0.32, h * 0.1), Color(edge.r, edge.g, edge.b, 0.3))
+				draw_circle(Vector2(x - w * 0.16, bottom - h * 0.52), 1.6, accent)
+				draw_circle(Vector2(x + w * 0.16, bottom - h * 0.52), 1.6, accent)
+			&"radar_dish":
+				# Pedestal + tilted dish — instant "airbase" read.
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x - w * 0.3, bottom), Vector2(x + w * 0.3, bottom),
+					Vector2(x + w * 0.12, y + h * 0.55), Vector2(x - w * 0.12, y + h * 0.55),
+				]), dark)
+				draw_line(Vector2(x, bottom - h * 0.1), Vector2(x, y + h * 0.45), col, 3.0)
+				var dc := Vector2(x, y + h * 0.42)
+				var dr := h * 0.34
+				var dp := PackedVector2Array()
+				for i in 16:
+					var a := -PI * 0.28 + PI * 0.28 * float(i) / 15.0
+					var p := Vector2(cos(a) * dr, sin(a) * dr * 0.45)
+					dp.append(dc + p.rotated(-0.5))
+				draw_colored_polygon(dp, dark.lightened(0.1))
+				draw_polyline(dp + PackedVector2Array([dp[0]]), accent, 1.6)
+				draw_circle(dc + Vector2(-dr * 0.5, 0).rotated(-0.5), 2.2, accent)
+				_beacon(seed, x, y + h * 0.12)
+			&"silo":
+				# Missile silo bunker with a raised warhead.
+				draw_rect(Rect2(x0, y + h * 0.34, w, h * 0.66), col)
+				draw_rect(Rect2(x0, y + h * 0.34, w, h * 0.14), dark)
+				draw_circle(Vector2(x, y + h * 0.48), w * 0.17, dark.darkened(0.2))
+				draw_arc(Vector2(x, y + h * 0.48), w * 0.17, 0.0, TAU, 12, accent, 1.4)
+				draw_line(Vector2(x, y + h * 0.48), Vector2(x - w * 0.16, y + h * 0.12), col, 2.4)
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x - w * 0.16, y + h * 0.18), Vector2(x - w * 0.16, y + h * 0.08),
+					Vector2(x - w * 0.1, y + h * 0.12),
+				]), dark)
+				_beacon(seed, x - w * 0.16, y + h * 0.05)
+			&"watchtower":
+				# Four-leg tower with a guard cabin + floodlight.
+				draw_line(Vector2(x - w * 0.28, bottom), Vector2(x - w * 0.1, y + h * 0.26), dark, 2.2)
+				draw_line(Vector2(x + w * 0.28, bottom), Vector2(x + w * 0.1, y + h * 0.26), dark, 2.2)
+				draw_line(Vector2(x - w * 0.16, bottom), Vector2(x - w * 0.04, y + h * 0.26), dark, 1.4)
+				draw_line(Vector2(x + w * 0.16, bottom), Vector2(x + w * 0.04, y + h * 0.26), dark, 1.4)
+				draw_rect(Rect2(x - w * 0.24, y, w * 0.48, h * 0.28), col)
+				draw_rect(Rect2(x - w * 0.24, y + h * 0.28, w * 0.48, h * 0.05), dark)
+				_light(seed, 1, x - w * 0.14, y + h * 0.06, w * 0.28, h * 0.14)
+				draw_line(Vector2(x - w * 0.28, y), Vector2(x + w * 0.28, y), dark, 1.6)
+				draw_circle(Vector2(x, y + h * 0.26), 2.0, accent)
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x - w * 0.1, y + h * 0.3), Vector2(x + w * 0.1, y + h * 0.3),
+					Vector2(x + w * 0.18, y + h * 0.62), Vector2(x - w * 0.18, y + h * 0.62),
+				]), Color(edge.r, edge.g, edge.b, 0.07))
+			&"control_tower":
+				# Round control tower with a glowing glass band.
+				draw_rect(Rect2(x - w * 0.14, y + h * 0.28, w * 0.28, h * 0.72), col)
+				draw_rect(Rect2(x - w * 0.3, y, w * 0.6, h * 0.3), col)
+				draw_rect(Rect2(x - w * 0.26, y + h * 0.08, w * 0.52, h * 0.1), Color(edge.r, edge.g, edge.b, 0.55))
+				draw_line(Vector2(x - w * 0.3, y), Vector2(x + w * 0.3, y), dark, 1.6)
+				draw_line(Vector2(x, y), Vector2(x, y - h * 0.08), col, 1.6)
+				draw_circle(Vector2(x, y - h * 0.08), 1.8, accent)
+				_beacon(seed, x - w * 0.3, y + h * 0.05)
+			&"aa_turret":
+				# Twin-barrel anti-air emplacement.
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x - w * 0.4, bottom), Vector2(x + w * 0.4, bottom),
+					Vector2(x + w * 0.2, y + h * 0.62), Vector2(x - w * 0.2, y + h * 0.62),
+				]), dark)
+				draw_rect(Rect2(x - w * 0.14, y + h * 0.5, w * 0.28, h * 0.14), col)
+				draw_line(Vector2(x - w * 0.08, y + h * 0.5), Vector2(x - w * 0.22, y + h * 0.1), col, 2.2)
+				draw_line(Vector2(x + w * 0.08, y + h * 0.5), Vector2(x + w * 0.22, y + h * 0.1), col, 2.2)
+				draw_circle(Vector2(x - w * 0.22, y + h * 0.1), 1.6, accent)
+				draw_circle(Vector2(x + w * 0.22, y + h * 0.1), 1.6, accent)
+				_beacon(seed, x, y + h * 0.5)
+			&"water_tower":
+				# Four-leg tank with a conical roof.
+				draw_line(Vector2(x - w * 0.22, bottom), Vector2(x - w * 0.12, y + h * 0.42), dark, 2.2)
+				draw_line(Vector2(x + w * 0.22, bottom), Vector2(x + w * 0.12, y + h * 0.42), dark, 2.2)
+				draw_line(Vector2(x - w * 0.08, bottom), Vector2(x - w * 0.04, y + h * 0.42), dark, 1.4)
+				draw_line(Vector2(x + w * 0.08, bottom), Vector2(x + w * 0.04, y + h * 0.42), dark, 1.4)
+				draw_rect(Rect2(x - w * 0.28, y + h * 0.18, w * 0.56, h * 0.28), col)
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x - w * 0.28, y + h * 0.18), Vector2(x + w * 0.28, y + h * 0.18),
+					Vector2(x, y),
+				]), dark)
+				draw_line(Vector2(x, y + h * 0.18), Vector2(x, y + h * 0.46), dark, 1.6)
+				draw_circle(Vector2(x, y), 1.6, accent)
+			&"floodlight":
+				# Pole light with a faint beam cone.
+				draw_line(Vector2(x, bottom), Vector2(x, y), col, 2.0)
+				draw_rect(Rect2(x - 2.5, y - 3.0, 5.0, 5.0), dark)
+				draw_circle(Vector2(x, y - 3.0), 2.0, Color(1.0, 0.9, 0.6, 0.9))
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(x - 3.0, y - 2.0), Vector2(x + 3.0, y - 2.0),
+					Vector2(x + w * 0.22, bottom), Vector2(x - w * 0.22, bottom),
+				]), Color(edge.r, edge.g, edge.b, 0.045))
+			&"gate":
+				# Perimeter wall with a lit gate arch.
+				draw_rect(Rect2(x0, y + h * 0.5, w, h * 0.5), col)
+				draw_rect(Rect2(x0, y + h * 0.5, w, h * 0.08), dark)
+				draw_rect(Rect2(x0 - 3.0, y, 5.0, h * 0.55), dark)
+				draw_rect(Rect2(x0 + w - 2.0, y, 5.0, h * 0.55), dark)
+				draw_rect(Rect2(x - w * 0.14, bottom - h * 0.4, w * 0.28, h * 0.4), dark)
+				draw_line(Vector2(x - w * 0.14, bottom - h * 0.4), Vector2(x + w * 0.14, bottom - h * 0.4), accent, 1.4)
+				draw_circle(Vector2(x0 - 0.5, y + h * 0.45), 1.8, accent)
+				draw_circle(Vector2(x0 + w - 1.5, y + h * 0.45), 1.8, accent)
 			&"tower":
 				var top_w := w * 0.34
 				draw_colored_polygon(PackedVector2Array([

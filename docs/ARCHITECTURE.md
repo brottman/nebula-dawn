@@ -6,15 +6,15 @@ Technical overview of Nebula Dawn’s runtime systems.
 
 ```
 MainMenu
-  ├─ Sector 1 select → GameWorld (campaign mission)
-  └─ Endless        → GameWorld (endless spawner)
+  ├─ Campaign → GameWorld (campaign mission)
+  └─ Boss Rush → GameWorld (raid arenas)
 
 GameWorld
   ├─ ParallaxBg          # 4 scroll layers
   ├─ Player              # touch / keyboard ship
   ├─ Entities            # enemies, hazards, stage props
   ├─ Projectiles         # pooled bullets
-  ├─ WaveSpawner         # campaign waves or endless groups
+  ├─ WaveSpawner         # campaign waves
   ├─ MissionRunner       # win / lose
   ├─ FormationTracker    # Stage 1 chain reactions
   ├─ StageDirector       # per-mission gimmick runtime
@@ -39,7 +39,6 @@ Unlocks: clearing stage *N* unlocks *N+1* (`highest_unlocked_mission`). Saved in
 `WaveSpawner` owns:
 
 - Campaign scripted waves from `MissionData.waves`
-- Endless random groups from the enemy catalog
 
 Per-wave bookkeeping uses `_wave_enemies_alive` so leftovers from a **timed-out** wave do not block the next wave’s clear condition.
 
@@ -57,6 +56,7 @@ Per-wave bookkeeping uses `_wave_enemies_alive` so leftovers from a **timed-out*
 | 8 | enemy_projectile | Enemy bullets |
 | 16 | pickup | Power-ups |
 | 32 | hazard | Asteroids, barriers |
+| 64 | barrier_wall | Solid barrier bodies (block the player ship) |
 
 Player bullets hit enemies + hazards. Enemy bullets hit player + hazards (rocks absorb fire).
 
@@ -93,7 +93,7 @@ Player bullets hit enemies + hazards. Enemy bullets hit player + hazards (rocks 
 - Touch-follow or keyboard 8-way
 - Auto-fire weapon system: stock Blaster + color weapons (Red Spread / Blue Laser / Green Homing)
 - Universal power tier (Lv1–3) shared across colors; Gold P-Chips raise it; color swaps keep it
-- Stackable sub-systems: Bits (≤2 orbiting drones), Speed (≤3 stacks)
+- Stackable sub-systems: Drones (≤2 orbiting auto-turrets, lost on hit), Speed (≤3 stacks)
 - Rare utilities: hit-based Shield (≤2 charges), stocked Bombs (≤3), Energy (~4s fire-rate + invuln)
 - Recovery: volcano Power Orbs on death, stage power floor on respawn, death-bomb panic window
 - Plasma zone flags, Overdrive meter
@@ -104,9 +104,9 @@ Player bullets hit enemies + hazards. Enemy bullets hit player + hazards (rocks 
 
 | Scene | Purpose |
 |-------|---------|
-| `main_menu.tscn` | Sector 1 / Endless / Quit |
+| `main_menu.tscn` | Campaign / Boss Rush / Quit |
 | `campaign_select.tscn` | Unlockable 1-1 … 1-5 list |
-| `hud.tscn` | HP, score, act label, boss bar, weapon, overdrive, toasts |
+| `hud.tscn` | Act label, boss bar, overdrive, toasts |
 | `pause_menu.tscn` | Resume / main menu (`PROCESS_MODE_ALWAYS`) |
 | `mission_results.tscn` | Win/lose summary |
 

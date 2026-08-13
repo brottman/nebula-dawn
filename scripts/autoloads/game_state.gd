@@ -24,7 +24,7 @@ const SECTOR_2 := 2
 const SECTOR_1_COUNT := 5
 const RANK_ORDER := {"S": 4, "A": 3, "B": 2, "C": 1}
 
-enum Mode { CAMPAIGN, ENDLESS, BOSS_RUSH, PRACTICE }
+enum Mode { CAMPAIGN, BOSS_RUSH }
 
 ## Combo chain: every kill/graze extends the window; a bigger chain pays more.
 const COMBO_WINDOW := 2.5
@@ -36,19 +36,13 @@ var current_mission_index: int = 0
 var highest_unlocked_mission: int = 0
 var last_score: int = 0
 var last_won: bool = false
-var endless_high_score: int = 0
 var session_score: int = 0
 ## Best clear rank per mission index ("", "C", "B", "A", "S").
 var best_ranks: Array[String] = []
 ## Best score per mission index (campaign wins only).
 var best_scores: Array[int] = []
-## Endless leaderboard — top 5 run scores, descending.
-var endless_top: Array[int] = []
 ## Best Boss Rush score.
 var boss_rush_high_score: int = 0
-## Practice session: start wave (0-based, waves.size() = boss) + starting power.
-var practice_wave: int = -1
-var practice_power: int = 0
 var boss_rush_index: int = 0
 ## Live combo chain state.
 var run_combo: int = 0
@@ -65,9 +59,6 @@ var touch_sensitivity: float = 1.0
 var shake_intensity: float = 1.0
 var reduce_flashes: bool = false
 var show_pickup_labels: bool = false
-
-## Longest endless survival time (seconds).
-var endless_best_time: float = 0.0
 
 ## Per-run statistics shown on the mission results screen.
 var run_active: bool = false
@@ -127,16 +118,7 @@ func load_progress() -> void:
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	highest_unlocked_mission = int(cfg.get_value("campaign", "unlocked", 0))
-	endless_high_score = int(cfg.get_value("endless", "high_score", 0))
-	endless_best_time = float(cfg.get_value("endless", "best_time", 0.0))
 	boss_rush_high_score = int(cfg.get_value("boss_rush", "high_score", 0))
-	var top_str := String(cfg.get_value("endless", "top", ""))
-	endless_top.clear()
-	if top_str != "":
-		for part in top_str.split(","):
-			var v := int(part)
-			if v > 0:
-				endless_top.append(v)
 	music_volume = float(cfg.get_value("settings", "music_volume", music_volume))
 	sfx_volume = float(cfg.get_value("settings", "sfx_volume", sfx_volume))
 	touch_sensitivity = float(cfg.get_value("settings", "touch_sensitivity", touch_sensitivity))
@@ -153,13 +135,7 @@ func save_progress() -> void:
 	_ensure_score_slots()
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", highest_unlocked_mission)
-	cfg.set_value("endless", "high_score", endless_high_score)
-	cfg.set_value("endless", "best_time", endless_best_time)
 	cfg.set_value("boss_rush", "high_score", boss_rush_high_score)
-	var top_parts := PackedStringArray()
-	for v in endless_top:
-		top_parts.append(str(v))
-	cfg.set_value("endless", "top", ",".join(top_parts))
 	cfg.set_value("settings", "music_volume", music_volume)
 	cfg.set_value("settings", "sfx_volume", sfx_volume)
 	cfg.set_value("settings", "touch_sensitivity", touch_sensitivity)
@@ -215,39 +191,6 @@ func start_campaign_mission(index: int) -> void:
 	last_rank = ""
 	last_rank_bonus = 0
 	last_chain_bonus = 0
-	practice_wave = -1
-	practice_power = 0
-	_reset_run_stats()
-
-
-func start_endless() -> void:
-	mode = Mode.ENDLESS
-	current_mission_index = -1
-	session_score = 0
-	last_score = 0
-	last_won = false
-	last_rank = ""
-	last_rank_bonus = 0
-	last_chain_bonus = 0
-	practice_wave = -1
-	practice_power = 0
-	_reset_run_stats()
-
-
-## Free-play with a chosen start wave (0-based; waves.size() = boss) and power tier.
-func start_practice(mission_index: int, wave: int, power: int) -> void:
-	mode = Mode.PRACTICE
-	current_mission_index = clampi(mission_index, 0, MISSION_PATHS.size() - 1)
-	var data := get_mission_data()
-	var max_wave := data.waves.size() if data else 0
-	practice_wave = clampi(wave, 0, max_wave)
-	practice_power = clampi(power, 1, 3)
-	session_score = 0
-	last_score = 0
-	last_won = false
-	last_rank = ""
-	last_rank_bonus = 0
-	last_chain_bonus = 0
 	_reset_run_stats()
 
 
@@ -261,8 +204,6 @@ func start_boss_rush() -> void:
 	last_rank = ""
 	last_rank_bonus = 0
 	last_chain_bonus = 0
-	practice_wave = -1
-	practice_power = 0
 	_reset_run_stats()
 
 
@@ -295,12 +236,8 @@ func get_power_floor(mission_index: int = -1) -> int:
 	## Minimum weapon tier on respawn. Stages are 1-based in design docs;
 	## mission_index is 0-based (0–4 = Sector 1, 5–9 = Sector 2 / EX).
 	var i := current_mission_index if mission_index < 0 else mission_index
-	if mode == Mode.ENDLESS:
-		return 2 if run_elapsed > 90.0 else 1
 	if mode == Mode.BOSS_RUSH:
 		return 2
-	if mode == Mode.PRACTICE:
-		return clampi(practice_power, 1, 3)
 	if i < 0:
 		return 1
 	if i <= 2:
@@ -313,7 +250,7 @@ func get_power_floor(mission_index: int = -1) -> int:
 
 func is_ex_stage(mission_index: int = -1) -> bool:
 	var i := current_mission_index if mission_index < 0 else mission_index
-	return (mode == Mode.CAMPAIGN or mode == Mode.PRACTICE) and i >= SECTOR_1_COUNT
+	return mode == Mode.CAMPAIGN and i >= SECTOR_1_COUNT
 
 
 func get_mission_path(index: int = -1) -> String:
@@ -354,14 +291,7 @@ func record_mission_result(won: bool) -> void:
 			highest_unlocked_mission = maxi(highest_unlocked_mission, current_mission_index)
 		save_progress()
 	last_score = session_score
-	if mode == Mode.ENDLESS:
-		if session_score > endless_high_score:
-			endless_high_score = session_score
-		if run_elapsed > endless_best_time:
-			endless_best_time = run_elapsed
-		_push_endless_top(session_score)
-		save_progress()
-	elif mode == Mode.BOSS_RUSH:
+	if mode == Mode.BOSS_RUSH:
 		if session_score > boss_rush_high_score:
 			boss_rush_high_score = session_score
 		save_progress()
@@ -389,16 +319,6 @@ func get_best_score(index: int) -> int:
 	if index < 0 or index >= best_scores.size():
 		return 0
 	return best_scores[index]
-
-
-func _push_endless_top(score: int) -> void:
-	if score <= 0:
-		return
-	endless_top.append(score)
-	endless_top.sort()
-	endless_top.reverse()
-	while endless_top.size() > 5:
-		endless_top.pop_back()
 
 
 func get_best_rank(index: int) -> String:

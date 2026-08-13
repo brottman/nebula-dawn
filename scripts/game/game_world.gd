@@ -1,5 +1,5 @@
 extends Control
-## Shared game world for campaign missions and endless mode.
+## Shared game world for campaign missions and Boss Rush.
 ## Playfield renders in a SubViewport below the top HUD bar so chrome
 ## does not cover the Camera2D action zone.
 
@@ -90,17 +90,6 @@ func _safe_area_insets() -> Vector4:
 
 func _start_mode() -> void:
 	match GameState.mode:
-		GameState.Mode.ENDLESS:
-			if parallax.has_method("set_tint"):
-				parallax.set_tint(Color(0.25, 0.08, 0.2))
-			if parallax.get("scroll_speed") != null:
-				parallax.scroll_speed = 50.0
-			if parallax.has_method("set_terrain_random"):
-				parallax.set_terrain_random()
-			await _play_intro_card("ENDLESS", "SURVIVE THE SWARM",
-				"The swarm never ends. Score as long as you last.")
-			stage_director.begin_endless()
-			runner.begin_endless()
 		GameState.Mode.BOSS_RUSH:
 			var rush_data := GameState.get_boss_rush_data()
 			if rush_data == null:
@@ -111,18 +100,6 @@ func _start_mode() -> void:
 				rush_data.boss.display_name if rush_data.boss else "Next target")
 			stage_director.begin(rush_data)
 			runner.begin_boss_rush(rush_data)
-		GameState.Mode.PRACTICE:
-			var path := GameState.get_mission_path()
-			var data: MissionData = load(path) if path != "" else null
-			if data == null:
-				push_error("Missing mission data: %s" % path)
-				return
-			_apply_mission_ambience(data)
-			if player.has_method("apply_starting_power") and GameState.practice_power >= 1:
-				player.apply_starting_power(GameState.practice_power)
-			await _play_intro_card("PRACTICE", data.title.to_upper(), data.subtitle)
-			stage_director.begin(data)
-			runner.begin_campaign(data, GameState.practice_wave)
 		_:
 			var path := GameState.get_mission_path()
 			var data: MissionData = load(path) if path != "" else null
@@ -207,8 +184,6 @@ func _process(delta: float) -> void:
 		)
 		if _shake_time <= 0.0:
 			camera.offset = Vector2.ZERO
-	if GameState.mode == GameState.Mode.ENDLESS:
-		parallax.scroll_speed = spawner.scroll_speed
 
 
 func _toggle_pause() -> void:
