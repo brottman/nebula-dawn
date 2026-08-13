@@ -34,21 +34,168 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HealthBar" type="ProgressBar" parent="Root"]
+[node name="TopBar" type="Control" parent="Root"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 96.0
-offset_top = 8.0
-offset_right = -96.0
-offset_bottom = 22.0
+offset_bottom = 72.0
 grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Bg" type="ColorRect" parent="Root/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.04, 0.08, 0.82)
+
+[node name="Edge" type="ColorRect" parent="Root/TopBar"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.14)
+
+[node name="Margin" type="MarginContainer" parent="Root/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="Row" type="HBoxContainer" parent="Root/TopBar/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Left" type="VBoxContainer" parent="Root/TopBar/Margin/Row"]
+custom_minimum_size = Vector2(118, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="LivesLabel" type="Label" parent="Root/TopBar/Margin/Row/Left"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "×3"
+
+[node name="HealthBar" type="ProgressBar" parent="Root/TopBar/Margin/Row/Left"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 mouse_filter = 2
 theme_override_styles/background = SubResource("HealthBarBg")
 theme_override_styles/fill = SubResource("HealthBarFill")
-max_value = 100.0
-value = 100.0
+max_value = 7.0
+value = 7.0
 show_percentage = false
+
+[node name="Center" type="VBoxContainer" parent="Root/TopBar/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="WeaponRow" type="HBoxContainer" parent="Root/TopBar/Margin/Row/Center"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="WeaponBadge" type="Label" parent="Root/TopBar/Margin/Row/Center/WeaponRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 12
+text = "[---] BLASTER"
+horizontal_alignment = 1
+
+[node name="WeaponLevel" type="Label" parent="Root/TopBar/Margin/Row/Center/WeaponRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 12
+text = "LV 1"
+horizontal_alignment = 2
+
+[node name="ChipRow" type="HBoxContainer" parent="Root/TopBar/Margin/Row/Center"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Chip0" type="ColorRect" parent="Root/TopBar/Margin/Row/Center/ChipRow"]
+custom_minimum_size = Vector2(16, 10)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.18, 0.22, 0.32, 1)
+
+[node name="Chip1" type="ColorRect" parent="Root/TopBar/Margin/Row/Center/ChipRow"]
+custom_minimum_size = Vector2(16, 10)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.18, 0.22, 0.32, 1)
+
+[node name="Chip2" type="ColorRect" parent="Root/TopBar/Margin/Row/Center/ChipRow"]
+custom_minimum_size = Vector2(16, 10)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.18, 0.22, 0.32, 1)
+
+[node name="Chip3" type="ColorRect" parent="Root/TopBar/Margin/Row/Center/ChipRow"]
+custom_minimum_size = Vector2(16, 10)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.18, 0.22, 0.32, 1)
+
+[node name="Chip4" type="ColorRect" parent="Root/TopBar/Margin/Row/Center/ChipRow"]
+custom_minimum_size = Vector2(16, 10)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.18, 0.22, 0.32, 1)
+
+[node name="ChipCount" type="Label" parent="Root/TopBar/Margin/Row/Center/ChipRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "0/5"
+
+[node name="ExtrasLabel" type="Label" parent="Root/TopBar/Margin/Row/Center"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.75, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "DRONE×1"
+horizontal_alignment = 1
+
+[node name="Right" type="VBoxContainer" parent="Root/TopBar/Margin/Row"]
+custom_minimum_size = Vector2(88, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="Root/TopBar/Margin/Row/Right"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_font_sizes/font_size = 16
+text = "000000"
+horizontal_alignment = 2
 
 [node name="WaveLabel" type="Label" parent="Root"]
 layout_mode = 1
@@ -127,6 +274,24 @@ theme_override_colors/font_color = Color(1, 0.92, 0.88, 1)
 theme_override_font_sizes/font_size = 15
 text = "BOMB
 x0"
+
+[node name="PauseButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -118.0
+offset_top = -96.0
+offset_right = -12.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.88, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "PAUSE"
 
 [node name="PickupToast" type="Label" parent="Root"]
 visible = false

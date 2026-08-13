@@ -28,3 +28,5 @@ signal graze_occurred
 signal combo_changed(combo: int)
 ## Brief Engine.time_scale freeze for impact (juice).
 signal hitstop_requested(seconds: float)
+## HUD / touch pause button. GameWorld toggles the pause overlay.
+signal pause_requested

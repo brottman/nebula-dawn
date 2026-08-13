@@ -1,5 +1,11 @@
 extends Control
 ## Music / SFX / touch sensitivity settings.
+## overlay_mode: opened from the pause menu without leaving the run.
+
+signal closed
+
+## Set true before add_child when instanced over a paused GameWorld.
+var overlay_mode: bool = false
 
 @onready var music_slider: HSlider = $Center/VBox/MusicRow/Slider
 @onready var sfx_slider: HSlider = $Center/VBox/SfxRow/Slider
@@ -46,7 +52,13 @@ func _ready() -> void:
 	labels_toggle.toggled.connect(_on_labels_toggled)
 	back_btn.pressed.connect(_on_back)
 	back_btn.grab_focus()
-	AudioBus.play_menu_music()
+	# Overlay keeps stage music; standalone scene plays the menu loop.
+	if overlay_mode:
+		var bg := get_node_or_null("Bg") as ColorRect
+		if bg:
+			bg.color = Color(0.04, 0.05, 0.12, 0.94)
+	else:
+		AudioBus.play_menu_music()
 
 
 func _refresh_labels() -> void:
@@ -89,4 +101,8 @@ func _on_labels_toggled(enabled: bool) -> void:
 
 func _on_back() -> void:
 	AudioBus.play_ui()
+	if overlay_mode:
+		closed.emit()
+		queue_free()
+		return
 	get_tree().change_scene_to_file(_return_scene)

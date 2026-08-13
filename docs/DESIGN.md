@@ -118,11 +118,11 @@ Victory outro (center → hover → zoom off) sells the “sortie complete” be
 
 ## Audio identity
 
-Each stage has its own looping track (see README). Menu and Boss Rush use dedicated themes so campaign stages keep a distinct musical memory.
+Each stage has a looping track (see README). Menu and Boss Rush use dedicated themes so campaign stages keep a distinct musical memory. 2-2 / 2-3 / 2-4 reuse Sector 1 originals until unique source MP3s exist — do not generate placeholder loops.
 
 ## Visual identity
 
-- Hand-authored vector sprites (SVG, imported by Godot) for enemy archetypes, the player ship, and pickups (`assets/sprites/`). Enemy art is grayscale so the per-mission `stats.color` tint reads clearly; the player ship carries its own palette.
+- Hand-authored vector sprites (SVG, imported by Godot) for enemy archetypes, the player ship, and pickups (`assets/sprites/`). Enemy art is grayscale so the per-mission `stats.color` tint reads clearly; the player ship carries its own palette. Sector 2 stage bosses and mid-bosses (plus 1-1 Heavy Transport) have unique hulls keyed by `boss_archetype`; Sector 1 stage bosses still reuse the generic boss hull.
 - Soft modulate tints differentiate mission variants that reuse an archetype.
 - Four parallax layers keep speed readable even when the playfield is busy.
 

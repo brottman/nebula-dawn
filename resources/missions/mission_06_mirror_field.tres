@@ -17,7 +17,7 @@ contact_damage = 2
 color = Color(0.45, 0.9, 1, 1)
 size = Vector2(128, 96)
 is_boss = true
-boss_archetype = &"fabrication"
+boss_archetype = &"kaleidoscope"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_gxu35"]
@@ -335,7 +335,7 @@ color = Color(0.5, 0.9, 1, 1)
 size = Vector2(80, 70)
 is_boss = true
 is_mid_boss = true
-boss_archetype = &"overseer"
+boss_archetype = &"prism"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_eqo1e"]

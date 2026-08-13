@@ -38,6 +38,21 @@ const SPRITE_PATHS := {
 	"boss": "res://assets/sprites/enemy_boss.svg",
 	"mid_boss": "res://assets/sprites/enemy_mid_boss.svg",
 }
+const BOSS_SPRITE_PATHS := {
+	"kaleidoscope": "res://assets/sprites/enemy_boss_kaleidoscope.svg",
+	"tempest": "res://assets/sprites/enemy_boss_tempest.svg",
+	"choir": "res://assets/sprites/enemy_boss_choir.svg",
+	"junkyard": "res://assets/sprites/enemy_boss_junkyard.svg",
+	"dawn": "res://assets/sprites/enemy_boss_dawn.svg",
+}
+const MID_SPRITE_PATHS := {
+	"transport": "res://assets/sprites/enemy_mid_transport.svg",
+	"prism": "res://assets/sprites/enemy_mid_prism.svg",
+	"coil": "res://assets/sprites/enemy_mid_coil.svg",
+	"echo": "res://assets/sprites/enemy_mid_echo.svg",
+	"tyrant": "res://assets/sprites/enemy_mid_tyrant.svg",
+	"herald": "res://assets/sprites/enemy_mid_herald.svg",
+}
 
 
 func _ready() -> void:
@@ -156,12 +171,17 @@ func _apply_visuals() -> void:
 
 
 func _sprite_path_for(s: EnemyStats) -> String:
-	if s.is_boss and s.is_mid_boss:
-		return SPRITE_PATHS["mid_boss"]
 	if s.is_boss:
+		var arch := String(s.boss_archetype)
+		if s.is_mid_boss:
+			if MID_SPRITE_PATHS.has(arch) and FileAccess.file_exists(MID_SPRITE_PATHS[arch]):
+				return MID_SPRITE_PATHS[arch]
+			return SPRITE_PATHS["mid_boss"]
+		if BOSS_SPRITE_PATHS.has(arch) and FileAccess.file_exists(BOSS_SPRITE_PATHS[arch]):
+			return BOSS_SPRITE_PATHS[arch]
 		return SPRITE_PATHS["boss"]
 	var key := String(s.enemy_id)
-	if SPRITE_PATHS.has(key):
+	if SPRITE_PATHS.has(key) and FileAccess.file_exists(SPRITE_PATHS[key]):
 		return SPRITE_PATHS[key]
 	return SPRITE_PATHS["scout"]
 

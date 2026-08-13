@@ -15,4 +15,5 @@ color = Color(0.55, 0.8, 1, 1)
 size = Vector2(84, 64)
 is_boss = true
 is_mid_boss = true
+boss_archetype = &"transport"
 scene_path = "res://scenes/entities/enemy_base.tscn"

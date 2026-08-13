@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2f4f8"/>
+      <stop offset="1" stop-color="#6c7480"/>
+    </linearGradient>
+    <linearGradient id="coil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c8d0d8"/>
+      <stop offset="1" stop-color="#7a828c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="24" y="14" width="24" height="42" rx="3" fill="url(#hull)" stroke="#17171e" stroke-width="2"/>
+  <rect x="28" y="4" width="16" height="12" rx="2" fill="#a8b0b8" stroke="#17171e" stroke-width="1.6"/>
+  <rect x="31" y="7" width="10" height="4" rx="1.5" fill="#14141b"/>
+  <rect x="4" y="18" width="14" height="36" rx="5" fill="url(#coil)" stroke="#17171e" stroke-width="1.8"/>
+  <rect x="54" y="18" width="14" height="36" rx="5" fill="url(#coil)" stroke="#17171e" stroke-width="1.8"/>
+  <line x1="7" y1="26" x2="15" y2="26" stroke="#4a525c" stroke-width="1.6"/>
+  <line x1="7" y1="34" x2="15" y2="34" stroke="#4a525c" stroke-width="1.6"/>
+  <line x1="7" y1="42" x2="15" y2="42" stroke="#4a525c" stroke-width="1.6"/>
+  <line x1="57" y1="26" x2="65" y2="26" stroke="#4a525c" stroke-width="1.6"/>
+  <line x1="57" y1="34" x2="65" y2="34" stroke="#4a525c" stroke-width="1.6"/>
+  <line x1="57" y1="42" x2="65" y2="42" stroke="#4a525c" stroke-width="1.6"/>
+  <polyline points="11,22 8,28 14,32 9,38" fill="none" stroke="#d8e4ee" stroke-width="1.4"/>
+  <polyline points="61,22 64,28 58,32 63,38" fill="none" stroke="#d8e4ee" stroke-width="1.4"/>
+  <rect x="26" y="54" width="20" height="8" rx="2" fill="#6a727c" stroke="#17171e" stroke-width="1.5"/>
+  <circle cx="32" cy="58" r="1.5" fill="#ffe9a8"/>
+  <circle cx="36" cy="58" r="1.5" fill="#ffe9a8"/>
+  <circle cx="40" cy="58" r="1.5" fill="#ffe9a8"/>
+  <ellipse cx="11" cy="68" rx="5" ry="2" fill="url(#glow)"/>
+  <ellipse cx="36" cy="68" rx="5" ry="2" fill="url(#glow)"/>
+  <ellipse cx="61" cy="68" rx="5" ry="2" fill="url(#glow)"/>
+  <circle cx="11" cy="68" r="1.6" fill="#fffbe8"/>
+  <circle cx="36" cy="68" r="1.6" fill="#fffbe8"/>
+  <circle cx="61" cy="68" r="1.6" fill="#fffbe8"/>
+</svg>

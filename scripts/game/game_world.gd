@@ -40,6 +40,7 @@ func _ready() -> void:
 	runner.next_boss_requested.connect(_on_boss_rush_next)
 	EventBus.screen_shake.connect(_on_shake)
 	EventBus.hitstop_requested.connect(_on_hitstop)
+	EventBus.pause_requested.connect(_on_pause_requested)
 	if pause_menu.has_method("hide_menu"):
 		pause_menu.hide_menu()
 	get_viewport().size_changed.connect(_fit_playfield)
@@ -174,8 +175,11 @@ func _on_hitstop(seconds: float) -> void:
 
 
 func _process(delta: float) -> void:
+	# Only handles pause-to-open: once paused this node stops processing.
+	# PauseMenu (PROCESS_ALWAYS) handles Esc to close / leave settings.
 	if Input.is_action_just_pressed("pause") and not _ending and not _intro_active:
-		_toggle_pause()
+		if not get_tree().paused:
+			_toggle_pause()
 	if _shake_time > 0.0:
 		_shake_time -= delta
 		camera.offset = Vector2(
@@ -184,6 +188,14 @@ func _process(delta: float) -> void:
 		)
 		if _shake_time <= 0.0:
 			camera.offset = Vector2.ZERO
+
+
+func _on_pause_requested() -> void:
+	if _ending or _intro_active:
+		return
+	if get_tree().paused:
+		return
+	_toggle_pause()
 
 
 func _toggle_pause() -> void:

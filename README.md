@@ -37,9 +37,12 @@ Exports a signed debug APK to `build/NebulaDawn-debug.apk` (does not install). I
 |--------|-------|----------|---------|
 | Move | Drag — ship mirrors finger motion from where you grabbed | WASD / Arrow keys | Left stick / D-pad |
 | Fire | Auto | Auto | Auto |
-| Pause | — | Esc | Start |
+| Pause | Pause button (bottom-right) | Esc | Start |
+| Settings (from pause) | Settings button | — | — |
 
 Fire is always on. Weapons and power-ups change *what* you shoot, not whether you shoot.
+
+Pause keeps the run loaded. **Settings** opens as an overlay on the paused tree (it does not `change_scene` away from `GameWorld`).
 
 ---
 
@@ -187,26 +190,27 @@ Sampled SFX live in `assets/audio/sfx/`. Mapping is in `scripts/autoloads/audio_
 nebula-dawn/
 ├── assets/
 │   ├── audio/          # Menu + stage MP3s
-│   └── sprites/        # Enemy + pickup art
+│   └── sprites/        # Enemy + pickup art (unique Sector 2 bosses/mids)
 ├── resources/
 │   ├── enemies/        # Shared EnemyStats .tres
-│   └── missions/       # Sector 1 stage definitions
+│   └── missions/       # Ten campaign stage definitions
 ├── scenes/
 │   ├── entities/       # Player, enemies, projectiles, pickups
 │   ├── game/           # GameWorld, HUD, parallax, pause
 │   ├── stage/          # Barriers, terminals, singularities
-│   └── ui/             # Main menu, sector select, results
+│   └── ui/             # Main menu, sector select, settings, results
 ├── scripts/
 │   ├── autoloads/      # GameState, AudioBus, EventBus
 │   ├── combat/         # Projectile pool
-│   ├── enemies/        # Enemy + pickup logic
+│   ├── enemies/        # Enemy + pickup logic + BossPatterns
 │   ├── game/           # World + parallax
 │   ├── mission/        # Waves, runner, formations
-│   ├── player/         # Ship + weapons
-│   ├── stage/          # StageDirector + gimmicks
+│   ├── player/         # Ship facade + WeaponSystem / LifeSystem
+│   ├── stage/          # StageDirector; gimmicks/ is one module per gimmick_id
 │   ├── ui/
 │   └── build_apk.sh
-├── tools/              # Resource generator + smoke tests
+├── tools/              # Resource generator, validators, smoke tests
+├── .github/workflows/  # Headless CI
 ├── export_presets.cfg  # Android export
 └── project.godot
 ```
@@ -238,15 +242,29 @@ Key data types:
 Spawn formations are geometric layouts in `SpawnEntry.pattern_offsets()`: `line`, `column`, `v`, `inv_v`, `diamond`, `arc`, `box`, `cross`, `wave`, `circle`, `star`, `spiral`, `chevron`. Fodder bullet styles (`EnemyStats.fire_pattern`): `straight`, `aimed`, `side`, `burst`, `spread`, `ring`, `tri`, `cross`.
 - `EnemyStats` — HP, speed, fire rate, flags (`is_hazard`, `is_boss`, `is_mid_boss`), `boss_archetype`
 
-Boss behavior lives in `scripts/enemies/boss_patterns.gd`, keyed by `EnemyStats.boss_archetype` (`orbital`, `megalith`, `leviathan`, `fabrication`, `omega` for stage bosses; `stalker`, `drill`, `overseer`, `ace`, `storm` for mid-bosses). Adding a boss = one archetype value in `generate_resources.gd` + one branch in `boss_patterns.gd` — never string-match `display_name`.
+Boss behavior lives in `scripts/enemies/boss_patterns.gd`, keyed by `EnemyStats.boss_archetype`. Stage bosses: `orbital`, `megalith`, `leviathan`, `fabrication`, `omega`, `kaleidoscope`, `tempest`, `choir`, `junkyard`, `dawn`. Mid-bosses: `transport`, `drill`, `stalker`, `overseer`, `ace`, `prism`, `coil`, `echo`, `tyrant`, `herald`. Adding a boss = one archetype value in `generate_resources.gd` + one pattern branch + optional sprite in `enemy_base.gd` — never string-match `display_name`. Sector 2 bosses and mids (plus 1-1 Heavy Transport) have unique SVGs; Sector 1 stage bosses reuse the generic hull.
 
 ### Validation / smoke tests
 
+Headless checks (Godot 4.7). If `godot` is not on `PATH`:
+
 ```bash
+nix shell nixpkgs#godot --command ./tools/ci.sh
+```
+
+Or run the pieces:
+
+```bash
+godot --headless --path . --editor --quit-after 1
 godot --headless --path . --script res://tools/validate_project.gd
+godot --headless --path . --script res://tools/test_player.gd
 godot --headless --path . --script res://tools/smoke_test.gd
 godot --headless --path . --script res://tools/smoke_boss_rush.gd
 ```
+
+`--import` does not refresh `.godot/global_script_class_cache.cfg`. Use `--editor --quit-after 1` so `--script` tools see `WeaponSystem` / `LifeSystem` / `StageGimmick`. Unimported SVGs are checked with `FileAccess.file_exists`, not `ResourceLoader.exists`.
+
+`validate_project.gd` also asserts each mission’s `gimmick_id` / `boss_archetype` (and the mid-boss archetype) so stale generated `.tres` files fail CI. GitHub Actions runs the same suite on push and pull request.
 
 ---
 

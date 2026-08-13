@@ -18,7 +18,7 @@ contact_damage = 2
 color = Color(0.4, 0.5, 1, 1)
 size = Vector2(132, 102)
 is_boss = true
-boss_archetype = &"leviathan"
+boss_archetype = &"choir"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_5ia8b"]
@@ -335,7 +335,7 @@ color = Color(0.4, 0.55, 1, 1)
 size = Vector2(78, 68)
 is_boss = true
 is_mid_boss = true
-boss_archetype = &"stalker"
+boss_archetype = &"echo"
 scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_ayy4i"]

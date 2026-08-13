@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://player001"]
+[gd_scene load_steps=7 format=3 uid="uid://player001"]
 
 [ext_resource type="Script" path="res://scripts/player/player_ship.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/player_ship.svg" id="2"]
+[ext_resource type="Script" path="res://scripts/player/weapon_system.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/player/life_system.gd" id="4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(30, 32)
@@ -47,3 +49,9 @@ position = Vector2(0, 22)
 amount = 18
 process_material = SubResource("ParticleProcessMaterial_1")
 lifetime = 0.35
+
+[node name="WeaponSystem" type="Node" parent="."]
+script = ExtResource("3")
+
+[node name="LifeSystem" type="Node" parent="."]
+script = ExtResource("4")

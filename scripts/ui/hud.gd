@@ -1,29 +1,69 @@
 extends CanvasLayer
 ## Screen layout:
+##   TOP BAR     — lives + HP | weapon badge + chips | score
 ##   PLAYFIELD   — clear action zone
-##   BOTTOM LEFT — Bomb button (tap)
+##   BOTTOM      — Bomb (left) / Pause (right)
+
+const CHIP_EMPTY := Color(0.18, 0.22, 0.32, 1.0)
+const CHIP_MAX := Color(1.0, 0.82, 0.35, 1.0)
+const SLOT_COLOR := {
+	"BLASTER": Color(0.78, 0.84, 0.95, 1.0),
+	"SPREAD": Color(1.0, 0.4, 0.34, 1.0),
+	"LASER": Color(0.4, 0.72, 1.0, 1.0),
+	"HOMING": Color(0.42, 0.95, 0.55, 1.0),
+}
+const SLOT_TAG := {
+	"BLASTER": "---",
+	"SPREAD": "RED",
+	"LASER": "BLUE",
+	"HOMING": "GREEN",
+}
+const SLOT_TITLE := {
+	"BLASTER": "BLASTER",
+	"SPREAD": "SPREAD",
+	"LASER": "LASER",
+	"HOMING": "HOMING",
+}
 
 @onready var wave_label: Label = $Root/WaveLabel
-@onready var health_bar: ProgressBar = $Root/HealthBar
+@onready var health_bar: ProgressBar = $Root/TopBar/Margin/Row/Left/HealthBar
+@onready var lives_label: Label = $Root/TopBar/Margin/Row/Left/LivesLabel
+@onready var weapon_badge: Label = $Root/TopBar/Margin/Row/Center/WeaponRow/WeaponBadge
+@onready var weapon_level: Label = $Root/TopBar/Margin/Row/Center/WeaponRow/WeaponLevel
+@onready var chip_row: HBoxContainer = $Root/TopBar/Margin/Row/Center/ChipRow
+@onready var chip_count: Label = $Root/TopBar/Margin/Row/Center/ChipRow/ChipCount
+@onready var extras_label: Label = $Root/TopBar/Margin/Row/Center/ExtrasLabel
+@onready var score_label: Label = $Root/TopBar/Margin/Row/Right/ScoreLabel
 @onready var combo_label: Label = $Root/ComboLabel
 @onready var boss_bar: ProgressBar = $Root/BossBar
 @onready var boss_label: Label = $Root/BossLabel
 @onready var pickup_toast: Label = $Root/PickupToast
+@onready var overdrive_bar: ProgressBar = $Root/OverdriveBar
 @onready var root: Control = $Root
 @onready var bomb_btn: Button = $Root/BombButton
+@onready var pause_btn: Button = $Root/PauseButton
 
 var _bombs: int = 0
+var _chips: Array[ColorRect] = []
 
 
 func _ready() -> void:
+	for child in chip_row.get_children():
+		if child is ColorRect:
+			_chips.append(child)
 	boss_bar.visible = false
 	boss_label.visible = false
 	pickup_toast.visible = false
 	bomb_btn.focus_mode = Control.FOCUS_NONE
+	pause_btn.focus_mode = Control.FOCUS_NONE
 	bomb_btn.pressed.connect(_on_bomb_pressed)
+	pause_btn.pressed.connect(_on_pause_pressed)
 	get_viewport().size_changed.connect(_apply_safe_area)
 	_apply_safe_area()
 	EventBus.player_hp_changed.connect(_on_hp)
+	EventBus.player_lives_changed.connect(_on_lives)
+	EventBus.score_changed.connect(_on_score)
+	EventBus.weapon_tier_changed.connect(_on_weapon_tier)
 	EventBus.wave_started.connect(_on_wave)
 	EventBus.boss_spawned.connect(_on_boss_spawned)
 	EventBus.boss_hp_changed.connect(_on_boss_hp)
@@ -34,14 +74,19 @@ func _ready() -> void:
 	EventBus.bomb_stock_changed.connect(_on_bombs)
 	EventBus.combo_changed.connect(_on_combo)
 	_on_bombs(0)
-	# Initial sync in case the player's first emit beat us to the connect.
+	_on_score(GameState.session_score)
+	_refresh_overdrive(0.0, 100.0)
+	# Player _ready runs before HUD (deeper in the tree); re-sync + re-emit.
 	var player := get_tree().get_first_node_in_group("player")
 	if player:
 		_on_hp(int(player.hp), int(player.max_hp))
-	if has_node("Root/OverdriveBar"):
-		$Root/OverdriveBar.visible = false
-		$Root/OverdriveBar.max_value = 100.0
-		$Root/OverdriveBar.value = 0.0
+		_on_lives(int(player.lives))
+		if player.has_method("_emit_weapon_changed"):
+			player._emit_weapon_changed()
+		else:
+			_on_weapon_tier("BLASTER", 1, 0, 5, "")
+	else:
+		_on_weapon_tier("BLASTER", 1, 0, 5, "")
 
 
 ## Keep chrome clear of notches / punch-hole cameras (immersive Android).
@@ -64,6 +109,10 @@ func _safe_area_insets() -> Vector4:
 	var right := float(screen.x - safe.end.x) / float(screen.x) * vp.x
 	var bottom := float(screen.y - safe.end.y) / float(screen.y) * vp.y
 	return Vector4(maxf(left, 0.0), maxf(top, 0.0), maxf(right, 0.0), maxf(bottom, 0.0))
+
+
+func _on_pause_pressed() -> void:
+	EventBus.pause_requested.emit()
 
 
 func _on_bomb_pressed() -> void:
@@ -91,6 +140,37 @@ func _on_hp(current: int, maximum: int) -> void:
 	health_bar.value = current
 
 
+func _on_lives(lives: int) -> void:
+	lives_label.text = "×%d" % lives
+
+
+func _on_score(new_score: int) -> void:
+	score_label.text = "%06d" % new_score
+
+
+func _on_weapon_tier(slot: String, level: int, chips: int, chips_needed: int, extras: String) -> void:
+	var key := slot.to_upper()
+	var color: Color = SLOT_COLOR.get(key, SLOT_COLOR["BLASTER"])
+	var tag: String = SLOT_TAG.get(key, "---")
+	var title: String = SLOT_TITLE.get(key, key)
+	weapon_badge.text = "[%s] %s" % [tag, title]
+	weapon_badge.add_theme_color_override("font_color", color)
+	var at_max := level >= 3 and chips >= chips_needed
+	weapon_level.text = "MAX" if at_max else "LV %d" % level
+	weapon_level.add_theme_color_override("font_color", CHIP_MAX if at_max else color)
+	var needed := maxi(chips_needed, 1)
+	var filled := needed if at_max else clampi(chips, 0, needed)
+	for i in _chips.size():
+		_chips[i].color = CHIP_MAX if at_max else (color if i < filled else CHIP_EMPTY)
+	chip_count.text = "MAX" if at_max else "%d/%d" % [filled, needed]
+	if extras.strip_edges() == "":
+		extras_label.visible = false
+		extras_label.text = ""
+	else:
+		extras_label.visible = true
+		extras_label.text = extras
+
+
 func _on_gimmick_toast(text: String) -> void:
 	pickup_toast.visible = true
 	pickup_toast.text = text
@@ -99,13 +179,21 @@ func _on_gimmick_toast(text: String) -> void:
 		pickup_toast.visible = false
 
 
+func _stage_uses_overdrive() -> bool:
+	var data := GameState.get_mission_data()
+	if data == null:
+		return false
+	return data.gimmick_id == &"gravity" or data.gimmick_id == &"flare"
+
+
+func _refresh_overdrive(current: float, maximum: float) -> void:
+	overdrive_bar.max_value = maximum
+	overdrive_bar.value = current
+	overdrive_bar.visible = current > 0.0 or _stage_uses_overdrive()
+
+
 func _on_overdrive(current: float, maximum: float) -> void:
-	if not has_node("Root/OverdriveBar"):
-		return
-	var bar: ProgressBar = $Root/OverdriveBar
-	bar.visible = current > 0.0 or GameState.current_mission_index == 4
-	bar.max_value = maximum
-	bar.value = current
+	_refresh_overdrive(current, maximum)
 
 
 func _on_wave(_index: int, _total: int, label: String = "") -> void:
@@ -113,6 +201,7 @@ func _on_wave(_index: int, _total: int, label: String = "") -> void:
 		wave_label.text = label.to_upper()
 	else:
 		wave_label.text = "WAVE"
+	_refresh_overdrive(overdrive_bar.value, overdrive_bar.max_value)
 
 
 func _on_combo(combo: int) -> void:
@@ -136,6 +225,7 @@ func _on_boss_spawned(boss: Node) -> void:
 	else:
 		boss_label.text = "WARNING"
 	wave_label.text = "ACT 3 — MID-BOSS" if is_mid else "ACT 5 — STAGE BOSS"
+	_refresh_overdrive(overdrive_bar.value, overdrive_bar.max_value)
 
 
 func _on_boss_hp(current: float, maximum: float) -> void:

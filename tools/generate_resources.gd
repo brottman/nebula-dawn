@@ -74,22 +74,23 @@ func _init() -> void:
 	boss3.boss_archetype = &"leviathan"
 	boss4.boss_archetype = &"fabrication"
 	boss5.boss_archetype = &"omega"
-	boss6.boss_archetype = &"fabrication"
-	boss7.boss_archetype = &"omega"
-	boss8.boss_archetype = &"leviathan"
-	boss9.boss_archetype = &"megalith"
-	boss10.boss_archetype = &"omega"
+	boss6.boss_archetype = &"kaleidoscope"
+	boss7.boss_archetype = &"tempest"
+	boss8.boss_archetype = &"choir"
+	boss9.boss_archetype = &"junkyard"
+	boss10.boss_archetype = &"dawn"
 
 	# Mid-boss archetypes.
+	mid1.boss_archetype = &"transport"
 	mid2.boss_archetype = &"drill"
 	mid3.boss_archetype = &"stalker"
 	mid4.boss_archetype = &"overseer"
 	mid5.boss_archetype = &"ace"
-	mid6.boss_archetype = &"overseer"
-	mid7.boss_archetype = &"storm"
-	mid8.boss_archetype = &"stalker"
-	mid9.boss_archetype = &"drill"
-	mid10.boss_archetype = &"ace"
+	mid6.boss_archetype = &"prism"
+	mid7.boss_archetype = &"coil"
+	mid8.boss_archetype = &"echo"
+	mid9.boss_archetype = &"tyrant"
+	mid10.boss_archetype = &"herald"
 
 	_save(scout, "res://resources/enemies/scout.tres")
 	_save(strafer, "res://resources/enemies/strafer.tres")

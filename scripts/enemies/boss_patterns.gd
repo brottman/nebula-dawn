@@ -12,11 +12,22 @@ const ARCH_MEGALITH := &"megalith"      ## Heavy wide volleys, low hover
 const ARCH_LEVIATHAN := &"leviathan"    ## Ethereal waves + illusion decoys
 const ARCH_FABRICATION := &"fabrication" ## Grid/cross denial + drone adds
 const ARCH_OMEGA := &"omega"            ## Peak-density rings + stitch fire
+const ARCH_KALEIDOSCOPE := &"kaleidoscope" ## Sector 2: mirrored prism fans
+const ARCH_TEMPEST := &"tempest"        ## Sector 2: lightning columns
+const ARCH_CHOIR := &"choir"            ## Sector 2: delayed ghost rings
+const ARCH_JUNKYARD := &"junkyard"      ## Sector 2: scrap volleys + adds
+const ARCH_DAWN := &"dawn"              ## Sector 2: solar flare wash
 const ARCH_STALKER := &"stalker"        ## Mid: teleport + aimed bursts
 const ARCH_DRILL := &"drill"            ## Mid: wide fans
 const ARCH_OVERSEER := &"overseer"      ## Mid: crosses
 const ARCH_ACE := &"ace"                ## Mid: twin aimed pressure
 const ARCH_STORM := &"storm"            ## Mid: rings
+const ARCH_TRANSPORT := &"transport"    ## Mid: Heavy Transport side pressure
+const ARCH_PRISM := &"prism"            ## Mid: steep ricochet fans
+const ARCH_COIL := &"coil"              ## Mid: flanking lightning bolts
+const ARCH_ECHO := &"echo"              ## Mid: delayed ghost copies
+const ARCH_TYRANT := &"tyrant"          ## Mid: lane-filling scrap fans
+const ARCH_HERALD := &"herald"          ## Mid: solar flare bursts
 
 
 # ---------------------------------------------------------------------------
@@ -48,6 +59,18 @@ static func fire(boss: Node) -> void:
 					spawn_fabricated_drone(boss)
 			ARCH_OMEGA:
 				_fire_omega(boss, phase, muzzle, spd, dmg, stats)
+			ARCH_KALEIDOSCOPE:
+				_fire_kaleidoscope(boss, phase, muzzle, spd, dmg, stats)
+			ARCH_TEMPEST:
+				_fire_tempest(boss, phase, muzzle, spd, dmg, stats)
+			ARCH_CHOIR:
+				_fire_choir(boss, phase, muzzle, spd, dmg, stats)
+			ARCH_JUNKYARD:
+				_fire_junkyard(boss, phase, muzzle, spd, dmg, stats)
+				if randf() < (0.10 + 0.06 * float(phase)):
+					spawn_fabricated_drone(boss)
+			ARCH_DAWN:
+				_fire_dawn(boss, phase, muzzle, spd, dmg, stats)
 			_:
 				spread_fan(boss, muzzle, spd, dmg, 1 + phase * 2, 0.55)
 	AudioBus.play_enemy_shoot()
@@ -74,6 +97,21 @@ static func _fire_mid(boss: Node, arch: StringName, phase: int, muzzle: Vector2,
 			ring(boss, muzzle, spd * 0.75, dmg, 6 + phase)
 			aimed(boss, muzzle, spd, dmg, 1 + phase, 0.1)
 			boss.set("_fire_timer", stats.fire_interval * 0.88)
+		ARCH_TRANSPORT:
+			_fire_transport(boss, phase, muzzle, spd, dmg, stats)
+		ARCH_PRISM:
+			_fire_prism(boss, phase, muzzle, spd, dmg, stats)
+		ARCH_COIL:
+			_fire_coil(boss, phase, muzzle, spd, dmg, stats)
+		ARCH_ECHO:
+			_fire_echo(boss, phase, muzzle, spd, dmg, stats)
+		ARCH_TYRANT:
+			spread_fan(boss, muzzle, spd * 0.7, dmg, 5 + phase, 0.95, {"scale": 1.25, "lifetime": 3.6, "color": Color(0.95, 0.55, 0.3)})
+			boss.set("_fire_timer", stats.fire_interval * 0.92)
+		ARCH_HERALD:
+			spread_fan(boss, muzzle, spd * 0.88, dmg, 4 + phase, 0.7, {"color": Color(1.0, 0.65, 0.3), "scale": 1.1})
+			aimed(boss, muzzle, spd * 1.05, dmg, 1 + phase, 0.08)
+			boss.set("_fire_timer", stats.fire_interval * 0.86)
 		_:
 			spread_fan(boss, muzzle, spd, dmg, 3 + phase, 0.5)
 			boss.set("_fire_timer", stats.fire_interval * (0.95 - 0.08 * float(phase)))
@@ -148,6 +186,175 @@ static func _fire_omega(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg
 	boss.set("_fire_timer", stats.fire_interval * (0.75 - 0.08 * float(phase)))
 
 
+static func _fire_kaleidoscope(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Six-fold prism fans — every shot has a mirrored twin.
+	var rot: float = boss.get("_armor_angle")
+	var arms := 6
+	for i in arms:
+		var a := rot + TAU * float(i) / float(arms)
+		var dir := Vector2(sin(a), absf(cos(a)) * 0.4 + 0.6).normalized()
+		spawn_shot(boss, muzzle, dir * spd, dmg, {
+			"color": Color(0.45, 0.9, 1.0),
+			"scale": 0.9,
+		})
+		spawn_shot(boss, muzzle, Vector2(-dir.x, dir.y) * spd, dmg, {
+			"color": Color(0.7, 0.95, 1.0),
+			"scale": 0.85,
+		})
+	if phase >= 1:
+		aimed(boss, muzzle, spd * 0.95, dmg, 1 + phase, 0.06)
+	if phase >= 2:
+		for side in [-1.0, 1.0]:
+			spawn_shot(boss, muzzle + Vector2(side * 28.0, 0), Vector2(side * 0.9, 0.45).normalized() * spd * 0.85, dmg, {
+				"color": Color(0.55, 0.85, 1.0),
+				"wave_amp": 14.0,
+				"wave_freq": 7.0,
+			})
+	boss.set("_fire_timer", stats.fire_interval * (0.86 - 0.1 * float(phase)))
+
+
+static func _fire_tempest(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Lightning columns that stitch the lanes, plus a tracking bolt.
+	var cols := [-78.0, 0.0, 78.0] if phase >= 1 else [-56.0, 56.0]
+	for col in cols:
+		var bolts := 2 + phase
+		for k in bolts:
+			var origin := muzzle + Vector2(col, float(k) * -10.0)
+			var dir := Vector2(0.1 * signf(col), 1).normalized()
+			spawn_shot(boss, origin, dir * spd * (1.15 - 0.08 * float(k)), dmg, {
+				"color": Color(0.4, 0.85, 1.0),
+				"scale": 0.75,
+				"lifetime": 2.2,
+			})
+	aimed(boss, muzzle, spd * 1.12, dmg, 1 + phase, 0.05)
+	if phase >= 2:
+		ring(boss, muzzle, spd * 0.68, dmg, 8, {"color": Color(0.55, 0.9, 1.0), "scale": 0.8})
+	boss.set("_fire_timer", stats.fire_interval * (0.82 - 0.08 * float(phase)))
+
+
+static func _fire_choir(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Immediate ring plus a delayed ghost copy — they shoot where the first was.
+	ring(boss, muzzle, spd * 0.78, dmg, 7 + phase, {
+		"color": Color(0.45, 0.55, 1.0),
+		"scale": 0.95,
+	})
+	aimed(boss, muzzle, spd * 0.9, dmg, 1 + phase, 0.12, {
+		"color": Color(0.55, 0.65, 1.0, 0.85),
+		"wave_amp": 10.0,
+		"wave_freq": 5.0,
+	})
+	var tree: SceneTree = boss.get_tree()
+	if tree:
+		var echo_muzzle := muzzle
+		var echo_spd := spd
+		var echo_dmg := dmg
+		var echo_phase := phase
+		tree.create_timer(0.38).timeout.connect(func() -> void:
+			if not is_instance_valid(boss) or boss.get("alive") == false:
+				return
+			ring(boss, echo_muzzle, echo_spd * 0.52, echo_dmg * 0.7, 6 + echo_phase, {
+				"color": Color(0.4, 0.5, 1.0, 0.45),
+				"scale": 0.7,
+				"lifetime": 3.2,
+			})
+		)
+	boss.set("_fire_timer", stats.fire_interval * (0.9 - 0.08 * float(phase)))
+
+
+static func _fire_junkyard(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Irregular scrap: chunky slow shells mixed with jagged fans.
+	var count := 4 + phase
+	spread_fan(boss, muzzle, spd * 0.68, dmg, count, 0.85, {
+		"scale": 1.3,
+		"lifetime": 3.8,
+		"color": Color(0.9, 0.5, 0.28),
+	})
+	for i in 2 + phase:
+		var a := randf_range(-0.8, 0.8)
+		spawn_shot(boss, muzzle + Vector2(randf_range(-36.0, 36.0), 0), Vector2(a, 1).normalized() * spd * randf_range(0.45, 0.7), dmg, {
+			"scale": randf_range(0.9, 1.6),
+			"color": Color(0.75, 0.45, 0.25),
+			"lifetime": 4.0,
+		})
+	if phase >= 2:
+		cross(boss, muzzle, spd * 0.8, dmg, {"color": Color(1.0, 0.55, 0.3), "scale": 1.1})
+	boss.set("_fire_timer", stats.fire_interval * (1.0 - 0.08 * float(phase)))
+
+
+static func _fire_dawn(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Wide solar wash across the lower field, then a tight core stitch.
+	spread_fan(boss, muzzle, spd * 0.74, dmg, 7 + phase * 2, 1.12, {
+		"scale": 1.25,
+		"color": Color(1.0, 0.55, 0.25),
+		"lifetime": 3.4,
+	})
+	aimed(boss, muzzle, spd * 1.08, dmg, 2 + phase, 0.07, {
+		"color": Color(1.0, 0.8, 0.4),
+		"scale": 0.95,
+	})
+	if phase >= 1:
+		for side in [-1.0, 1.0]:
+			spawn_shot(boss, muzzle + Vector2(side * 44.0, 8.0), Vector2(side * 0.25, 1).normalized() * spd * 0.9, dmg, {
+				"color": Color(1.0, 0.7, 0.3),
+				"scale": 1.15,
+			})
+	if phase >= 2:
+		ring(boss, muzzle, spd * 0.66, dmg, 10, {"color": Color(1.0, 0.6, 0.2), "scale": 0.85})
+	boss.set("_fire_timer", stats.fire_interval * (0.8 - 0.08 * float(phase)))
+
+
+static func _fire_transport(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Side-gun pressure: outbound shots from the wings plus a slow center fan.
+	for side in [-1.0, 1.0]:
+		var wing := muzzle + Vector2(side * 38.0, 10.0)
+		spawn_shot(boss, wing, Vector2(side * 0.5, 1).normalized() * spd * 0.82, dmg, {
+			"scale": 1.15,
+			"color": Color(0.55, 0.8, 1.0),
+		})
+		if phase >= 1:
+			spawn_shot(boss, wing, Vector2(side * 0.22, 1).normalized() * spd * 0.9, dmg)
+	spread_fan(boss, muzzle, spd * 0.75, dmg, 3 + phase, 0.32)
+	boss.set("_fire_timer", stats.fire_interval * (0.95 - 0.06 * float(phase)))
+
+
+static func _fire_prism(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Steep ricochet angles — almost horizontal, then diving.
+	for dir in [Vector2(0.95, 0.32), Vector2(-0.95, 0.32), Vector2(0.55, 0.84), Vector2(-0.55, 0.84)]:
+		spawn_shot(boss, muzzle, dir.normalized() * spd, dmg, {
+			"color": Color(0.5, 0.9, 1.0),
+			"scale": 0.9,
+		})
+	if phase >= 1:
+		aimed(boss, muzzle, spd * 1.05, dmg, 2, 0.1)
+	boss.set("_fire_timer", stats.fire_interval * (0.88 - 0.06 * float(phase)))
+
+
+static func _fire_coil(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Flanking lightning bolts with a small ring.
+	ring(boss, muzzle, spd * 0.72, dmg, 5 + phase, {"color": Color(0.4, 0.85, 1.0), "scale": 0.8})
+	for side in [-1.0, 1.0]:
+		spawn_shot(boss, muzzle + Vector2(side * 50.0, 0), Vector2(0, 1) * spd * 1.18, dmg, {
+			"color": Color(0.55, 0.9, 1.0),
+			"scale": 1.05,
+		})
+	if phase >= 1:
+		aimed(boss, muzzle, spd, dmg, 1 + phase, 0.08)
+	boss.set("_fire_timer", stats.fire_interval * 0.86)
+
+
+static func _fire_echo(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg: float, stats: EnemyStats) -> void:
+	## Live aimed burst plus a slower ghost copy of the same volley.
+	aimed(boss, muzzle, spd * 1.05, dmg, 2 + phase, 0.14)
+	aimed(boss, muzzle, spd * 0.52, dmg * 0.75, 2 + phase, 0.14, {
+		"color": Color(0.4, 0.55, 1.0, 0.5),
+		"scale": 0.75,
+		"wave_amp": 16.0,
+		"wave_freq": 4.5,
+		"lifetime": 3.4,
+	})
+	boss.set("_fire_timer", stats.fire_interval * 0.9)
+
+
 static func spawn_fabricated_drone(boss: Node) -> void:
 	var pool: ProjectilePool = boss.get("projectile_pool")
 	var parent := boss.get_parent()
@@ -189,13 +396,43 @@ static func move(boss: Node, delta: float) -> void:
 			EventBus.gimmick_toast.emit("RELOCATING")
 		boss.set("_teleport_cd", cd)
 
-	var target_y := 100.0 if arch == ARCH_MEGALITH else 120.0
+	var target_y := 120.0
+	match arch:
+		ARCH_MEGALITH, ARCH_JUNKYARD:
+			target_y = 100.0
+		ARCH_DAWN:
+			target_y = 110.0
+		ARCH_KALEIDOSCOPE:
+			target_y = 114.0
+		ARCH_CHOIR:
+			target_y = 118.0
 	if boss.global_position.y < target_y:
 		boss.global_position.y += speed * delta
 	else:
-		var sway := 100.0 if arch == ARCH_ORBITAL else 140.0
-		boss.global_position.x = origin_x + sin(t * 0.8) * sway
+		var sway := 140.0
+		var rate := 0.8
+		match arch:
+			ARCH_ORBITAL:
+				sway = 100.0
+			ARCH_KALEIDOSCOPE:
+				sway = 168.0
+				rate = 1.15
+			ARCH_TEMPEST:
+				sway = 128.0
+				rate = 1.35
+			ARCH_CHOIR:
+				sway = 88.0
+				rate = 0.55
+			ARCH_JUNKYARD:
+				sway = 110.0
+				rate = 0.65
+			ARCH_DAWN:
+				sway = 120.0
+				rate = 0.9
+		boss.global_position.x = origin_x + sin(t * rate) * sway
 		boss.global_position.x = clampf(boss.global_position.x, 60.0, boss.get_viewport_rect().size.x - 60.0)
+		if arch == ARCH_TEMPEST:
+			boss.global_position.y = target_y + sin(t * 1.8) * 10.0
 
 
 # ---------------------------------------------------------------------------
@@ -207,8 +444,13 @@ static func move(boss: Node, delta: float) -> void:
 static func armor_mult(stats: EnemyStats, armor_angle: float) -> float:
 	if stats == null or not stats.is_boss or stats.is_mid_boss:
 		return 1.0
-	if stats.boss_archetype == ARCH_ORBITAL and absf(sin(armor_angle)) > 0.65:
+	var arch := stats.boss_archetype
+	if arch == ARCH_ORBITAL and absf(sin(armor_angle)) > 0.65:
 		return 0.55
+	if arch == ARCH_KALEIDOSCOPE and absf(cos(armor_angle)) > 0.72:
+		return 0.6
+	if arch == ARCH_DAWN and absf(sin(armor_angle * 0.5)) > 0.82:
+		return 0.7
 	return 1.0
 
 
