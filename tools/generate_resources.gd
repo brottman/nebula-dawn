@@ -19,9 +19,9 @@ func _init() -> void:
 	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.55, 0.5, 0.48), Vector2(56, 56))
 	asteroid.is_hazard = true
 	asteroid.contact_damage = 1
-	var bio := _enemy(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.0, Color(0.55, 1.0, 0.75), Vector2(48, 48))
+	var bio := _enemy(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.2, Color(0.55, 1.0, 0.75), Vector2(48, 48))
 	bio.projectile_speed = 165.0
-	bio.fire_pattern = &"tri"
+	bio.fire_pattern = &"aimed"
 	var stealth := _enemy(&"scout", "Stealth Craft", 1.0, 150.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(38, 38))
 	var repair := _enemy(&"drone", "Repair Drone", 2.0, 88.0, 160, 2.1, Color(0.4, 0.95, 0.7), Vector2(44, 44))
 	repair.fire_pattern = &"aimed"
@@ -278,38 +278,38 @@ func _mission_02(scout: EnemyStats, strafer: EnemyStats, asteroid: EnemyStats, d
 		], true, 14.0),
 		_wave("Act 2 — Escalation", 1.5, [
 			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"arc", 62.0),
-			_entry(strafer, 0.7, Vector2(90, -50), 3, &"column", 40.0),
-			_entry(strafer, 0.3, Vector2(390, -50), 3, &"column", 40.0),
-			_entry(drone, 1.2, Vector2(240, -50), 3, &"line", 80.0),
-			_entry(cruiser, 1.1, Vector2(240, -55), 2, &"line", 120.0),
-			_entry(scout, 1.0, Vector2(240, -50), 5, &"inv_v", 52.0),
+			_entry(strafer, 0.7, Vector2(90, -50), 2, &"column", 40.0),
+			_entry(strafer, 0.8, Vector2(390, -50), 2, &"column", 40.0),
+			_entry(drone, 1.5, Vector2(240, -50), 2, &"line", 80.0),
+			_entry(cruiser, 1.7, Vector2(240, -55), 1, &"line", 120.0),
+			_entry(scout, 1.4, Vector2(240, -50), 4, &"inv_v", 52.0),
 		], true, 16.0),
 		_wave("Act 2 — Pressure", 1.5, [
-			_entry(asteroid, 0.0, Vector2(240, -55), 5, &"wave", 58.0),
-			_entry(cruiser, 1.0, Vector2(180, -50), 2, &"line", 130.0),
-			_entry(drone, 1.1, Vector2(240, -55), 3, &"v", 60.0),
-			_entry(strafer, 1.0, Vector2(100, -50), 3, &"column", 38.0),
-			_entry(strafer, 0.2, Vector2(380, -50), 3, &"column", 38.0),
-			_entry(scout, 1.2, Vector2(240, -50), 6, &"cross", 48.0),
+			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"wave", 58.0),
+			_entry(cruiser, 1.2, Vector2(180, -50), 1, &"line", 130.0),
+			_entry(drone, 1.4, Vector2(240, -55), 2, &"v", 60.0),
+			_entry(strafer, 1.2, Vector2(100, -50), 2, &"column", 38.0),
+			_entry(strafer, 0.9, Vector2(380, -50), 2, &"column", 38.0),
+			_entry(scout, 1.5, Vector2(240, -50), 4, &"cross", 48.0),
 		], true, 16.0),
 		_wave("Act 3 — Mid-Boss", 2.4, [_entry(mid, 0.0, Vector2(240, -70))], true, 0.0),
 		_wave("Act 4 — Build", 2.2, [
 			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"box", 68.0),
-			_entry(drone, 1.0, Vector2(240, -50), 3, &"line", 90.0),
-			_entry(cruiser, 1.1, Vector2(200, -55)),
-			_entry(cruiser, 0.4, Vector2(280, -55)),
-			_entry(scout, 1.2, Vector2(240, -50), 5, &"v", 54.0),
-			_entry(asteroid, 1.2, Vector2(120, -60), 3, &"arc", 70.0),
+			_entry(drone, 1.2, Vector2(240, -50), 2, &"line", 90.0),
+			_entry(cruiser, 1.3, Vector2(200, -55)),
+			_entry(cruiser, 0.8, Vector2(280, -55)),
+			_entry(scout, 1.4, Vector2(240, -50), 4, &"v", 54.0),
+			_entry(asteroid, 1.3, Vector2(120, -60), 3, &"arc", 70.0),
 		], true, 16.0),
 		_wave("Act 5 — Climax", 2.6, [
-			_entry(asteroid, 0.0, Vector2(240, -55), 5, &"arc", 58.0),
-			_entry(cruiser, 0.8, Vector2(240, -50), 2, &"line", 140.0),
-			_entry(drone, 1.0, Vector2(240, -55), 4, &"v", 58.0),
-			_entry(strafer, 0.9, Vector2(100, -50), 4, &"column", 36.0),
-			_entry(strafer, 0.2, Vector2(380, -50), 4, &"column", 36.0),
-			_entry(asteroid, 1.1, Vector2(240, -60), 5, &"box", 66.0),
-			_entry(scout, 1.0, Vector2(240, -50), 6, &"cross", 48.0),
-			_entry(drone, 1.1, Vector2(240, -55), 3, &"wave", 72.0),
+			_entry(asteroid, 0.0, Vector2(240, -55), 4, &"arc", 58.0),
+			_entry(cruiser, 1.0, Vector2(240, -50), 1, &"line", 140.0),
+			_entry(drone, 1.2, Vector2(240, -55), 3, &"v", 58.0),
+			_entry(strafer, 1.1, Vector2(100, -50), 3, &"column", 36.0),
+			_entry(strafer, 0.6, Vector2(380, -50), 3, &"column", 36.0),
+			_entry(asteroid, 1.4, Vector2(240, -60), 4, &"box", 66.0),
+			_entry(scout, 1.3, Vector2(240, -50), 4, &"cross", 48.0),
+			_entry(drone, 1.5, Vector2(240, -55), 2, &"wave", 72.0),
 		], true, 20.0),
 	]
 	return m
