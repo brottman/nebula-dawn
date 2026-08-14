@@ -124,7 +124,7 @@ Weapon **type** and **power level** are tracked separately.
 | Color | Pickup | Weapon | Behavior |
 |-------|--------|--------|----------|
 | **Red** | Spread | Wide cone | Lv1 3-way → Lv2 5-way + ROF → Lv3 7-way + side-cancellation waves |
-| **Blue** | Laser | Focused beam | Lv1 single → Lv2 dual + armor pierce → Lv3 mega beam + melt ticks |
+| **Blue** | Laser | Solid piercing column | Lv1 thin beam → Lv2 wider + armor pierce → Lv3 mega beam + melt + eats bullets |
 | **Green** | Homing | Seeking missiles | Lv1 2 slow → Lv2 4 fast micro → Lv3 6 rapid + splash |
 
 **Gold Power** pickups fill a **5-segment** bar toward the next shared tier (**Lv1 → Lv2 → Lv3 / MAX**). Swapping color keeps both tier and banked Power. Same color again also banks Power. Hull damage resets to Blaster (tier + Power lost) but keeps Bits and Speed.

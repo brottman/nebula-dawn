@@ -147,7 +147,7 @@ On `_ready`, `apply_hangar_loadout()` copies `GameState.get_active_loadout()` on
 - `WeaponSystem` — color weapons, shared power tier, drones, speed; hull fire-rate scaling
 - `LifeSystem` — hull, lives, shields, bombs, death/respawn, volcano drop, Overdrive, plasma
 - Touch-follow or keyboard 8-way
-- Auto-fire: stock Blaster + color weapons (Red Spread / Blue Laser / Green Homing)
+- Auto-fire: stock Blaster + color weapons (Red Spread / Blue Laser column / Green Homing)
 - Universal power tier (Lv1–3) shared across colors; Gold P-Chips raise it; color swaps keep it
 - Stackable sub-systems: Drones (≤2 orbiting auto-turrets, lost on hit), Speed (≤3 stacks)
 - Rare utilities: hit-based Shield (≤2 charges), stocked Bombs (≤3), Energy (~4s fire-rate + invuln)

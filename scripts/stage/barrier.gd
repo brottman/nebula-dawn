@@ -75,7 +75,7 @@ func absorb_bullet(_damage: float = 0.0) -> void:
 	pass
 
 
-func take_damage(_amount: float) -> void:
+func take_damage(_amount: float, _armor_pierce: bool = false) -> void:
 	# Barriers are invulnerable; only terminals shut them down.
 	pass
 

@@ -32,7 +32,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, _armor_pierce: bool = false) -> void:
 	if not alive:
 		return
 	hp -= amount

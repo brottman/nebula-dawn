@@ -1,7 +1,7 @@
 extends CharacterBody2D
 ## Player strike craft — movement, graze, and a facade over WeaponSystem / LifeSystem.
 ## Color-coded weapons + universal power level:
-##   Red = Spread, Blue = Laser, Green = Homing.
+##   Red = Spread, Blue = Laser (solid piercing column), Green = Homing.
 ##   Gold Power pickups raise the shared tier (Lv1→2→3). Swapping color keeps the tier.
 ## Hull damage resets to Blaster Lv1 (power tier lost). Bits/Speed persist.
 
@@ -202,11 +202,14 @@ func _screen_to_world(screen_pos: Vector2) -> Vector2:
 
 func _physics_process(delta: float) -> void:
 	if _cinematic:
+		weapons.extinguish_laser()
 		return
 	if _death_bomb_time > 0.0:
+		weapons.extinguish_laser()
 		life.tick_death_bomb(delta)
 		return
 	if dead:
+		weapons.extinguish_laser()
 		return
 	life.update_timers(delta)
 	if _flash_timer > 0.0:
@@ -331,6 +334,7 @@ func play_victory_exit() -> void:
 	velocity = Vector2.ZERO
 	clear_zone_effects()
 	weapons.hide_drones()
+	weapons.extinguish_laser()
 	if _engine:
 		_engine.emitting = true
 	var vis := _visual()

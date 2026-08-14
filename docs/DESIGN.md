@@ -77,7 +77,7 @@ Weapon type and power level are independent:
 | Color | Weapon | Lv1 | Lv2 | Lv3 |
 |-------|--------|-----|-----|-----|
 | **Red** | Spread | 3-way fan | 5-way + faster ROF | 7-way + side-cancellation waves |
-| **Blue** | Laser | Single beam | Dual beams + armor pierce | Mega beam + melt ticks |
+| **Blue** | Laser | Solid piercing column | Wider column + armor pierce | Mega column + melt + eats bullets |
 | **Green** | Homing | 2 slow rockets | 4 fast micro-missiles | 6 rapid + splash |
 
 **Gold Power** pickups fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX). Color swaps keep tier + Power bank. Same-color pickups also bank Power. Hull hits drop you to Blaster.

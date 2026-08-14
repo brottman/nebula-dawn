@@ -1,7 +1,7 @@
 class_name WeaponSystem
 extends Node
 ## Color weapons, shared power tier, drones, and speed stacks.
-## Public ship API still lives on the player; this node owns the loadout logic.
+## Blue Laser is a continuous piercing column (see laser_beam.gd), not projectiles.
 
 const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 const MAX_WEAPON_LEVEL := 3
@@ -25,17 +25,24 @@ const WEAPON_NAMES := {
 const WEAPON_COOLDOWNS := {
 	BLASTER: 0.16,
 	VULCAN: 0.16,
-	LASER: 0.42,
+	LASER: 0.0,
 	HOMING: 0.45,
 }
+
+const _LaserBeam := preload("res://scripts/player/laser_beam.gd")
+const LASER_ORIGIN := Vector2(0, -18)
+const LASER_DPS := {1: 14.0, 2: 20.0, 3: 28.0}
+const LASER_HALF_W := {1: 7.0, 2: 13.0, 3: 22.0}
 
 var ship: CharacterBody2D
 var _drones: Array[Drone] = []
 var _fire_timer: float = 0.0
+var _laser: Node2D
 
 
 func bind(host: CharacterBody2D) -> void:
 	ship = host
+	_ensure_laser()
 
 
 func attach_pool(pool: ProjectilePool) -> void:
@@ -45,6 +52,10 @@ func attach_pool(pool: ProjectilePool) -> void:
 
 
 func tick_fire(delta: float) -> void:
+	if _laser_active():
+		_tick_laser(delta)
+		return
+	extinguish_laser()
 	_fire_timer -= delta
 	if _fire_timer > 0.0:
 		return
@@ -64,9 +75,6 @@ func _weapon_cooldown() -> float:
 				cd = 0.11
 			if level >= 3:
 				cd = 0.12
-		LASER:
-			if level >= 3:
-				cd = 0.50
 		HOMING:
 			if level == 2:
 				cd = 0.34
@@ -184,6 +192,12 @@ func hide_drones() -> void:
 	for drone in _drones:
 		if is_instance_valid(drone):
 			drone.visible = false
+	extinguish_laser()
+
+
+func extinguish_laser() -> void:
+	if _laser != null and is_instance_valid(_laser) and _laser.has_method("extinguish"):
+		_laser.extinguish()
 
 
 func reset_weapon() -> void:
@@ -269,8 +283,6 @@ func _shoot() -> void:
 	match active_weapon:
 		VULCAN:
 			_shoot_spread(origin, dmg)
-		LASER:
-			_shoot_laser(origin)
 		HOMING:
 			_shoot_homing(origin)
 		_:
@@ -301,32 +313,37 @@ func _shoot_spread(origin: Vector2, dmg: float) -> void:
 	AudioBus.play_shoot(720.0)
 
 
-func _shoot_laser(origin: Vector2) -> void:
-	match ship.weapon_level:
-		1:
-			ship.projectile_pool.spawn_player(origin, Vector2(0, -920.0), 2.6 * ship.damage_mult, {
-				"scale": 1.25, "color": Color(0.4, 0.75, 1.0), "lifetime": 0.85})
-		2:
-			for side in [-1.0, 1.0]:
-				ship.projectile_pool.spawn_player(origin + Vector2(side * 7.0, 0.0), Vector2(0, -940.0), 2.8 * ship.damage_mult, {
-					"pierce": 18,
-					"armor_pierce": true,
-					"scale": 1.2,
-					"color": Color(0.45, 0.82, 1.0),
-					"lifetime": 0.9})
-		_:
-			ship.projectile_pool.spawn_player(origin, Vector2(0, -980.0), 4.2 * ship.damage_mult, {
-				"pierce": 28,
-				"armor_pierce": true,
-				"scale": 2.1,
-				"color": Color(0.55, 0.9, 1.0),
-				"lifetime": 0.95,
-				"melt_ticks": 6,
-				"melt_dps": 0.55 * ship.damage_mult})
-			for side in [-1.0, 1.0]:
-				ship.projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(0, -920.0), 1.6 * ship.damage_mult, {
-					"pierce": 10, "armor_pierce": true, "scale": 0.9, "color": Color(0.7, 0.95, 1.0), "lifetime": 0.8})
-	AudioBus.play_shoot(1250.0)
+func _laser_active() -> bool:
+	if ship == null or not is_instance_valid(ship):
+		return false
+	if bool(ship.get("dead")) or bool(ship.get("_cinematic")) or bool(ship.get("_respawning")):
+		return false
+	if bool(ship.secondaries_disabled) and ship.weapon != BLASTER:
+		return false
+	return ship.weapon == LASER
+
+
+func _ensure_laser() -> void:
+	if _laser != null and is_instance_valid(_laser):
+		return
+	_laser = _LaserBeam.new()
+	_laser.name = "LaserBeam"
+	ship.add_child(_laser)
+
+
+func _tick_laser(delta: float) -> void:
+	_ensure_laser()
+	var level: int = clampi(int(ship.weapon_level), 1, MAX_WEAPON_LEVEL)
+	var origin: Vector2 = ship.global_position + LASER_ORIGIN
+	var half_w: float = float(LASER_HALF_W.get(level, 7.0))
+	var dps: float = float(LASER_DPS.get(level, 14.0))
+	dps *= float(ship.bullet_damage) * float(ship.damage_mult)
+	if Ships.BASE_FIRE_COOLDOWN > 0.0:
+		dps *= Ships.BASE_FIRE_COOLDOWN / maxf(float(ship.fire_cooldown), Ships.MIN_FIRE_COOLDOWN)
+	if float(ship.get("rapid_time")) > 0.0 or float(ship.get("energy_time")) > 0.0:
+		dps *= 1.75
+	var melt := 0.7 * float(ship.damage_mult) if level >= 3 else 0.0
+	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, level >= 3)
 
 
 func _shoot_homing(origin: Vector2) -> void:
