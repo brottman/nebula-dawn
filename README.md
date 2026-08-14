@@ -78,6 +78,24 @@ Unlocked after Flagship Core. Denser EX-style power floor (Lv2 + Bomb/Shield on 
 
 Unlocks after Sector 2. All ten stage bosses back-to-back with no waves — fixed Homing Lv2 loadout, full hull repair between targets, and a brief raid title card for each arena. Best raid score is persisted.
 
+### Hangar
+
+Meta-progression is **credits and strike craft**, not a player XP / account level. In-run weapon power is still gold **Power** pickups (**Lv1–3**). Open **Hangar** from the main menu, campaign select, or mission results.
+
+Every finished run (win or loss) banks `score / 10` credits. The results screen shows credits earned that run and the current bank.
+
+| Hull | Cost | Role |
+|------|------|------|
+| **Striker** | free starter | Balanced stock craft |
+| **Interceptor** | 2,500 | Fast, thin hull, quicker guns |
+| **Aegis** | 5,500 | Extra HP, a spare life, starts with a shield |
+| **Wraith** | 12,000 | Raid skirmisher, starts with a bomb |
+| **Dawn** | 24,000 | Flagship prototype, bomb + shield armed |
+
+Upgrades are **per hull** (`Hull` / `Thrusters` / `Cannons` / `Core`), ranks 0–5. Costs: 400 → 900 → 1,600 → 2,600 → 4,000. Effects: **+1 HP**, **+5% speed**, **+8% damage**, **+4% fire rate**. Power pickups still drop in-run; hangar ranks stay on that hull.
+
+Saves live in `user://nebula_dawn.cfg`. Older files without a `[hangar]` section seed credits from best campaign scores plus the Boss Rush high score, then write the hangar block.
+
 ---
 
 ## Stage structure (every campaign stage)
@@ -86,7 +104,7 @@ Each stage runs about **seven scripted waves** plus the stage boss:
 
 1. **Opener / Sweep** — popcorn & readable patterns (hybrid ~14s)
 2. **Escalation / Pressure** — denser mixed threats (hybrid ~16s)
-3. **Mid-Boss** — must kill; drops a P-Chip + one rare utility (Shield / Bomb / Energy / Heal)
+3. **Mid-Boss** — must kill; drops a Power pickup + one rare utility (Shield / Bomb / Energy / Heal)
 4. **Build** — recover into heavier setups (hybrid ~16s)
 5. **Climax** — peak stage chaos (hybrid ~20s)
 6. **Stage Boss** — multi-phase boss after all waves
@@ -109,7 +127,7 @@ Weapon **type** and **power level** are tracked separately.
 | **Blue** | Laser | Focused beam | Lv1 single → Lv2 dual + armor pierce → Lv3 mega beam + melt ticks |
 | **Green** | Homing | Seeking missiles | Lv1 2 slow → Lv2 4 fast micro → Lv3 6 rapid + splash |
 
-**Gold P-Chips** fill a **5-segment** bar toward the next shared tier (**Lv1 → Lv2 → Lv3 / MAX**). Swapping color keeps both tier and chip progress. Same color again also banks a chip. Hull damage resets to Blaster (tier + chips lost) but keeps Bits and Speed.
+**Gold Power** pickups fill a **5-segment** bar toward the next shared tier (**Lv1 → Lv2 → Lv3 / MAX**). Swapping color keeps both tier and banked Power. Same color again also banks Power. Hull damage resets to Blaster (tier + Power lost) but keeps Bits and Speed.
 
 ### Recovery (deaths)
 
@@ -198,12 +216,13 @@ nebula-dawn/
 │   ├── entities/       # Player, enemies, projectiles, pickups
 │   ├── game/           # GameWorld, HUD, parallax, pause
 │   ├── stage/          # Barriers, terminals, singularities
-│   └── ui/             # Main menu, sector select, settings, results
+│   └── ui/             # Main menu, hangar, sector select, settings, results
 ├── scripts/
 │   ├── autoloads/      # GameState, AudioBus, EventBus
 │   ├── combat/         # Projectile pool
 │   ├── enemies/        # Enemy + pickup logic + BossPatterns
 │   ├── game/           # World + parallax
+│   ├── hangar/         # Ship catalog + upgrade math
 │   ├── mission/        # Waves, runner, formations
 │   ├── player/         # Ship facade + WeaponSystem / LifeSystem
 │   ├── stage/          # StageDirector; gimmicks/ is one module per gimmick_id
@@ -219,7 +238,7 @@ nebula-dawn/
 
 | Name | Role |
 |------|------|
-| `GameState` | Mode, mission index, unlocks, scores, save/load |
+| `GameState` | Mode, mission index, unlocks, scores, hangar (credits / hulls / upgrades), save/load |
 | `AudioBus` | Procedural SFX + looping music |
 | `EventBus` | Decoupled gameplay signals (HP, waves, boss, gimmicks, …) |
 
@@ -257,6 +276,7 @@ Or run the pieces:
 ```bash
 godot --headless --path . --editor --quit-after 1
 godot --headless --path . --script res://tools/validate_project.gd
+godot --headless --path . --script res://tools/test_hangar.gd
 godot --headless --path . --script res://tools/test_player.gd
 godot --headless --path . --script res://tools/smoke_test.gd
 godot --headless --path . --script res://tools/smoke_boss_rush.gd

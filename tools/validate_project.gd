@@ -11,6 +11,7 @@ func _run() -> void:
 	var ok := true
 	ok = _check_paths() and ok
 	ok = _check_autoloads() and ok
+	ok = _check_hangar() and ok
 	ok = _check_player_scene() and ok
 	ok = _check_missions() and ok
 	ok = _check_gimmicks() and ok
@@ -33,6 +34,7 @@ func _check_paths() -> bool:
 	var paths := [
 		"res://scenes/ui/main_menu.tscn",
 		"res://scenes/ui/campaign_select.tscn",
+		"res://scenes/ui/hangar.tscn",
 		"res://scenes/ui/mission_results.tscn",
 		"res://scenes/ui/settings_menu.tscn",
 		"res://scenes/game/game_world.tscn",
@@ -123,6 +125,7 @@ func _check_player_scene() -> bool:
 		ok = false
 	for method_name in [
 		"apply_pickup",
+		"apply_hangar_loadout",
 		"try_use_bomb",
 		"_emit_weapon_changed",
 		"_try_death_bomb",
@@ -231,8 +234,77 @@ func _check_gimmicks() -> bool:
 	return ok
 
 
+func _check_hangar() -> bool:
+	var gs := root.get_node_or_null("GameState")
+	if gs == null:
+		_fail("GameState missing; cannot check hangar")
+		return false
+	var ok := true
+	for method_name in [
+		"reset_hangar",
+		"buy_ship",
+		"select_ship",
+		"buy_upgrade",
+		"get_active_loadout",
+		"equipped_ship_name",
+		"is_ship_owned",
+	]:
+		if not gs.has_method(method_name):
+			_fail("GameState missing hangar method: " + method_name)
+			ok = false
+	var Ships := load("res://scripts/hangar/ship_catalog.gd")
+	if Ships == null:
+		_fail("ship_catalog.gd missing")
+		return false
+	if String(Ships.STARTER_ID) != "striker":
+		_fail("ShipCatalog.STARTER_ID")
+		ok = false
+	if Ships.all_ids().size() != 5:
+		_fail("ShipCatalog roster size %d" % Ships.all_ids().size())
+		ok = false
+	var hangar: Node = load("res://scenes/ui/hangar.tscn").instantiate()
+	for path in [
+		"VBox/Credits",
+		"VBox/Scroll/Content/ShipList",
+		"VBox/Scroll/Content/Portrait",
+		"VBox/Scroll/Content/ActionButton",
+		"VBox/Scroll/Content/UpgradeList",
+		"VBox/BackButton",
+	]:
+		if hangar.get_node_or_null(path) == null:
+			_fail("hangar.tscn missing " + path)
+			ok = false
+	hangar.free()
+	var campaign: Node = load("res://scenes/ui/campaign_select.tscn").instantiate()
+	for path in ["Center/VBox/HangarStatus", "Center/VBox/HangarButton"]:
+		if campaign.get_node_or_null(path) == null:
+			_fail("campaign_select.tscn missing " + path)
+			ok = false
+	campaign.free()
+	var results: Node = load("res://scenes/ui/mission_results.tscn").instantiate()
+	for path in ["Scroll/VBox/Credits", "Scroll/VBox/HangarButton"]:
+		if results.get_node_or_null(path) == null:
+			_fail("mission_results.tscn missing " + path)
+			ok = false
+	results.free()
+	var menu: Node = load("res://scenes/ui/main_menu.tscn").instantiate()
+	for path in ["Center/VBox/HangarButton", "Center/VBox/Credits"]:
+		if menu.get_node_or_null(path) == null:
+			_fail("main_menu.tscn missing " + path)
+			ok = false
+	menu.free()
+	if ok:
+		print("OK  hangar scenes + catalog")
+	return ok
+
+
 func _check_sprites() -> bool:
 	var paths := [
+		"res://assets/sprites/player_ship.svg",
+		"res://assets/sprites/player_interceptor.svg",
+		"res://assets/sprites/player_aegis.svg",
+		"res://assets/sprites/player_wraith.svg",
+		"res://assets/sprites/player_dawn.svg",
 		"res://assets/sprites/enemy_boss_kaleidoscope.svg",
 		"res://assets/sprites/enemy_boss_tempest.svg",
 		"res://assets/sprites/enemy_boss_choir.svg",

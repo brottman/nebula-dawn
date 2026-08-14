@@ -3,6 +3,7 @@ extends Node
 ## Color weapons, shared power tier, drones, and speed stacks.
 ## Public ship API still lives on the player; this node owns the loadout logic.
 
+const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 const MAX_WEAPON_LEVEL := 3
 const CHIPS_PER_LEVEL := 5
 const MAX_DRONES := 2
@@ -56,7 +57,7 @@ func tick_fire(delta: float) -> void:
 func _weapon_cooldown() -> float:
 	var weapon: int = ship.weapon
 	var level: int = ship.weapon_level
-	var cd: float = WEAPON_COOLDOWNS.get(weapon, ship.fire_cooldown)
+	var cd: float = WEAPON_COOLDOWNS.get(weapon, Ships.BASE_FIRE_COOLDOWN)
 	match weapon:
 		VULCAN:
 			if level >= 2:
@@ -71,7 +72,10 @@ func _weapon_cooldown() -> float:
 				cd = 0.34
 			elif level >= 3:
 				cd = 0.22
-	return cd
+	var hull_cd := float(ship.fire_cooldown)
+	if Ships.BASE_FIRE_COOLDOWN > 0.0:
+		cd *= hull_cd / Ships.BASE_FIRE_COOLDOWN
+	return maxf(Ships.MIN_FIRE_COOLDOWN, cd)
 
 
 func set_weapon(w: int) -> void:
@@ -117,7 +121,7 @@ func _add_chips(count: int) -> void:
 				break
 			EventBus.gimmick_toast.emit("POWER  Lv%d" % ship.weapon_level)
 		else:
-			EventBus.gimmick_toast.emit("P-CHIP  %d/%d" % [ship.chip_progress, CHIPS_PER_LEVEL])
+			EventBus.gimmick_toast.emit("POWER  %d/%d" % [ship.chip_progress, CHIPS_PER_LEVEL])
 	note_peak_loadout()
 	emit_changed()
 

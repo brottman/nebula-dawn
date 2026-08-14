@@ -56,7 +56,7 @@ You are a strike craft punching through enemy-held space: low orbit, debris fiel
 ## Screen layout
 
 ```
-TOP HUD BAR (static)     HP/Lives  |  Weapon badge + LV + 5 chip segments  |  Score
+TOP HUD BAR (static)     HP/Lives  |  Weapon badge + LV + 5 Power segments  |  Score
 PLAYFIELD                Active action zone (no chrome)
 BOTTOM TOUCH             Bomb button (tap) — bottom-left corner
 ```
@@ -65,10 +65,10 @@ Top-center weapon module:
 
 ```
 [RED] SPREAD BEAM              [ LV 2 ]
-[■][■][■][□][□]           3/5 P-CHIPS
+[■][■][■][□][□]           3/5 POWER
 ```
 
-Badge color = weapon family. Segments show chips banked toward the next tier (instant “I need 2 more”).
+Badge color = weapon family. Segments show Power banked toward the next tier (instant “I need 2 more”).
 
 ## Color weapons + universal power
 
@@ -80,7 +80,7 @@ Weapon type and power level are independent:
 | **Blue** | Laser | Single beam | Dual beams + armor pierce | Mega beam + melt ticks |
 | **Green** | Homing | 2 slow rockets | 4 fast micro-missiles | 6 rapid + splash |
 
-**Gold P-Chips** fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX). Color swaps keep tier + chip bank. Same-color pickups also bank a chip. Hull hits drop you to Blaster.
+**Gold Power** pickups fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX). Color swaps keep tier + Power bank. Same-color pickups also bank Power. Hull hits drop you to Blaster.
 
 ### Recovery on death
 
@@ -90,7 +90,7 @@ Weapon type and power level are independent:
 
 ## Rare defensive / utility drops
 
-Common fodder only drops weapons and stackables (P-Chip / Bit / Speed). Defensive utilities stay rare:
+Common fodder only drops weapons and stackables (Power / Bit / Speed). Defensive utilities stay rare:
 
 | Drop | Effect | Sources |
 |------|--------|---------|
@@ -99,7 +99,7 @@ Common fodder only drops weapons and stackables (P-Chip / Bit / Speed). Defensiv
 | **Energy** | ~4s fire-rate boost + invulnerability | Mid-boss reward, full wave wipe |
 | **Heal** | +1 HP | Mid-boss reward pool only |
 
-Formation chain bonuses stay common (P-Chip / Bit) — they are aggression rewards, not panic buttons.
+Formation chain bonuses stay common (Power / Bit) — they are aggression rewards, not panic buttons.
 
 ## Pacing rules of thumb
 

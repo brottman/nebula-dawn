@@ -445,7 +445,7 @@ func _split_asteroid() -> void:
 
 
 func _spawn_major_reward() -> void:
-	# Mid-boss: P-Chip + one rare defensive / utility drop.
+	# Mid-boss: Power pickup + one rare defensive / utility drop.
 	_spawn_pickup_at(global_position + Vector2(-28, 0), "power")
 	_spawn_pickup_at(global_position + Vector2(28, 0), _rare_utility_kind())
 

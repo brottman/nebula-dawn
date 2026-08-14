@@ -8,6 +8,13 @@ func _init() -> void:
 
 func _run() -> void:
 	await process_frame
+	var gs: Node = root.get_node_or_null("GameState")
+	if gs == null or not gs.has_method("reset_hangar"):
+		push_error("GameState.reset_hangar missing")
+		quit(1)
+		return
+	gs.call("reset_hangar")
+	gs.call("start_campaign_mission", 0)
 	var packed: PackedScene = load("res://scenes/entities/player.tscn")
 	if packed == null:
 		push_error("player.tscn missing")
@@ -34,7 +41,7 @@ func _run() -> void:
 	for _i in 5:
 		player.call("apply_pickup", "pchip")
 	if int(player.weapon_level) != 2:
-		push_error("5 P-Chips should reach Lv2, got %s" % player.weapon_level)
+		push_error("5 Power pickups should reach Lv2, got %s" % player.weapon_level)
 		quit(1)
 		return
 

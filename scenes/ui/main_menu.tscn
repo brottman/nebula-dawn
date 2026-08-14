@@ -50,6 +50,11 @@ custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 text = "Campaign"
 
+[node name="HangarButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(240, 44)
+layout_mode = 2
+text = "Hangar"
+
 [node name="BossRushButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
@@ -70,6 +75,13 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.65, 0.85, 1)
 theme_override_font_sizes/font_size = 12
 text = "RAID BEST  000000"
+horizontal_alignment = 1
+
+[node name="Credits" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
+theme_override_font_sizes/font_size = 12
+text = "CREDITS  0"
 horizontal_alignment = 1
 
 [node name="Controls" type="Label" parent="."]

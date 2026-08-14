@@ -1,7 +1,8 @@
 extends Node
-## Persistent campaign progress, settings, run mode, and mission stats.
+## Persistent campaign progress, hangar, settings, run mode, and mission stats.
 
 const SAVE_PATH := "user://nebula_dawn.cfg"
+const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 ## Sector 1 — five stages from Planetary Ascent through Flagship Core.
 const SECTOR_1_PATHS := [
 	"res://resources/missions/mission_01_planetary_ascent.tres",
@@ -49,6 +50,7 @@ var run_combo: int = 0
 var run_combo_timer: float = 0.0
 
 var settings_return_scene: String = "res://scenes/ui/main_menu.tscn"
+var hangar_return_scene: String = "res://scenes/ui/main_menu.tscn"
 
 ## Settings (0–1 volumes, 0.5–1.5 touch sensitivity).
 var music_volume: float = 0.75
@@ -77,6 +79,15 @@ var last_rank: String = ""
 var last_rank_bonus: int = 0
 ## Graze + combo chain bonus from the last finished run.
 var last_chain_bonus: int = 0
+
+## Hangar: spendable credits, owned hulls, equipped ship, per-hull upgrades.
+## Meta-progression is ships + upgrades — there is no player XP / account level.
+var credits: int = 0
+var selected_ship_id: String = Ships.STARTER_ID
+var owned_ship_ids: PackedStringArray = PackedStringArray([Ships.STARTER_ID])
+## ship_id -> { hull, thrust, cannon, core } ranks 0..MAX_UPGRADE
+var upgrade_ranks: Dictionary = {}
+var last_credits_earned: int = 0
 
 
 func _ready() -> void:
@@ -116,6 +127,7 @@ func load_progress() -> void:
 	_ensure_score_slots()
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
+		_ensure_hangar()
 		return
 	highest_unlocked_mission = int(cfg.get_value("campaign", "unlocked", 0))
 	boss_rush_high_score = int(cfg.get_value("boss_rush", "high_score", 0))
@@ -128,11 +140,16 @@ func load_progress() -> void:
 	for i in MISSION_PATHS.size():
 		best_ranks[i] = String(cfg.get_value("ranks", "m%d" % i, ""))
 		best_scores[i] = int(cfg.get_value("scores", "m%d" % i, 0))
+	var seeded := _load_hangar(cfg)
+	_ensure_hangar()
+	if seeded:
+		save_progress()
 
 
 func save_progress() -> void:
 	_ensure_rank_slots()
 	_ensure_score_slots()
+	_ensure_hangar()
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", highest_unlocked_mission)
 	cfg.set_value("boss_rush", "high_score", boss_rush_high_score)
@@ -145,7 +162,120 @@ func save_progress() -> void:
 	for i in MISSION_PATHS.size():
 		cfg.set_value("ranks", "m%d" % i, best_ranks[i])
 		cfg.set_value("scores", "m%d" % i, best_scores[i])
+	cfg.set_value("hangar", "credits", credits)
+	cfg.set_value("hangar", "selected", selected_ship_id)
+	cfg.set_value("hangar", "owned", ",".join(owned_ship_ids))
+	for id in Ships.all_ids():
+		cfg.set_value("upgrades", id, Ships.format_ranks(get_ship_ranks(id)))
 	cfg.save(SAVE_PATH)
+
+
+func reset_hangar() -> void:
+	credits = 0
+	selected_ship_id = Ships.STARTER_ID
+	owned_ship_ids = PackedStringArray([Ships.STARTER_ID])
+	upgrade_ranks.clear()
+	last_credits_earned = 0
+
+
+func _ensure_hangar() -> void:
+	if selected_ship_id.strip_edges() == "":
+		selected_ship_id = Ships.STARTER_ID
+	if Ships.get_def(selected_ship_id).is_empty():
+		selected_ship_id = Ships.STARTER_ID
+	if not owned_ship_ids.has(Ships.STARTER_ID):
+		var owned: PackedStringArray = [Ships.STARTER_ID]
+		for id in owned_ship_ids:
+			if id != Ships.STARTER_ID and not owned.has(id):
+				owned.append(id)
+		owned_ship_ids = owned
+	if not is_ship_owned(selected_ship_id):
+		selected_ship_id = Ships.STARTER_ID
+
+
+func _load_hangar(cfg: ConfigFile) -> bool:
+	if not cfg.has_section("hangar"):
+		reset_hangar()
+		for score in best_scores:
+			credits += Ships.credits_from_score(int(score))
+		credits += Ships.credits_from_score(boss_rush_high_score)
+		return true
+	credits = maxi(0, int(cfg.get_value("hangar", "credits", 0)))
+	selected_ship_id = String(cfg.get_value("hangar", "selected", Ships.STARTER_ID))
+	owned_ship_ids = PackedStringArray()
+	var owned_raw := String(cfg.get_value("hangar", "owned", Ships.STARTER_ID))
+	for part in owned_raw.split(",", false):
+		var id := String(part).strip_edges()
+		if id != "" and not owned_ship_ids.has(id):
+			owned_ship_ids.append(id)
+	upgrade_ranks.clear()
+	for id in Ships.all_ids():
+		upgrade_ranks[id] = Ships.parse_ranks(String(cfg.get_value("upgrades", id, "0,0,0,0")))
+	return false
+
+
+func is_ship_owned(ship_id: String) -> bool:
+	return owned_ship_ids.has(ship_id)
+
+
+func get_ship_ranks(ship_id: String) -> Dictionary:
+	return Ships.normalize_ranks(upgrade_ranks.get(ship_id, {}))
+
+
+func get_loadout_for(ship_id: String) -> Dictionary:
+	return Ships.resolve(ship_id, get_ship_ranks(ship_id))
+
+
+func get_active_loadout() -> Dictionary:
+	return get_loadout_for(selected_ship_id)
+
+
+func equipped_ship_name() -> String:
+	return String(get_active_loadout().get("name", "Striker"))
+
+
+func buy_ship(ship_id: String) -> bool:
+	var def := Ships.get_def(ship_id)
+	if def.is_empty() or is_ship_owned(ship_id):
+		return false
+	var cost := int(def.get("cost", 0))
+	if credits < cost:
+		return false
+	credits -= cost
+	owned_ship_ids.append(ship_id)
+	save_progress()
+	return true
+
+
+func select_ship(ship_id: String) -> bool:
+	if not is_ship_owned(ship_id) or Ships.get_def(ship_id).is_empty():
+		return false
+	selected_ship_id = ship_id
+	save_progress()
+	return true
+
+
+func buy_upgrade(ship_id: String, key: String) -> bool:
+	if not is_ship_owned(ship_id) or not Ships.is_upgrade_key(key):
+		return false
+	var ranks := get_ship_ranks(ship_id)
+	var rank := int(ranks.get(key, 0))
+	if rank >= Ships.MAX_UPGRADE:
+		return false
+	var cost := Ships.upgrade_cost(rank)
+	if cost <= 0 or credits < cost:
+		return false
+	credits -= cost
+	ranks[key] = rank + 1
+	upgrade_ranks[ship_id] = ranks
+	save_progress()
+	return true
+
+
+func _award_run_credits() -> void:
+	last_credits_earned = Ships.credits_from_score(session_score)
+	if last_credits_earned > 0:
+		credits += last_credits_earned
 
 
 func set_music_volume(v: float) -> void:
@@ -191,6 +321,7 @@ func start_campaign_mission(index: int) -> void:
 	last_rank = ""
 	last_rank_bonus = 0
 	last_chain_bonus = 0
+	last_credits_earned = 0
 	_reset_run_stats()
 
 
@@ -204,6 +335,7 @@ func start_boss_rush() -> void:
 	last_rank = ""
 	last_rank_bonus = 0
 	last_chain_bonus = 0
+	last_credits_earned = 0
 	_reset_run_stats()
 
 
@@ -289,12 +421,11 @@ func record_mission_result(won: bool) -> void:
 			highest_unlocked_mission = next
 		elif current_mission_index == MISSION_PATHS.size() - 1:
 			highest_unlocked_mission = maxi(highest_unlocked_mission, current_mission_index)
-		save_progress()
 	last_score = session_score
-	if mode == Mode.BOSS_RUSH:
-		if session_score > boss_rush_high_score:
-			boss_rush_high_score = session_score
-		save_progress()
+	_award_run_credits()
+	if mode == Mode.BOSS_RUSH and session_score > boss_rush_high_score:
+		boss_rush_high_score = session_score
+	save_progress()
 
 
 func _record_best_rank(index: int, rank: String) -> void:

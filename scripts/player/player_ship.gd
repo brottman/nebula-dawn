@@ -2,7 +2,7 @@ extends CharacterBody2D
 ## Player strike craft — movement, graze, and a facade over WeaponSystem / LifeSystem.
 ## Color-coded weapons + universal power level:
 ##   Red = Spread, Blue = Laser, Green = Homing.
-##   Gold P-Chips raise the shared tier (Lv1→2→3). Swapping color keeps the tier.
+##   Gold Power pickups raise the shared tier (Lv1→2→3). Swapping color keeps the tier.
 ## Hull damage resets to Blaster Lv1 (power tier lost). Bits/Speed persist.
 
 const PLAYFIELD_MARGIN := 24.0
@@ -66,16 +66,17 @@ const _LifeSystem := preload("res://scripts/player/life_system.gd")
 @onready var weapons: _WeaponSystem = $WeaponSystem
 @onready var life: _LifeSystem = $LifeSystem
 
-const _SHIP_TINT := Color(1.0, 1.0, 1.0, 1.0)
 const _SHIP_FLASH := Color(1.6, 1.6, 1.6, 1.0)
+var _ship_tint := Color(1.0, 1.0, 1.0, 1.0)
 
 
 func _ready() -> void:
 	add_to_group("player")
 	weapons.bind(self)
 	life.bind(self)
+	apply_hangar_loadout()
 	life.reset_run()
-	_shield_visual.visible = false
+	_shield_visual.visible = shield_charges > 0
 	if _sprite and _sprite.texture:
 		_poly.visible = false
 	_build_graze_zone()
@@ -85,6 +86,30 @@ func _ready() -> void:
 	EventBus.player_lives_changed.emit(lives)
 	EventBus.bomb_stock_changed.emit(bomb_stock)
 	_emit_weapon_changed()
+
+
+func apply_hangar_loadout() -> void:
+	var spec: Dictionary = GameState.get_active_loadout()
+	max_hp = int(spec.get("max_hp", 7))
+	move_speed = float(spec.get("move_speed", 310.0))
+	fire_cooldown = float(spec.get("fire_cooldown", 0.16))
+	bullet_speed = float(spec.get("bullet_speed", 560.0))
+	bullet_damage = float(spec.get("bullet_damage", 1.0))
+	var tint_val: Variant = spec.get("tint", Color(1.0, 1.0, 1.0, 1.0))
+	if tint_val is Color:
+		_ship_tint = tint_val
+	else:
+		_ship_tint = Color(1.0, 1.0, 1.0, 1.0)
+	var path := String(spec.get("sprite", "res://assets/sprites/player_ship.svg"))
+	if _sprite and ResourceLoader.exists(path):
+		var tex := load(path) as Texture2D
+		if tex:
+			_sprite.texture = tex
+			_sprite.visible = true
+			if _poly:
+				_poly.visible = false
+	var vis := _visual()
+	vis.modulate = _ship_tint
 
 
 func _build_graze_zone() -> void:
@@ -309,7 +334,7 @@ func play_victory_exit() -> void:
 	if _engine:
 		_engine.emitting = true
 	var vis := _visual()
-	vis.modulate = _SHIP_TINT
+	vis.modulate = _ship_tint
 
 	var vp := get_viewport_rect().size
 	var center := Vector2(vp.x * 0.5, vp.y * 0.48)
@@ -371,7 +396,7 @@ func _update_visuals(_delta: float) -> void:
 	if _flash_timer > 0.0:
 		vis.modulate = Color(_SHIP_FLASH.r, _SHIP_FLASH.g, _SHIP_FLASH.b, vis.modulate.a)
 	else:
-		vis.modulate = Color(_SHIP_TINT.r, _SHIP_TINT.g, _SHIP_TINT.b, vis.modulate.a)
+		vis.modulate = Color(_ship_tint.r, _ship_tint.g, _ship_tint.b, vis.modulate.a)
 	if vis == _poly:
 		_poly.color = Color(1.0, 1.0, 1.0) if _flash_timer > 0.0 else Color(0.43, 0.78, 1.0)
 	if _engine:

@@ -1,16 +1,21 @@
 extends Control
 ## Title screen.
 
+const Ships := preload("res://scripts/hangar/ship_catalog.gd")
+
 @onready var campaign_btn: Button = $Center/VBox/CampaignButton
+@onready var hangar_btn: Button = $Center/VBox/HangarButton
 @onready var boss_rush_btn: Button = $Center/VBox/BossRushButton
 @onready var settings_btn: Button = $Center/VBox/SettingsButton
 @onready var quit_btn: Button = $Center/VBox/QuitButton
 @onready var high_score: Label = $Center/VBox/HighScore
+@onready var credits_label: Label = $Center/VBox/Credits
 @onready var title: Label = $Center/VBox/Title
 
 
 func _ready() -> void:
 	campaign_btn.pressed.connect(_on_campaign)
+	hangar_btn.pressed.connect(_on_hangar)
 	boss_rush_btn.pressed.connect(_on_boss_rush)
 	settings_btn.pressed.connect(_on_settings)
 	quit_btn.pressed.connect(_on_quit)
@@ -19,6 +24,10 @@ func _ready() -> void:
 	if boss_rush_locked:
 		boss_rush_btn.text = "Boss Rush  (clear Sector 2)"
 	high_score.text = "RAID BEST  %06d" % GameState.boss_rush_high_score
+	credits_label.text = "CREDITS  %s    ·    %s" % [
+		Ships.format_credits(GameState.credits),
+		GameState.equipped_ship_name(),
+	]
 	campaign_btn.grab_focus()
 	AudioBus.play_menu_music()
 	AudioBus.apply_volumes()
@@ -38,6 +47,12 @@ func _on_campaign() -> void:
 	AudioBus.play_ui()
 	GameState.settings_return_scene = "res://scenes/ui/main_menu.tscn"
 	get_tree().change_scene_to_file("res://scenes/ui/campaign_select.tscn")
+
+
+func _on_hangar() -> void:
+	AudioBus.play_ui()
+	GameState.hangar_return_scene = "res://scenes/ui/main_menu.tscn"
+	get_tree().change_scene_to_file("res://scenes/ui/hangar.tscn")
 
 
 func _on_boss_rush() -> void:

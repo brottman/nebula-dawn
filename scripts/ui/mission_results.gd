@@ -1,16 +1,20 @@
 extends Control
 ## Mission statistics after a run, with retry / next-mission navigation.
 
+const Ships := preload("res://scripts/hangar/ship_catalog.gd")
+
 @onready var title: Label = $Scroll/VBox/Title
 @onready var mission_name: Label = $Scroll/VBox/MissionName
 @onready var subtitle: Label = $Scroll/VBox/Subtitle
 @onready var score: Label = $Scroll/VBox/Score
+@onready var credits_label: Label = $Scroll/VBox/Credits
 @onready var rank_label: Label = $Scroll/VBox/RankLabel
 @onready var rank_detail: Label = $Scroll/VBox/RankDetail
 @onready var detail: Label = $Scroll/VBox/Detail
 @onready var next_btn: Button = $Scroll/VBox/NextButton
 @onready var again_btn: Button = $Scroll/VBox/AgainButton
 @onready var campaign_btn: Button = $Scroll/VBox/CampaignButton
+@onready var hangar_btn: Button = $Scroll/VBox/HangarButton
 @onready var menu_btn: Button = $Scroll/VBox/MenuButton
 
 @onready var stat_time: Label = $Scroll/VBox/StatsPanel/Stats/StatTime/V
@@ -30,6 +34,7 @@ func _ready() -> void:
 	next_btn.pressed.connect(_on_next)
 	again_btn.pressed.connect(_on_again)
 	campaign_btn.pressed.connect(_on_campaign)
+	hangar_btn.pressed.connect(_on_hangar)
 	menu_btn.pressed.connect(_on_menu)
 	_populate()
 	_focus_primary()
@@ -61,6 +66,10 @@ func _fill_stats() -> void:
 
 func _fill_header() -> void:
 	score.text = "SCORE  %06d" % GameState.last_score
+	credits_label.text = "CREDITS  +%s    ·    bank  %s" % [
+		Ships.format_credits(GameState.last_credits_earned),
+		Ships.format_credits(GameState.credits),
+	]
 	_fill_rank()
 
 	if GameState.mode == GameState.Mode.BOSS_RUSH:
@@ -191,6 +200,12 @@ func _on_campaign() -> void:
 		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 	else:
 		get_tree().change_scene_to_file("res://scenes/ui/campaign_select.tscn")
+
+
+func _on_hangar() -> void:
+	AudioBus.play_ui()
+	GameState.hangar_return_scene = "res://scenes/ui/mission_results.tscn"
+	get_tree().change_scene_to_file("res://scenes/ui/hangar.tscn")
 
 
 func _on_menu() -> void:

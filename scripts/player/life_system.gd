@@ -19,13 +19,16 @@ func bind(host: CharacterBody2D) -> void:
 
 
 func reset_run() -> void:
+	var spec: Dictionary = GameState.get_active_loadout()
 	ship.hp = ship.max_hp
-	ship.lives = START_LIVES
-	ship.bomb_stock = 0
-	ship.shield_charges = 0
+	ship.lives = int(spec.get("lives", START_LIVES))
+	ship.bomb_stock = mini(MAX_BOMB_STOCK, int(spec.get("start_bombs", 0)))
+	ship.shield_charges = mini(MAX_SHIELD_CHARGES, int(spec.get("start_shields", 0)))
 	ship.dead = false
 	ship._respawning = false
 	ship._death_bomb_time = 0.0
+	if ship._shield_visual:
+		ship._shield_visual.visible = ship.shield_charges > 0
 
 
 func update_timers(delta: float) -> void:
@@ -277,7 +280,7 @@ func _respawn() -> void:
 	ship.visible = true
 	ship.scale = Vector2.ONE
 	var vis: CanvasItem = ship._visual()
-	vis.modulate = ship._SHIP_TINT
+	vis.modulate = ship._ship_tint
 	EventBus.player_hp_changed.emit(ship.hp, ship.max_hp)
 	ship.weapons.emit_changed()
 	EventBus.gimmick_toast.emit("RESPAWN  Lv%d" % ship.weapon_level)

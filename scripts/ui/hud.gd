@@ -1,6 +1,6 @@
 extends CanvasLayer
 ## Screen layout:
-##   TOP BAR     — lives + HP | weapon badge + chips | score
+##   TOP BAR     — lives + HP | weapon badge + Power | score
 ##   PLAYFIELD   — clear action zone
 ##   BOTTOM      — Bomb (left) / Pause (right)
 
@@ -244,7 +244,7 @@ func _on_pickup(kind: String) -> void:
 		"spread": "SPREAD", "vulcan": "SPREAD", "red": "SPREAD",
 		"laser": "LASER", "beam": "LASER", "blue": "LASER",
 		"homing": "HOMING", "missiles": "HOMING", "green": "HOMING",
-		"power": "P-CHIP", "pchip": "P-CHIP", "p-chip": "P-CHIP", "gold": "P-CHIP",
+		"power": "POWER", "pchip": "POWER", "p-chip": "POWER", "gold": "POWER",
 		"power_orb": "POWER ORB", "orb": "POWER ORB",
 		"option": "DRONE", "bit": "DRONE", "drone": "DRONE",
 		"speed": "SPEED",

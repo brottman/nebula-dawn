@@ -1,6 +1,6 @@
 extends Area2D
 ## Collectible power-up drifting downward.
-## Color weapons: red=Spread, blue=Laser, green=Homing. Gold P-Chip = shared level.
+## Color weapons: red=Spread, blue=Laser, green=Homing. Gold Power = shared level.
 
 var kind: String = "spread"
 var fall_speed: float = 70.0
@@ -48,10 +48,10 @@ const TOAST_NAMES := {
 	"homing": "HOMING",
 	"missiles": "HOMING",
 	"green": "HOMING",
-	"power": "P-CHIP",
-	"pchip": "P-CHIP",
-	"p-chip": "P-CHIP",
-	"gold": "P-CHIP",
+	"power": "POWER",
+	"pchip": "POWER",
+	"p-chip": "POWER",
+	"gold": "POWER",
 	"power_orb": "POWER ORB",
 	"orb": "POWER ORB",
 	"option": "DRONE",

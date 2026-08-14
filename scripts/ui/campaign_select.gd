@@ -1,17 +1,26 @@
 extends Control
 ## Campaign stage list for both sectors, with best-rank badges.
 
+const Ships := preload("res://scripts/hangar/ship_catalog.gd")
+
 @onready var title_label: Label = $Center/VBox/Title
 @onready var subtitle_label: Label = $Center/VBox/Subtitle
+@onready var hangar_status: Label = $Center/VBox/HangarStatus
 @onready var list: VBoxContainer = $Center/VBox/Scroll/MissionList
+@onready var hangar_btn: Button = $Center/VBox/HangarButton
 @onready var back_btn: Button = $Center/VBox/BackButton
 
 
 func _ready() -> void:
 	back_btn.pressed.connect(_on_back)
+	hangar_btn.pressed.connect(_on_hangar)
 	AudioBus.play_menu_music()
 	title_label.text = "CAMPAIGN"
 	subtitle_label.text = "Sector 1 + Sector 2"
+	hangar_status.text = "Equipped  %s    ·    %s cr" % [
+		GameState.equipped_ship_name(),
+		Ships.format_credits(GameState.credits),
+	]
 	_build_list()
 
 
@@ -78,6 +87,12 @@ func _start(index: int) -> void:
 	AudioBus.play_ui()
 	GameState.start_campaign_mission(index)
 	get_tree().change_scene_to_file("res://scenes/game/game_world.tscn")
+
+
+func _on_hangar() -> void:
+	AudioBus.play_ui()
+	GameState.hangar_return_scene = "res://scenes/ui/campaign_select.tscn"
+	get_tree().change_scene_to_file("res://scenes/ui/hangar.tscn")
 
 
 func _on_back() -> void:

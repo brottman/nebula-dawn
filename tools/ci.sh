@@ -14,19 +14,37 @@ if [[ -z "${GODOT:-}" ]]; then
   fi
 fi
 
+# Godot --script often exits 0 on compile errors; treat SCRIPT ERROR as failure.
+run_godot() {
+  local label="$1"
+  shift
+  echo "==> $label"
+  local log
+  log="$(mktemp)"
+  set +e
+  "$GODOT" "$@" >"$log" 2>&1
+  local status=$?
+  set -e
+  cat "$log"
+  if [[ "$status" -ne 0 ]]; then
+    rm -f "$log"
+    exit "$status"
+  fi
+  if grep -q "SCRIPT ERROR" "$log"; then
+    echo "SCRIPT ERROR during $label" >&2
+    rm -f "$log"
+    exit 1
+  fi
+  rm -f "$log"
+}
+
 echo "==> import / class cache"
 "$GODOT" --headless --path . --editor --quit-after 1
 
-echo "==> validate_project"
-"$GODOT" --headless --path . --script res://tools/validate_project.gd
-
-echo "==> test_player"
-"$GODOT" --headless --path . --script res://tools/test_player.gd
-
-echo "==> smoke_test"
-"$GODOT" --headless --path . --script res://tools/smoke_test.gd
-
-echo "==> smoke_boss_rush"
-"$GODOT" --headless --path . --script res://tools/smoke_boss_rush.gd
+run_godot validate_project --headless --path . --script res://tools/validate_project.gd
+run_godot test_hangar --headless --path . --script res://tools/test_hangar.gd
+run_godot test_player --headless --path . --script res://tools/test_player.gd
+run_godot smoke_test --headless --path . --script res://tools/smoke_test.gd
+run_godot smoke_boss_rush --headless --path . --script res://tools/smoke_boss_rush.gd
 
 echo "CI OK"
