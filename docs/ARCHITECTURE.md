@@ -148,12 +148,14 @@ On `_ready`, `apply_hangar_loadout()` copies `GameState.get_active_loadout()` on
 - `LifeSystem` — hull, lives, shields, bombs, death/respawn, volcano drop, Overdrive, plasma
 - Touch-follow or keyboard 8-way
 - Auto-fire: stock Blaster + color weapons (Red Spread / Blue Laser column / Green Homing)
+- Color pickups unlock that family; Q / Tab / X / HUD WEP cycles among unlocked colors
 - Universal power tier (Lv1–3) shared across colors; Gold P-Chips raise it; color swaps keep it
+- Hull hits drop to Blaster and clear the color rack; Bits/Speed persist
 - Stackable sub-systems: Drones (≤2 orbiting auto-turrets, lost on hit), Speed (≤3 stacks)
 - Rare utilities: hit-based Shield (≤2 charges), stocked Bombs (≤3), Energy (~4s fire-rate + invuln)
 - Recovery: volcano Power Orbs on death, stage power floor on respawn, death-bomb panic window
 - `play_victory_exit()` cinematic on stage clear
-- Starting lives come from the equipped hull (Striker: 3); Bomb input: B / Shift / on-screen button
+- Starting lives come from the equipped hull (Striker: 3); Bomb input: B / Shift / on-screen button; weapon switch: Q / Tab / X / WEP
 
 ## UI
 
@@ -166,7 +168,7 @@ Pause (Esc / Start / on-screen button) emits `EventBus.pause_requested`. `GameWo
 | `main_menu.tscn` | Campaign / Hangar / Boss Rush / Settings / Quit; shows bank + equipped hull |
 | `hangar.tscn` | Buy / equip hulls; rank Hull / Thrusters / Cannons / Core |
 | `campaign_select.tscn` | Unlockable 1-1 … 2-5 list; Hangar + equipped name / credits |
-| `hud.tscn` | Lives, HP, weapon badge + Power bar, score, boss bar, overdrive, toasts, Bomb / Pause |
+| `hud.tscn` | Lives, HP, weapon badge + Power bar, score, boss bar, overdrive, toasts, Bomb / WEP / Pause |
 | `pause_menu.tscn` | Resume / Settings overlay / main menu (`PROCESS_MODE_ALWAYS`) |
 | `settings_menu.tscn` | Volumes + accessibility; overlay or standalone |
 | `mission_results.tscn` | Win/lose summary; credits earned / bank; Hangar |

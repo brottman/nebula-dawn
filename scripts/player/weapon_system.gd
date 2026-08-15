@@ -31,13 +31,15 @@ const WEAPON_COOLDOWNS := {
 
 const _LaserBeam := preload("res://scripts/player/laser_beam.gd")
 const LASER_ORIGIN := Vector2(0, -18)
-const LASER_DPS := {1: 14.0, 2: 20.0, 3: 28.0}
-const LASER_HALF_W := {1: 7.0, 2: 13.0, 3: 22.0}
+const LASER_DPS := {1: 8.0, 2: 11.0, 3: 15.0}
+const LASER_HALF_W := {1: 5.0, 2: 8.0, 3: 12.0}
 
 var ship: CharacterBody2D
 var _drones: Array[Drone] = []
 var _fire_timer: float = 0.0
 var _laser: Node2D
+var _unlocked: Array[int] = []
+var _switch_hinted: bool = false
 
 
 func bind(host: CharacterBody2D) -> void:
@@ -87,6 +89,9 @@ func _weapon_cooldown() -> float:
 
 
 func set_weapon(w: int) -> void:
+	var had := _unlocked.size()
+	var already := _unlocked.has(w)
+	_unlock(w)
 	if ship.weapon == w and ship.weapon != BLASTER:
 		power_up()
 		return
@@ -95,8 +100,67 @@ func set_weapon(w: int) -> void:
 	ship.weapon_level = clampi(prev_level, 1, MAX_WEAPON_LEVEL)
 	note_peak_loadout()
 	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
+	if already:
+		power_up()
+		return
 	emit_changed()
 	EventBus.gimmick_toast.emit("%s  Lv%d" % [WEAPON_NAMES[ship.weapon], ship.weapon_level])
+	_hint_switch_if_ready(had)
+
+
+func can_cycle() -> bool:
+	return _unlocked.size() >= 2
+
+
+func cycle_weapon() -> bool:
+	if _unlocked.size() == 0:
+		EventBus.gimmick_toast.emit("NEED COLOR")
+		return false
+	if _unlocked.size() == 1:
+		if ship.weapon == BLASTER:
+			_equip(_unlocked[0], true)
+			AudioBus.play_ui()
+			return true
+		EventBus.gimmick_toast.emit("NEED 2 COLORS")
+		return false
+	var owned := _owned_in_order()
+	var idx := owned.find(ship.weapon)
+	var next: int = owned[0] if idx < 0 else owned[(idx + 1) % owned.size()]
+	if next == ship.weapon:
+		return false
+	_equip(next, true)
+	AudioBus.play_ui()
+	return true
+
+
+func _unlock(w: int) -> void:
+	if w == BLASTER or _unlocked.has(w):
+		return
+	_unlocked.append(w)
+
+
+func _owned_in_order() -> Array[int]:
+	var owned: Array[int] = []
+	for w in [VULCAN, LASER, HOMING]:
+		if _unlocked.has(w):
+			owned.append(w)
+	return owned
+
+
+func _equip(w: int, announce: bool = true) -> void:
+	ship.weapon = w
+	note_peak_loadout()
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
+	emit_changed()
+	if announce:
+		EventBus.gimmick_toast.emit("%s  Lv%d" % [WEAPON_NAMES.get(ship.weapon, "BLASTER"), ship.weapon_level])
+
+
+func _hint_switch_if_ready(had: int) -> void:
+	if _switch_hinted or _unlocked.size() < 2 or had >= 2:
+		return
+	_switch_hinted = true
+	EventBus.gimmick_toast.emit("Q / TAP WEP TO SWITCH")
 
 
 func power_up() -> void:
@@ -105,10 +169,6 @@ func power_up() -> void:
 
 func _add_chips(count: int) -> void:
 	if count <= 0:
-		return
-	if ship.weapon == BLASTER:
-		GameState.add_score(40 * count)
-		EventBus.gimmick_toast.emit("NEED COLOR")
 		return
 	if ship.weapon_level >= MAX_WEAPON_LEVEL:
 		ship.chip_progress = CHIPS_PER_LEVEL
@@ -201,7 +261,9 @@ func extinguish_laser() -> void:
 
 
 func reset_weapon() -> void:
+	_unlocked.clear()
 	if ship.weapon == BLASTER and ship.weapon_level == 1 and ship.chip_progress == 0:
+		emit_changed()
 		return
 	ship.weapon = BLASTER
 	ship.weapon_level = 1
@@ -213,6 +275,7 @@ func set_boss_rush_loadout() -> void:
 	ship.weapon = HOMING
 	ship.weapon_level = 2
 	ship.chip_progress = 0
+	_unlock(HOMING)
 	note_peak_loadout()
 	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
 	emit_changed()
@@ -220,9 +283,11 @@ func set_boss_rush_loadout() -> void:
 
 func restore_on_respawn(floor_lv: int) -> void:
 	ship.chip_progress = 0
+	_unlocked.clear()
 	if ship._life_peak_weapon != BLASTER:
 		ship.weapon = ship._life_peak_weapon
 		ship.weapon_level = floor_lv
+		_unlock(ship.weapon)
 		if ship.weapon_level >= MAX_WEAPON_LEVEL:
 			ship.chip_progress = CHIPS_PER_LEVEL
 	else:
@@ -237,6 +302,7 @@ func apply_power_orb(amount: float) -> void:
 		ship.weapon = ship._life_peak_weapon
 		ship.weapon_level = maxi(ship.weapon_level, GameState.get_power_floor())
 		ship.chip_progress = 0
+		_unlock(ship.weapon)
 	var chips: int = maxi(1, int(round(amount)))
 	var peak_total: int = (int(ship._life_peak_level) - 1) * CHIPS_PER_LEVEL + int(ship._life_peak_chips)
 	var cur_chips: int = int(ship.chip_progress) if int(ship.weapon_level) < MAX_WEAPON_LEVEL else CHIPS_PER_LEVEL
@@ -261,14 +327,14 @@ func emit_changed() -> void:
 		extras_parts.append("DRONE×%d" % ship.drone_count)
 	if ship.speed_stacks > 0:
 		extras_parts.append("SPD×%d" % ship.speed_stacks)
+	if can_cycle():
+		extras_parts.append("WEP×%d" % _unlocked.size())
 	parts.append_array(extras_parts)
 	EventBus.weapon_changed.emit("  ".join(parts))
 	var chips: int = ship.chip_progress
 	var needed := CHIPS_PER_LEVEL
 	if ship.weapon_level >= MAX_WEAPON_LEVEL:
 		chips = CHIPS_PER_LEVEL
-	elif ship.weapon == BLASTER:
-		chips = 0
 	EventBus.weapon_tier_changed.emit(slot, ship.weapon_level, chips, needed, "  ".join(extras_parts))
 
 
@@ -341,9 +407,9 @@ func _tick_laser(delta: float) -> void:
 	if Ships.BASE_FIRE_COOLDOWN > 0.0:
 		dps *= Ships.BASE_FIRE_COOLDOWN / maxf(float(ship.fire_cooldown), Ships.MIN_FIRE_COOLDOWN)
 	if float(ship.get("rapid_time")) > 0.0 or float(ship.get("energy_time")) > 0.0:
-		dps *= 1.75
-	var melt := 0.7 * float(ship.damage_mult) if level >= 3 else 0.0
-	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, level >= 3)
+		dps *= 1.35
+	var melt := 0.45 * float(ship.damage_mult) if level >= 3 else 0.0
+	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, false)
 
 
 func _shoot_homing(origin: Vector2) -> void:

@@ -218,6 +218,8 @@ func _physics_process(delta: float) -> void:
 	weapons.tick_fire(delta)
 	if Input.is_action_just_pressed("bomb"):
 		try_use_bomb()
+	if Input.is_action_just_pressed("weapon_switch"):
+		cycle_weapon()
 	_update_visuals(delta)
 
 
@@ -286,6 +288,12 @@ func restore_full() -> void:
 
 func _emit_weapon_changed() -> void:
 	weapons.emit_changed()
+
+
+func cycle_weapon() -> bool:
+	if dead or _cinematic or _respawning:
+		return false
+	return weapons.cycle_weapon()
 
 
 func take_damage(amount: int) -> void:

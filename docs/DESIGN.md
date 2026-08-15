@@ -77,10 +77,10 @@ Weapon type and power level are independent:
 | Color | Weapon | Lv1 | Lv2 | Lv3 |
 |-------|--------|-----|-----|-----|
 | **Red** | Spread | 3-way fan | 5-way + faster ROF | 7-way + side-cancellation waves |
-| **Blue** | Laser | Solid piercing column | Wider column + armor pierce | Mega column + melt + eats bullets |
+| **Blue** | Laser | Solid piercing column | Wider column + armor pierce | Mega column + melt ticks |
 | **Green** | Homing | 2 slow rockets | 4 fast micro-missiles | 6 rapid + splash |
 
-**Gold Power** pickups fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX). Color swaps keep tier + Power bank. Same-color pickups also bank Power. Hull hits drop you to Blaster.
+**Gold Power** pickups fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX), including while you are on Blaster. Color pickups unlock that family for the life; **Q / Tab / X / WEP** cycles among unlocked colors (shared tier stays). Same-color pickups — or a color you already unlocked — also bank Power. Hull hits drop you to Blaster and clear the rack.
 
 ### Recovery on death
 

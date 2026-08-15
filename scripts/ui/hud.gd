@@ -41,6 +41,7 @@ const SLOT_TITLE := {
 @onready var overdrive_bar: ProgressBar = $Root/OverdriveBar
 @onready var root: Control = $Root
 @onready var bomb_btn: Button = $Root/BombButton
+@onready var weapon_btn: Button = $Root/WeaponButton
 @onready var pause_btn: Button = $Root/PauseButton
 
 var _bombs: int = 0
@@ -55,9 +56,13 @@ func _ready() -> void:
 	boss_label.visible = false
 	pickup_toast.visible = false
 	bomb_btn.focus_mode = Control.FOCUS_NONE
+	weapon_btn.focus_mode = Control.FOCUS_NONE
 	pause_btn.focus_mode = Control.FOCUS_NONE
 	bomb_btn.pressed.connect(_on_bomb_pressed)
+	weapon_btn.pressed.connect(_on_weapon_pressed)
 	pause_btn.pressed.connect(_on_pause_pressed)
+	weapon_badge.mouse_filter = Control.MOUSE_FILTER_STOP
+	weapon_badge.gui_input.connect(_on_weapon_badge_input)
 	get_viewport().size_changed.connect(_apply_safe_area)
 	_apply_safe_area()
 	EventBus.player_hp_changed.connect(_on_hp)
@@ -115,6 +120,27 @@ func _on_pause_pressed() -> void:
 	EventBus.pause_requested.emit()
 
 
+func _on_weapon_pressed() -> void:
+	_cycle_player_weapon()
+
+
+func _on_weapon_badge_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_cycle_player_weapon()
+	elif event is InputEventScreenTouch and event.pressed:
+		_cycle_player_weapon()
+
+
+func _cycle_player_weapon() -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	for n in tree.get_nodes_in_group("player"):
+		if n.has_method("cycle_weapon"):
+			n.cycle_weapon()
+			return
+
+
 func _on_bomb_pressed() -> void:
 	var tree := get_tree()
 	if tree == null:
@@ -158,10 +184,11 @@ func _on_weapon_tier(slot: String, level: int, chips: int, chips_needed: int, ex
 	var at_max := level >= 3 and chips >= chips_needed
 	weapon_level.text = "MAX" if at_max else "LV %d" % level
 	weapon_level.add_theme_color_override("font_color", CHIP_MAX if at_max else color)
+	var fill_color: Color = CHIP_MAX if key == "BLASTER" else color
 	var needed := maxi(chips_needed, 1)
 	var filled := needed if at_max else clampi(chips, 0, needed)
 	for i in _chips.size():
-		_chips[i].color = CHIP_MAX if at_max else (color if i < filled else CHIP_EMPTY)
+		_chips[i].color = CHIP_MAX if at_max else (fill_color if i < filled else CHIP_EMPTY)
 	chip_count.text = "MAX" if at_max else "%d/%d" % [filled, needed]
 	if extras.strip_edges() == "":
 		extras_label.visible = false
@@ -169,6 +196,8 @@ func _on_weapon_tier(slot: String, level: int, chips: int, chips_needed: int, ex
 	else:
 		extras_label.visible = true
 		extras_label.text = extras
+	var can_switch := extras.contains("WEP")
+	weapon_btn.modulate = Color(1, 1, 1, 1) if can_switch else Color(1, 1, 1, 0.4)
 
 
 func _on_gimmick_toast(text: String) -> void:
@@ -239,6 +268,14 @@ func _on_boss_defeated() -> void:
 
 
 func _on_pickup(kind: String) -> void:
+	# Weapon / Power already toast exact progress via EventBus.gimmick_toast.
+	# Don't overwrite "POWER  2/5" with a generic "POWER!".
+	if kind in [
+		"spread", "vulcan", "red", "laser", "beam", "blue", "homing", "missiles", "green",
+		"power", "pchip", "p-chip", "gold", "power_orb", "orb",
+		"option", "bit", "drone", "speed",
+	]:
+		return
 	pickup_toast.visible = true
 	var names := {
 		"spread": "SPREAD", "vulcan": "SPREAD", "red": "SPREAD",

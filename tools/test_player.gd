@@ -50,6 +50,11 @@ func _run() -> void:
 		push_error("hull hit should reset to Blaster")
 		quit(1)
 		return
+	player.call("apply_pickup", "pchip")
+	if int(player.chip_progress) != 1:
+		push_error("Power chip on Blaster should fill the bar, got %s" % player.chip_progress)
+		quit(1)
+		return
 
 	player.call("apply_pickup", "bomb")
 	if int(player.bomb_stock) != 1:
@@ -100,6 +105,39 @@ func _run() -> void:
 		quit(1)
 		return
 	enemy.queue_free()
+
+	player.call("apply_pickup", "spread")
+	if int(player.weapon) != 1:
+		push_error("second color should switch to Spread")
+		quit(1)
+		return
+	if not bool(player.call("cycle_weapon")):
+		push_error("cycle_weapon should swap with two colors unlocked")
+		quit(1)
+		return
+	if int(player.weapon) != 2:
+		push_error("cycle from Spread should return to Laser, got %s" % player.weapon)
+		quit(1)
+		return
+	var chips_before := int(player.chip_progress)
+	player.call("apply_pickup", "spread")
+	if int(player.weapon) != 1:
+		push_error("owned Spread pickup should switch back to Spread")
+		quit(1)
+		return
+	if int(player.chip_progress) != chips_before + 1:
+		push_error("owned color pickup should bank Power, got %s" % player.chip_progress)
+		quit(1)
+		return
+	player.get("weapons").call("reset_weapon")
+	if int(player.weapon) != 0:
+		push_error("reset_weapon should return to Blaster")
+		quit(1)
+		return
+	if bool(player.call("cycle_weapon")):
+		push_error("cycle_weapon should fail after hull-reset")
+		quit(1)
+		return
 
 	print("PLAYER API OK lives=", player.lives, " hp=", player.hp)
 	player.queue_free()

@@ -37,6 +37,8 @@ Exports a signed debug APK to `build/NebulaDawn-debug.apk` (does not install). I
 |--------|-------|----------|---------|
 | Move | Drag — ship mirrors finger motion from where you grabbed | WASD / Arrow keys | Left stick / D-pad |
 | Fire | Auto | Auto | Auto |
+| Bomb | BOMB button (bottom-left) | B / Shift | X / □ |
+| Switch weapon | WEP button (above Bomb) or tap the weapon badge | Q / Tab / X | Y / △ |
 | Pause | Pause button (bottom-right) | Esc | Start |
 | Settings (from pause) | Settings button | — | — |
 
@@ -124,10 +126,10 @@ Weapon **type** and **power level** are tracked separately.
 | Color | Pickup | Weapon | Behavior |
 |-------|--------|--------|----------|
 | **Red** | Spread | Wide cone | Lv1 3-way → Lv2 5-way + ROF → Lv3 7-way + side-cancellation waves |
-| **Blue** | Laser | Solid piercing column | Lv1 thin beam → Lv2 wider + armor pierce → Lv3 mega beam + melt + eats bullets |
+| **Blue** | Laser | Solid piercing column | Lv1 thin beam → Lv2 wider + armor pierce → Lv3 mega beam + melt ticks |
 | **Green** | Homing | Seeking missiles | Lv1 2 slow → Lv2 4 fast micro → Lv3 6 rapid + splash |
 
-**Gold Power** pickups fill a **5-segment** bar toward the next shared tier (**Lv1 → Lv2 → Lv3 / MAX**). Swapping color keeps both tier and banked Power. Same color again also banks Power. Hull damage resets to Blaster (tier + Power lost) but keeps Bits and Speed.
+**Gold Power** pickups fill a **5-segment** bar toward the next shared tier (**Lv1 → Lv2 → Lv3 / MAX**), even on Blaster. Collecting a color unlocks it for that life; **Q / Tab / X** or the on-screen **WEP** button cycles among unlocked colors (shared tier stays). Same color again — or a color you already unlocked — also banks Power. Hull damage resets to Blaster and forgets the rack (tier + Power lost) but keeps Bits and Speed.
 
 ### Recovery (deaths)
 
@@ -137,7 +139,7 @@ Weapon **type** and **power level** are tracked separately.
 | **Power Floor** | Stages 1–3 respawn at Lv1; stages 4–5 at Lv2; EX (6–10) at Lv2 + a free Bomb or Shield. |
 | **Death-Bomb** | If you hold a bomb, ~0.25s after a lethal hit you can press Bomb to cancel death, wipe the screen, and survive at 1 HP. |
 
-You start with **3 ships**. Bombs are stocked (max 3) from Bomb pickups — press **B** / **Shift** or the on-screen BOMB button.
+You start with **3 ships**. Bombs are stocked (max 3) from Bomb pickups — press **B** / **Shift** or the on-screen BOMB button. After you have grabbed two colors, **Q / Tab / X** or **WEP** cycles them.
 
 ### Graze & chain scoring
 

@@ -127,6 +127,7 @@ func _check_player_scene() -> bool:
 		"apply_pickup",
 		"apply_hangar_loadout",
 		"try_use_bomb",
+		"cycle_weapon",
 		"_emit_weapon_changed",
 		"_try_death_bomb",
 		"take_damage",
