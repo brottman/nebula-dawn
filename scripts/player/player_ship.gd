@@ -67,10 +67,14 @@ const _LifeSystem := preload("res://scripts/player/life_system.gd")
 @onready var life: _LifeSystem = $LifeSystem
 
 const _SHIP_FLASH := Color(1.6, 1.6, 1.6, 1.0)
-const MAX_BANK := 0.34
+const MAX_BANK := 0.38
 const BANK_RATE := 9.0
 var _ship_tint := Color(1.0, 1.0, 1.0, 1.0)
 var _bank: float = 0.0
+var _last_x: float = 0.0
+## Measured lateral speed this frame — banking source that works for both
+## keyboard and touch movement (touch mode zeroes velocity).
+var bank_vx: float = 0.0
 
 
 func _ready() -> void:
@@ -80,6 +84,7 @@ func _ready() -> void:
 	apply_hangar_loadout()
 	life.reset_run()
 	_update_shield_visuals()
+	_last_x = global_position.x
 	if _sprite and _sprite.texture:
 		_poly.visible = false
 	_build_graze_zone()
@@ -401,8 +406,11 @@ func apply_pickup(kind: String) -> void:
 
 func _update_visuals(delta: float) -> void:
 	var vis := _visual()
-	# Banking roll — tilt the hull toward lateral movement.
-	var bank_target := clampf(velocity.x / maxf(move_speed, 1.0), -1.0, 1.0) * MAX_BANK
+	# Banking roll — tilt the hull toward measured lateral movement.
+	var vx := (global_position.x - _last_x) / maxf(delta, 0.0001)
+	_last_x = global_position.x
+	bank_vx = vx
+	var bank_target := clampf(vx / maxf(move_speed, 1.0), -1.0, 1.0) * MAX_BANK
 	_bank = lerpf(_bank, bank_target, 1.0 - exp(-BANK_RATE * delta))
 	vis.rotation = _bank
 	if invuln_time > 0.0:

@@ -67,7 +67,12 @@ func _process(delta: float) -> void:
 		return
 	global_position = host.global_position + SLOT_OFFSETS.get(slot, Vector2(0.0, 20.0))
 	var host_speed: float = float(host.get("move_speed")) if host.has_method("get") else 310.0
-	var host_vx: float = host.velocity.x if host is CharacterBody2D else 0.0
+	var host_vx: float = 0.0
+	var raw_vx: Variant = host.get("bank_vx") if host.has_method("get") else null
+	if raw_vx != null:
+		host_vx = float(raw_vx)
+	elif host is CharacterBody2D:
+		host_vx = (host as CharacterBody2D).velocity.x
 	var bank_target := clampf(host_vx / maxf(host_speed, 1.0), -1.0, 1.0) * MAX_BANK
 	_bank = lerpf(_bank, bank_target, 1.0 - exp(-BANK_RATE * delta))
 	rotation = float(SLOT_ROTATION.get(slot, 0.0)) + _bank
