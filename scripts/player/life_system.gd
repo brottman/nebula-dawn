@@ -27,18 +27,13 @@ func reset_run() -> void:
 	ship.dead = false
 	ship._respawning = false
 	ship._death_bomb_time = 0.0
-	if ship._shield_visual:
-		ship._shield_visual.visible = ship.shield_charges > 0
+	ship._update_shield_visuals()
 
 
 func update_timers(delta: float) -> void:
 	if ship.invuln_time > 0.0:
 		ship.invuln_time -= delta
-	if ship.energy_time > 0.0:
-		ship.energy_time -= delta
-		if ship.energy_time <= 0.0 and ship.overdrive_time <= 0.0:
-			EventBus.gimmick_toast.emit("ENERGY END")
-	ship._shield_visual.visible = ship.shield_charges > 0
+	ship._update_shield_visuals()
 	if ship.rapid_time > 0.0:
 		ship.rapid_time -= delta
 	if ship.overdrive_time > 0.0:
@@ -76,7 +71,6 @@ func clear_zone_effects() -> void:
 	exit_plasma()
 	ship.scrap_push = 0.0
 	ship.overdrive_time = 0.0
-	ship.energy_time = 0.0
 	Engine.time_scale = 1.0
 
 
@@ -105,13 +99,13 @@ func restore_full() -> void:
 
 
 func take_damage(amount: int) -> void:
-	if ship.dead or ship._cinematic or ship._respawning or ship.invuln_time > 0.0 or ship.energy_time > 0.0:
+	if ship.dead or ship._cinematic or ship._respawning or ship.invuln_time > 0.0:
 		return
 	if ship._death_bomb_time > 0.0:
 		return
 	if ship.shield_charges > 0:
 		ship.shield_charges -= 1
-		ship._shield_visual.visible = ship.shield_charges > 0
+		ship._update_shield_visuals()
 		ship.invuln_time = 0.75
 		AudioBus.play_player_hurt()
 		EventBus.screen_shake.emit(4.0, 0.12)
@@ -133,7 +127,6 @@ func take_damage(amount: int) -> void:
 		confirm_death()
 		return
 	ship.hp = maxi(0, ship.hp - amount)
-	ship.weapons.reset_weapon()
 	ship.weapons.lose_drone()
 	ship.invuln_time = 1.35
 	ship._flash_timer = 0.2
@@ -146,7 +139,7 @@ func take_damage(amount: int) -> void:
 
 func add_shield(charges: int = 2) -> void:
 	ship.shield_charges = mini(MAX_SHIELD_CHARGES, ship.shield_charges + charges)
-	ship._shield_visual.visible = true
+	ship._update_shield_visuals()
 	EventBus.gimmick_toast.emit("SHIELD  ×%d" % ship.shield_charges)
 
 
@@ -177,13 +170,6 @@ func try_death_bomb() -> void:
 	activate_bomb()
 	ship.invuln_time = 1.6
 	EventBus.gimmick_toast.emit("SAVED!")
-
-
-func activate_energy(duration: float = 4.0) -> void:
-	ship.energy_time = maxf(ship.energy_time, duration)
-	ship.rapid_time = maxf(ship.rapid_time, duration)
-	ship.invuln_time = maxf(ship.invuln_time, 0.35)
-	EventBus.gimmick_toast.emit("ENERGY")
 
 
 func activate_bomb() -> void:
@@ -234,7 +220,6 @@ func _die() -> void:
 	ship.speed_stacks = 0
 	ship.shield_charges = 0
 	ship.rapid_time = 0.0
-	ship.energy_time = 0.0
 	clear_zone_effects()
 	ship.visible = false
 	ship.set_physics_process(true)
@@ -279,6 +264,7 @@ func _respawn() -> void:
 			add_shield(1)
 	ship.visible = true
 	ship.scale = Vector2.ONE
+	ship._update_shield_visuals()
 	var vis: CanvasItem = ship._visual()
 	vis.modulate = ship._ship_tint
 	EventBus.player_hp_changed.emit(ship.hp, ship.max_hp)

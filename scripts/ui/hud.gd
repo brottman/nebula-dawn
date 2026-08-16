@@ -287,7 +287,7 @@ func _on_pickup(kind: String) -> void:
 		"speed": "SPEED",
 		"shield": "SHIELD", "barrier": "SHIELD",
 		"bomb": "BOMB", "cleaver": "BOMB",
-		"energy": "ENERGY", "overdrive_pickup": "ENERGY", "rapid": "ENERGY",
+		"energy": "HEAL", "overdrive_pickup": "HEAL", "rapid": "HEAL",
 		"heal": "HEAL",
 	}
 	var toast: String = str(names.get(kind, kind.to_upper()))

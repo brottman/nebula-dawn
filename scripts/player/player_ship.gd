@@ -24,7 +24,6 @@ var shield_charges: int = 0
 var bomb_stock: int = 0
 var lives: int = 3
 var rapid_time: float = 0.0
-var energy_time: float = 0.0
 var weapon: int = Weapon.BLASTER
 var weapon_level: int = 1
 var chip_progress: int = 0
@@ -60,6 +59,7 @@ var _grazed: Dictionary = {}
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _shield_visual: Polygon2D = $ShieldVisual
+@onready var _shield_visual_inner: Polygon2D = $ShieldVisualInner
 @onready var _engine: GPUParticles2D = $EngineParticles
 const _WeaponSystem := preload("res://scripts/player/weapon_system.gd")
 const _LifeSystem := preload("res://scripts/player/life_system.gd")
@@ -76,7 +76,7 @@ func _ready() -> void:
 	life.bind(self)
 	apply_hangar_loadout()
 	life.reset_run()
-	_shield_visual.visible = shield_charges > 0
+	_update_shield_visuals()
 	if _sprite and _sprite.texture:
 		_poly.visible = false
 	_build_graze_zone()
@@ -151,6 +151,11 @@ func _on_graze_exited(area: Area2D) -> void:
 
 func _visual() -> CanvasItem:
 	return _sprite if _sprite and _sprite.visible else _poly
+
+
+func _update_shield_visuals() -> void:
+	_shield_visual.visible = shield_charges >= 2
+	_shield_visual_inner.visible = shield_charges >= 1
 
 
 func setup(pool: ProjectilePool) -> void:
@@ -316,10 +321,6 @@ func _try_death_bomb() -> void:
 	life.try_death_bomb()
 
 
-func activate_energy(duration: float = 4.0) -> void:
-	life.activate_energy(duration)
-
-
 func activate_bomb() -> void:
 	life.activate_bomb()
 
@@ -387,18 +388,17 @@ func apply_pickup(kind: String) -> void:
 			life.add_shield(2)
 		"bomb", "cleaver":
 			life.add_bomb(1)
-		"energy", "overdrive_pickup", "rapid":
-			life.activate_energy(4.0)
-		"heal":
-			hp = mini(max_hp, hp + 1)
-			EventBus.player_hp_changed.emit(hp, max_hp)
+		"energy", "overdrive_pickup", "rapid", "heal":
+			if hp < max_hp:
+				hp = mini(max_hp, hp + 1)
+				EventBus.player_hp_changed.emit(hp, max_hp)
 	AudioBus.play_pickup()
 	EventBus.pickup_collected.emit(kind)
 
 
 func _update_visuals(_delta: float) -> void:
 	var vis := _visual()
-	if invuln_time > 0.0 or energy_time > 0.0:
+	if invuln_time > 0.0:
 		if GameState.reduce_flashes:
 			vis.modulate.a = 0.5 + 0.4 * sin(Time.get_ticks_msec() * 0.012)
 		else:

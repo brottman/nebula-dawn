@@ -36,6 +36,11 @@ visible = false
 color = Color(0.43, 0.78, 1, 1)
 polygon = PackedVector2Array(0, -16, 14, 14, 0, 6, -14, 14)
 
+[node name="ShieldVisualInner" type="Polygon2D" parent="."]
+visible = false
+color = Color(0.55, 0.92, 1, 0.4)
+polygon = PackedVector2Array(0, -21, 18, 15, 0, 9, -18, 15)
+
 [node name="ShieldVisual" type="Polygon2D" parent="."]
 visible = false
 color = Color(0.4, 0.8, 1, 0.28)

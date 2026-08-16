@@ -32,9 +32,9 @@ const SPRITE_PATHS := {
 	"barrier": "res://assets/sprites/pickup_shield.svg",
 	"bomb": "res://assets/sprites/pickup_bomb.svg",
 	"cleaver": "res://assets/sprites/pickup_bomb.svg",
-	"energy": "res://assets/sprites/pickup_energy.svg",
-	"overdrive_pickup": "res://assets/sprites/pickup_energy.svg",
-	"rapid": "res://assets/sprites/pickup_energy.svg",
+	"energy": "res://assets/sprites/pickup_heal.svg",
+	"overdrive_pickup": "res://assets/sprites/pickup_heal.svg",
+	"rapid": "res://assets/sprites/pickup_heal.svg",
 	"heal": "res://assets/sprites/pickup_heal.svg",
 }
 
@@ -62,9 +62,9 @@ const TOAST_NAMES := {
 	"barrier": "SHIELD",
 	"bomb": "BOMB",
 	"cleaver": "BOMB",
-	"energy": "ENERGY",
-	"overdrive_pickup": "ENERGY",
-	"rapid": "ENERGY",
+	"energy": "HEAL",
+	"overdrive_pickup": "HEAL",
+	"rapid": "HEAL",
 	"heal": "HEAL",
 }
 
@@ -123,9 +123,7 @@ func setup(k: String) -> void:
 			_poly.color = Color(0.45, 0.75, 1.0)
 		"bomb", "cleaver":
 			_poly.color = Color(1.0, 0.35, 0.45)
-		"energy", "overdrive_pickup", "rapid":
-			_poly.color = Color(1.0, 0.9, 0.35)
-		"heal":
+		"energy", "overdrive_pickup", "rapid", "heal":
 			_poly.color = Color(1.0, 0.4, 0.55)
 		_:
 			_poly.color = Color.WHITE
@@ -149,9 +147,7 @@ func _glyph_for(k: String) -> String:
 			return "S"
 		"bomb", "cleaver":
 			return "X"
-		"energy", "overdrive_pickup", "rapid":
-			return "E"
-		"heal":
+		"energy", "overdrive_pickup", "rapid", "heal":
 			return "+"
 		_:
 			return "?"

@@ -62,7 +62,7 @@ func tick_fire(delta: float) -> void:
 	if _fire_timer > 0.0:
 		return
 	var cd := _weapon_cooldown()
-	cd *= 0.45 if (float(ship.get("rapid_time")) > 0.0 or float(ship.get("energy_time")) > 0.0) else 1.0
+	cd *= 0.45 if float(ship.get("rapid_time")) > 0.0 else 1.0
 	_fire_timer = cd
 	_shoot()
 
@@ -282,9 +282,13 @@ func set_boss_rush_loadout() -> void:
 
 
 func restore_on_respawn(floor_lv: int) -> void:
+	## Campaign respawns restart from the base weapon at the mission power
+	## floor — death costs you your color weapon. Boss Rush keeps its fixed
+	## loadout, so it restores the peak instead.
 	ship.chip_progress = 0
 	_unlocked.clear()
-	if ship._life_peak_weapon != BLASTER:
+	var keep_peak: bool = GameState.mode == GameState.Mode.BOSS_RUSH
+	if keep_peak and ship._life_peak_weapon != BLASTER:
 		ship.weapon = ship._life_peak_weapon
 		ship.weapon_level = floor_lv
 		_unlock(ship.weapon)
@@ -292,17 +296,14 @@ func restore_on_respawn(floor_lv: int) -> void:
 			ship.chip_progress = CHIPS_PER_LEVEL
 	else:
 		ship.weapon = BLASTER
-		ship.weapon_level = 1
+		ship.weapon_level = clampi(floor_lv, 1, MAX_WEAPON_LEVEL)
+		if ship.weapon_level >= MAX_WEAPON_LEVEL:
+			ship.chip_progress = CHIPS_PER_LEVEL
 
 
 func apply_power_orb(amount: float) -> void:
 	if amount <= 0.0:
 		return
-	if ship.weapon == BLASTER and ship._life_peak_weapon != BLASTER:
-		ship.weapon = ship._life_peak_weapon
-		ship.weapon_level = maxi(ship.weapon_level, GameState.get_power_floor())
-		ship.chip_progress = 0
-		_unlock(ship.weapon)
 	var chips: int = maxi(1, int(round(amount)))
 	var peak_total: int = (int(ship._life_peak_level) - 1) * CHIPS_PER_LEVEL + int(ship._life_peak_chips)
 	var cur_chips: int = int(ship.chip_progress) if int(ship.weapon_level) < MAX_WEAPON_LEVEL else CHIPS_PER_LEVEL
@@ -406,7 +407,7 @@ func _tick_laser(delta: float) -> void:
 	dps *= float(ship.bullet_damage) * float(ship.damage_mult)
 	if Ships.BASE_FIRE_COOLDOWN > 0.0:
 		dps *= Ships.BASE_FIRE_COOLDOWN / maxf(float(ship.fire_cooldown), Ships.MIN_FIRE_COOLDOWN)
-	if float(ship.get("rapid_time")) > 0.0 or float(ship.get("energy_time")) > 0.0:
+	if float(ship.get("rapid_time")) > 0.0:
 		dps *= 1.35
 	var melt := 0.45 * float(ship.damage_mult) if level >= 3 else 0.0
 	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, false)
