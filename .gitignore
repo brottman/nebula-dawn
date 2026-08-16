@@ -10,6 +10,7 @@ export_presets.cfg
 *.x86_64
 *.app
 .import/
+*.idsig
 *.tmp
 *~
 .DS_Store

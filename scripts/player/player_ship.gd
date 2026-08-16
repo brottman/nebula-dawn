@@ -67,7 +67,10 @@ const _LifeSystem := preload("res://scripts/player/life_system.gd")
 @onready var life: _LifeSystem = $LifeSystem
 
 const _SHIP_FLASH := Color(1.6, 1.6, 1.6, 1.0)
+const MAX_BANK := 0.34
+const BANK_RATE := 9.0
 var _ship_tint := Color(1.0, 1.0, 1.0, 1.0)
+var _bank: float = 0.0
 
 
 func _ready() -> void:
@@ -396,8 +399,12 @@ func apply_pickup(kind: String) -> void:
 	EventBus.pickup_collected.emit(kind)
 
 
-func _update_visuals(_delta: float) -> void:
+func _update_visuals(delta: float) -> void:
 	var vis := _visual()
+	# Banking roll — tilt the hull toward lateral movement.
+	var bank_target := clampf(velocity.x / maxf(move_speed, 1.0), -1.0, 1.0) * MAX_BANK
+	_bank = lerpf(_bank, bank_target, 1.0 - exp(-BANK_RATE * delta))
+	vis.rotation = _bank
 	if invuln_time > 0.0:
 		if GameState.reduce_flashes:
 			vis.modulate.a = 0.5 + 0.4 * sin(Time.get_ticks_msec() * 0.012)

@@ -6,7 +6,7 @@ extends Node
 const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 const MAX_WEAPON_LEVEL := 3
 const CHIPS_PER_LEVEL := 5
-const MAX_DRONES := 2
+const MAX_DRONES := 3
 const MAX_SPEED_STACKS := 3
 const SPEED_STACK_BONUS := 0.12
 
