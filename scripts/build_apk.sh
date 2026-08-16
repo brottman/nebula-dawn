@@ -95,10 +95,17 @@ fi
 mkdir -p "$ROOT/build"
 rm -f "$UNSIGNED" "$OUT"
 
+# The preset sets package/signed=true, so Godot tries to sign during export and
+# fails if no keystore is configured in editor settings. That leaves the
+# unsigned APK behind (which is what we want) but exits nonzero — do not let
+# `set -e` abort before the apksigner step below.
+set +e
 "$GODOT" --headless --path "$ROOT" --export-release "Android" "$UNSIGNED"
+export_status=$?
+set -e
 
 if [[ ! -f "$UNSIGNED" ]]; then
-  echo "Export failed: no APK at $UNSIGNED" >&2
+  echo "Export failed: no APK at $UNSIGNED (godot exit $export_status)" >&2
   exit 1
 fi
 
