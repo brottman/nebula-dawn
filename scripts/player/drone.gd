@@ -1,7 +1,7 @@
 class_name Drone
 extends Node2D
-## Wingman drone — fixed side/rear gunner mounted on the player ship.
-## Slot 0 = port wing (fires left), 1 = starboard wing (fires right),
+## Wingman drone — a miniature of the player's hull flying off each wing
+## and astern. Slot 0 = port (fires left), 1 = starboard (fires right),
 ## 2 = rear gunner (fires down behind the ship). Max 3; one lost per hit.
 
 const FIRE_INTERVAL := 2.2
@@ -10,16 +10,15 @@ const SHOT_DAMAGE := 0.6
 
 const MAX_BANK := 0.3
 const BANK_RATE := 8.0
+## Lateral position shift toward the inside of the turn, in pixels.
+const BANK_SWING := 10.0
+## Mini-ship scale relative to the host hull sprite.
+const MINI_SCALE := 0.4
 
 const SLOT_OFFSETS := {
 	0: Vector2(-28.0, 8.0),
 	1: Vector2(28.0, 8.0),
 	2: Vector2(0.0, 22.0),
-}
-const SLOT_ROTATION := {
-	0: -PI * 0.5, # faces left
-	1: PI * 0.5, # faces right
-	2: PI, # faces down (rear gunner)
 }
 const SLOT_DIR := {
 	0: Vector2.LEFT,
@@ -45,13 +44,23 @@ func setup(owner_ship: Node2D, pool: ProjectilePool, drone_slot: int) -> void:
 
 
 func _build_visual() -> void:
-	var tex := load("res://assets/sprites/drone.svg") as Texture2D
+	var tex: Texture2D = null
+	if host != null and host.has_method("get"):
+		var path: Variant = host.get("_visual_sprite_path")
+		if path is String and ResourceLoader.exists(path):
+			tex = load(path) as Texture2D
+	if tex == null:
+		tex = load("res://assets/sprites/player_ship.svg") as Texture2D
 	if tex:
 		_sprite = Sprite2D.new()
 		_sprite.texture = tex
 		_sprite.texture_filter = TextureFilter.TEXTURE_FILTER_LINEAR
-		_sprite.scale = Vector2.ONE * 0.6
+		_sprite.scale = Vector2.ONE * MINI_SCALE
 		add_child(_sprite)
+		if host != null and host.has_method("get"):
+			var tint: Variant = host.get("_ship_tint")
+			if tint is Color:
+				_sprite.modulate = tint
 	else:
 		_poly = Polygon2D.new()
 		_poly.color = Color(1.0, 0.85, 0.4, 0.95)
@@ -75,7 +84,13 @@ func _process(delta: float) -> void:
 		host_vx = (host as CharacterBody2D).velocity.x
 	var bank_target := clampf(host_vx / maxf(host_speed, 1.0), -1.0, 1.0) * MAX_BANK
 	_bank = lerpf(_bank, bank_target, 1.0 - exp(-BANK_RATE * delta))
-	rotation = float(SLOT_ROTATION.get(slot, 0.0)) + _bank
+	# Swing the drone into the turn around the ship's pivot so the whole
+	# formation reads as one banking unit, not just a sprite tilt.
+	var norm: float = clampf(_bank / MAX_BANK, -1.0, 1.0)
+	var base: Vector2 = SLOT_OFFSETS.get(slot, Vector2(0.0, 20.0))
+	var swung: Vector2 = base + Vector2(norm * BANK_SWING, 0.0)
+	global_position = host.global_position + swung.rotated(_bank)
+	rotation = _bank
 	if bool(host.get("secondaries_disabled")):
 		return
 	_fire_timer -= delta

@@ -25,11 +25,19 @@ func _ready() -> void:
 	player.weapons.add_drone()
 	print("drone_count=", player.drone_count)
 	await get_tree().create_timer(0.6).timeout
+	player._touch_active = true
+	player._touch_world = player.global_position
+	player._touch_grab_offset = player.global_position - player._touch_world
+	# Let the tree process so the drones' _process runs against a moving host.
+	for i in 15:
+		player._touch_world = Vector2(player.global_position.x + 200.0, player.global_position.y)
+		player._physics_process(0.0167)
+		await get_tree().process_frame
 	var idx := 0
 	for c in player.get_children():
 		if c is Drone:
 			var d := c as Drone
-			print("drone %d slot=%d pos=%s vis=%s sprite=%s rot=%.3f" % [
-				idx, d.slot, str(d.global_position), d.visible, str(d._sprite != null), d.rotation])
+			print("drone %d slot=%d pos=%s vis=%s sprite=%s rot=%.3f bank=%.3f" % [
+				idx, d.slot, str(d.global_position), d.visible, str(d._sprite != null), d.rotation, d._bank])
 			idx += 1
 	get_tree().quit()

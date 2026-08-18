@@ -70,6 +70,8 @@ const _SHIP_FLASH := Color(1.6, 1.6, 1.6, 1.0)
 const MAX_BANK := 0.38
 const BANK_RATE := 9.0
 var _ship_tint := Color(1.0, 1.0, 1.0, 1.0)
+## Path of the loadout hull sprite — drones copy this to look like mini ships.
+var _visual_sprite_path: String = "res://assets/sprites/player_ship.svg"
 var _bank: float = 0.0
 var _last_x: float = 0.0
 ## Measured lateral speed this frame — banking source that works for both
@@ -109,13 +111,15 @@ func apply_hangar_loadout() -> void:
 	else:
 		_ship_tint = Color(1.0, 1.0, 1.0, 1.0)
 	var path := String(spec.get("sprite", "res://assets/sprites/player_ship.svg"))
-	if _sprite and ResourceLoader.exists(path):
-		var tex := load(path) as Texture2D
-		if tex:
-			_sprite.texture = tex
-			_sprite.visible = true
-			if _poly:
-				_poly.visible = false
+	if ResourceLoader.exists(path):
+		_visual_sprite_path = path
+		if _sprite and ResourceLoader.exists(path):
+			var tex := load(path) as Texture2D
+			if tex:
+				_sprite.texture = tex
+				_sprite.visible = true
+				if _poly:
+					_poly.visible = false
 	var vis := _visual()
 	vis.modulate = _ship_tint
 
