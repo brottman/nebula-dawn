@@ -2,7 +2,7 @@ extends CanvasLayer
 ## Screen layout:
 ##   TOP BAR     — lives + HP | weapon badge + Power | score
 ##   PLAYFIELD   — clear action zone
-##   BOTTOM      — Bomb (left) / Pause (right)
+##   BOTTOM BAR  — Weapon + Bomb (left) / Pause (right)
 
 const CHIP_EMPTY := Color(0.18, 0.22, 0.32, 1.0)
 const CHIP_MAX := Color(1.0, 0.82, 0.35, 1.0)
@@ -40,9 +40,9 @@ const SLOT_TITLE := {
 @onready var pickup_toast: Label = $Root/PickupToast
 @onready var overdrive_bar: ProgressBar = $Root/OverdriveBar
 @onready var root: Control = $Root
-@onready var bomb_btn: Button = $Root/BombButton
-@onready var weapon_btn: Button = $Root/WeaponButton
-@onready var pause_btn: Button = $Root/PauseButton
+@onready var bomb_btn: Button = $Root/BottomBar/Margin/Row/Left/BombButton
+@onready var weapon_btn: Button = $Root/BottomBar/Margin/Row/Left/WeaponButton
+@onready var pause_btn: Button = $Root/BottomBar/Margin/Row/Right/PauseButton
 
 var _bombs: int = 0
 var _chips: Array[ColorRect] = []

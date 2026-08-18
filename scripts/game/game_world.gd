@@ -4,6 +4,7 @@ extends Control
 ## does not cover the Camera2D action zone.
 
 const HUD_TOP_HEIGHT := 72.0
+const HUD_BOTTOM_HEIGHT := 84.0
 
 @onready var playfield_host: SubViewportContainer = $PlayfieldHost
 @onready var playfield: SubViewport = $PlayfieldHost/Playfield
@@ -52,10 +53,11 @@ func _ready() -> void:
 func _fit_playfield() -> void:
 	var safe := _safe_area_insets()
 	var top_chrome := HUD_TOP_HEIGHT + safe.y
+	var bottom_chrome := HUD_BOTTOM_HEIGHT + safe.w
 	playfield_host.offset_top = top_chrome
 	playfield_host.offset_left = safe.x
 	playfield_host.offset_right = -safe.z
-	playfield_host.offset_bottom = -safe.w
+	playfield_host.offset_bottom = -bottom_chrome
 	# Container size updates after the current layout pass.
 	call_deferred("_finish_fit_playfield")
 
