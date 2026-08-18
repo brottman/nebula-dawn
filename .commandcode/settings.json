@@ -5,7 +5,17 @@
       "Shell(./tools/ci.sh:*)",
       "Shell(git:*)",
       "Shell(GODOT=\"$(command -v godot)\"; for t in smoke_test smoke_boss_rush test_player; do echo \"=== $t ===\"; \"$GODOT\" --headless --path . --script \"res://tools/$t.gd\" 2>&1 | grep -E \"SCRIPT ERROR|ERROR|OK|PASS|FAIL|leaked\" | head -20; done)",
-      "Shell(git stash && GODOT=\"$(command -v godot)\"; \"$GODOT\" --headless --path . --script res://tools/test_player.gd 2>&1 | grep -E \"ERROR|OK|FAIL|PASS\" | head -10; git stash pop)"
+      "Shell(git stash && GODOT=\"$(command -v godot)\"; \"$GODOT\" --headless --path . --script res://tools/test_player.gd 2>&1 | grep -E \"ERROR|OK|FAIL|PASS\" | head -10; git stash pop)",
+      "Shell(which godot godot4 2>/dev/null; ls -la NebulaDawn-release.apk 2>/dev/null)",
+      "Shell(godot:*)",
+      "Shell(strings:*)",
+      "Shell(ls tools/*.sh scripts/*.sh 2>/dev/null; echo \"---\"; grep -rn \"build_apk\\|export\" scripts/build-apk.sh tools/build_apk.sh 2>/dev/null | head; echo \"---search all---\"; grep -rln \"export_presets\\|--export\" --include=\"*.sh\" . 2>/dev/null | grep -v .git | head)",
+      "Shell(cd /tmp && rm -rf apk_check && mkdir apk_check && cd apk_check && unzip -o -q /home/brian/projects/nebula-dawn/NebulaDawn-release.apk \"*.pck\" 2>/dev/null; ls -la; file *.pck 2>/dev/null | head)",
+      "Shell(unzip:*)",
+      "Shell(cd /tmp/apk_check && unzip -o -q /home/brian/projects/nebula-dawn/NebulaDawn-release.apk 2>/dev/null; ls -la; find . -name \"*.pck\" -o -name \"*.so\" | grep -i pck)",
+      "Shell(grep:*)",
+      "Shell(cat assets/sprites/player_ship.svg.import 2>/dev/null; echo \"---project.godot---\"; grep -n \"input\\|move_left\\|move_right\\|width\\|height\" project.godot | head -30)",
+      "Shell(rm:*)"
     ],
     "deny": [],
     "defaultMode": "default"
