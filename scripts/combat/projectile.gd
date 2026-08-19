@@ -47,7 +47,10 @@ var _retarget_timer: float = 0.0
 var _reflect_cd: float = 0.0
 
 @onready var _poly: Polygon2D = $Polygon2D
+@onready var _glow: Polygon2D = $Glow
+@onready var _core: Polygon2D = $Core
 @onready var _collision: CollisionShape2D = $CollisionShape2D
+var _base_scale: float = 1.0
 
 
 func _ready() -> void:
@@ -78,7 +81,8 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	wave_amp = float(opts.get("wave_amp", 0.0))
 	wave_freq = float(opts.get("wave_freq", 8.0))
 	_lifetime = float(opts.get("lifetime", 3.0))
-	scale = Vector2.ONE * float(opts.get("scale", 1.0))
+	_base_scale = float(opts.get("scale", 1.0))
+	scale = Vector2.ONE * _base_scale
 	splash_radius = float(opts.get("splash_radius", 0.0))
 	splash_damage = float(opts.get("splash_damage", 0.0))
 	melt_ticks = int(opts.get("melt_ticks", 0))
@@ -100,19 +104,26 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	if _collision:
 		_collision.set_deferred("disabled", false)
 	# Layers: 1=player, 2=player_proj, 3=enemy, 4=enemy_proj, 5=pickup, 6=hazard
+	var tint: Color
 	if from_player:
 		collision_layer = 2
-		# Also overlap enemy bullets when this shot can cancel them.
 		collision_mask = 4 | 32 | (8 if cancel_bullets else 0)
-		if _poly:
-			_poly.color = opts.get("color", Color(0.55, 0.9, 1.0))
+		tint = opts.get("color", Color(0.55, 0.9, 1.0))
 	else:
 		collision_layer = 8
-		# Hit player + hazards (asteroids block enemy fire).
 		collision_mask = 1 | 32
 		add_to_group("enemy_projectiles")
-		if _poly:
-			_poly.color = opts.get("color", Color(1.0, 0.55, 0.35))
+		tint = opts.get("color", Color(1.0, 0.55, 0.35))
+	_apply_tint(tint)
+
+
+func _apply_tint(tint: Color) -> void:
+	if _poly:
+		_poly.color = tint
+	if _glow:
+		_glow.color = Color(tint.r, tint.g, tint.b, 0.28)
+	if _core:
+		_core.color = Color(1.0, 1.0, 1.0, 0.92)
 
 
 func deactivate() -> void:
@@ -139,8 +150,8 @@ func on_reflected() -> void:
 	if velocity.length() > 0.001:
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
 		rotation = velocity.angle() + PI * 0.5
-	if _poly and not from_player:
-		_poly.color = Color(0.65, 0.9, 1.0)
+	if not from_player:
+		_apply_tint(Color(0.65, 0.9, 1.0))
 
 
 func _physics_process(delta: float) -> void:
@@ -149,6 +160,17 @@ func _physics_process(delta: float) -> void:
 	_age += delta
 	if _reflect_cd > 0.0:
 		_reflect_cd -= delta
+	var _alive_ratio := clampf(1.0 - (_age / maxf(_lifetime, 0.001)), 0.0, 1.0)
+	var _pulse := 0.92 + 0.08 * sin(_age * 14.0)
+	if _glow:
+		_glow.scale = Vector2.ONE * (_pulse * (0.85 + 0.15 * _alive_ratio))
+	if _poly:
+		_poly.scale = Vector2.ONE * (_pulse)
+	var _stretch := clampf(velocity.length() / 280.0 + 1.0, 1.0, 1.55)
+	if _poly:
+		_poly.scale.y = _pulse * _stretch
+	if _core:
+		_core.scale.y = _pulse * _stretch
 	if curve != 0.0 and absf(_curved_total) < _max_curve_angle:
 		var step := curve * delta
 		var remaining := _max_curve_angle - absf(_curved_total)

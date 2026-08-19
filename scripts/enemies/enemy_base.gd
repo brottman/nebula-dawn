@@ -240,6 +240,7 @@ func _tick_melt(delta: float) -> void:
 
 func _move(delta: float) -> void:
 	var speed := stats.move_speed if stats else 120.0
+	var _prev := global_position
 	match pattern:
 		Pattern.DIVE:
 			global_position.y += (speed + scroll_speed) * delta
@@ -261,13 +262,11 @@ func _move(delta: float) -> void:
 			var radius := 42.0 + 18.0 * sin(_t * 0.9 + _flight_seed)
 			global_position.x += cos(_spiral_angle) * radius * delta * 1.8
 			global_position.x += sin(_t * 1.4) * 18.0 * delta
-			rotation = sin(_spiral_angle) * 0.35
 		Pattern.WEAVE:
 			global_position.y += (speed * 0.65 + scroll_speed) * delta
 			var w1 := sin(_t * 1.45 + _flight_seed) * 110.0
 			var w2 := sin(_t * 2.9 + _flight_seed * 0.7) * 38.0
 			global_position.x += (w1 + w2) * delta * 1.15
-			rotation = clampf((w1 * 0.008), -0.45, 0.45)
 		Pattern.ZIGZAG:
 			global_position.y += (speed * 0.8 + scroll_speed) * delta
 			_zigzag_timer -= delta
@@ -284,13 +283,11 @@ func _move(delta: float) -> void:
 			var dx := _zigzag_target - global_position.x
 			var steer := clampf(dx * 3.2 * delta, -speed * 1.4 * delta, speed * 1.4 * delta)
 			global_position.x += steer * 2.2
-			rotation = clampf(steer * 0.08, -0.6, 0.6)
 		Pattern.ARC:
 			global_position.y += (speed * 0.75 + scroll_speed) * delta
 			_arc_phase += delta * 1.65
 			var arc_r := 85.0 + 25.0 * sin(_t * 0.7 + _flight_seed)
 			global_position.x += cos(_arc_phase) * arc_r * delta * 1.3
-			rotation = cos(_arc_phase) * 0.3
 		Pattern.HOVER_DART:
 			_hover_timer -= delta
 			if _hover_phase == 0:
@@ -307,14 +304,17 @@ func _move(delta: float) -> void:
 				global_position.y += (speed * 1.65 + scroll_speed) * delta
 				var hx := _zigzag_target - global_position.x
 				global_position.x += clampf(hx * 4.0 * delta, -speed * 1.6 * delta, speed * 1.6 * delta)
-				rotation = clampf(hx * 0.012, -0.5, 0.5)
 				if _hover_timer <= 0.0:
 					_hover_phase = 0
 					_hover_timer = randf_range(0.9, 1.6)
-					rotation = 0.0
 		Pattern.BOSS:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
+	if pattern != Pattern.BOSS and not (pattern == Pattern.DRIFT and stats and stats.is_hazard):
+		var vel := (global_position - _prev) / maxf(delta, 0.0001)
+		if vel.length_squared() > 0.01:
+			var target := vel.angle() + PI * 0.5
+			rotation = lerp_angle(rotation, target, clampf(delta * 18.0, 0.0, 1.0))
 
 
 func _try_fire(delta: float) -> void:
