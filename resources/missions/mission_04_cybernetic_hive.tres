@@ -24,11 +24,11 @@ boss_archetype = &"fabrication"
 script = ExtResource("1_a8bvl")
 enemy_id = &"drone"
 display_name = "Repair Drone"
-move_speed = 88.0
+move_speed = 136.4
 score_value = 160
 fire_interval = 2.8
 fire_pattern = &"arc"
-flight_pattern = &"hover_dart"
+flight_pattern = &"loop"
 color = Color(0.4, 0.95, 0.7, 1)
 size = Vector2(44, 44)
 
@@ -45,8 +45,8 @@ pattern_spread = 70.0
 script = ExtResource("1_a8bvl")
 display_name = "Interceptor"
 max_hp = 1.0
-move_speed = 130.0
-flight_pattern = &"weave"
+move_speed = 201.5
+flight_pattern = &"sweep"
 size = Vector2(40, 40)
 
 [sub_resource type="Resource" id="Resource_p18a4"]
@@ -63,11 +63,11 @@ script = ExtResource("1_a8bvl")
 enemy_id = &"strafer"
 display_name = "Heavy Turret"
 max_hp = 4.0
-move_speed = 32.0
+move_speed = 49.6
 score_value = 240
 fire_interval = 2.4
 fire_pattern = &"spiral"
-flight_pattern = &"hover_dart"
+flight_pattern = &"sweep"
 color = Color(1, 0.4, 0.5, 1)
 size = Vector2(52, 44)
 

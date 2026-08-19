@@ -23,8 +23,8 @@ boss_archetype = &"kaleidoscope"
 script = ExtResource("1_jusr5")
 display_name = "Interceptor"
 max_hp = 1.0
-move_speed = 130.0
-flight_pattern = &"weave"
+move_speed = 201.5
+flight_pattern = &"sweep"
 size = Vector2(40, 40)
 
 [sub_resource type="Resource" id="Resource_axlfp"]
@@ -42,12 +42,12 @@ script = ExtResource("1_jusr5")
 enemy_id = &"drone"
 display_name = "Prism Drone"
 max_hp = 3.0
-move_speed = 80.0
+move_speed = 124.0
 score_value = 240
 fire_interval = 2.6
 projectile_speed = 200.0
 fire_pattern = &"spiral"
-flight_pattern = &"spiral"
+flight_pattern = &"loop"
 color = Color(0.55, 0.85, 1, 1)
 size = Vector2(48, 46)
 
@@ -76,12 +76,12 @@ script = ExtResource("1_jusr5")
 enemy_id = &"strafer"
 display_name = "Ace Fighter"
 max_hp = 3.0
-move_speed = 135.0
+move_speed = 209.25
 score_value = 300
 fire_interval = 2.2
 projectile_speed = 230.0
 fire_pattern = &"arc"
-flight_pattern = &"zigzag"
+flight_pattern = &"loop"
 color = Color(1, 0.85, 0.4, 1)
 size = Vector2(44, 40)
 

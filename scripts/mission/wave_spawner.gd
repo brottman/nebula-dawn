@@ -136,6 +136,8 @@ func _spawn_enemy(stats: EnemyStats, pos: Vector2, count_for_wave: bool = false,
 	enemy.global_position = pos
 	if enemy.has_method("setup"):
 		enemy.setup(stats, projectile_pool, scroll_speed, formation_id)
+	if enemy.has_method("_side_spawn_setup"):
+		enemy._side_spawn_setup()
 	_active_enemies += 1
 	if count_for_wave:
 		_wave_enemies_alive += 1

@@ -24,8 +24,8 @@ boss_archetype = &"tempest"
 script = ExtResource("1_l5m48")
 display_name = "Interceptor"
 max_hp = 1.0
-move_speed = 130.0
-flight_pattern = &"weave"
+move_speed = 201.5
+flight_pattern = &"sweep"
 size = Vector2(40, 40)
 
 [sub_resource type="Resource" id="Resource_2pcil"]
@@ -43,12 +43,12 @@ script = ExtResource("1_l5m48")
 enemy_id = &"strafer"
 display_name = "Ion Raider"
 max_hp = 3.0
-move_speed = 110.0
+move_speed = 170.5
 score_value = 260
 fire_interval = 2.3
 projectile_speed = 240.0
 fire_pattern = &"helix"
-flight_pattern = &"zigzag"
+flight_pattern = &"sweep"
 color = Color(0.4, 0.9, 1, 1)
 size = Vector2(46, 40)
 
@@ -77,11 +77,11 @@ script = ExtResource("1_l5m48")
 enemy_id = &"strafer"
 display_name = "Heavy Turret"
 max_hp = 4.0
-move_speed = 32.0
+move_speed = 49.6
 score_value = 240
 fire_interval = 2.4
 fire_pattern = &"spiral"
-flight_pattern = &"hover_dart"
+flight_pattern = &"sweep"
 color = Color(1, 0.4, 0.5, 1)
 size = Vector2(52, 44)
 

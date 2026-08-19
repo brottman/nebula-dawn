@@ -7,3 +7,5 @@
 - Prefers bosses to have distinct, specialized attack identities with telegraphed, learnable counterplay rather than interchangeable high-volume bullet spam — each boss should be uniquely identifiable and avoidable through learning. Confidence: 0.9
 - Dislikes excessive projectile curve/boomerang behavior where bullets arc back toward the boss — prefers clean, readable projectile trajectories for boss attacks. Confidence: 0.85
 - Prefers enemy banking to be an airplane-like roll/tip (wings dipping with nose kept forward, driven by lateral velocity) rather than a yaw/turn that rotates the sprite to face travel direction — explicitly corrected from velocity-aligned rotation to tipping-only banking while retaining complex flight choreography. Confidence: 0.85
+- Prefers enemy ships to fly faster with more urgent, high-tempo passes rather than slower drifting movement. Confidence: 0.85
+- Prefers predictable, readable large-scale flight patterns over erratic/jittery choreography — explicitly wants side-entry → big circular loop → exit in another direction, with large legible geometric maneuvers that are telegraphed and easy to read. Confidence: 0.9

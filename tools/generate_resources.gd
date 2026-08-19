@@ -5,58 +5,58 @@ extends SceneTree
 
 func _init() -> void:
 	_ensure_dirs()
-	var scout := _enemy(&"scout", "Interceptor", 1.0, 130.0, 100, 0.0, Color(1.0, 0.45, 0.45), Vector2(40, 40))
-	scout.flight_pattern = &"weave"
-	var strafer := _enemy(&"strafer", "Defense Drone", 2.0, 95.0, 150, 2.6, Color(1.0, 0.7, 0.35), Vector2(46, 38))
+	var scout := _enemy_scaled(&"scout", "Interceptor", 1.0, 130.0, 100, 0.0, Color(1.0, 0.45, 0.45), Vector2(40, 40))
+	scout.flight_pattern = &"sweep"
+	var strafer := _enemy_scaled(&"strafer", "Defense Drone", 2.0, 95.0, 150, 2.6, Color(1.0, 0.7, 0.35), Vector2(46, 38))
 	strafer.projectile_speed = 200.0
 	strafer.fire_pattern = &"helix"
-	strafer.flight_pattern = &"weave"
-	var drone := _enemy(&"drone", "Mining Drone", 3.0, 65.0, 200, 2.9, Color(0.7, 0.4, 1.0), Vector2(50, 50))
+	strafer.flight_pattern = &"loop"
+	var drone := _enemy_scaled(&"drone", "Mining Drone", 3.0, 65.0, 200, 2.9, Color(0.7, 0.4, 1.0), Vector2(50, 50))
 	drone.projectile_speed = 170.0
 	drone.fire_pattern = &"spiral"
-	drone.flight_pattern = &"spiral"
-	var cruiser := _enemy(&"strafer", "Armored Cruiser", 4.0, 72.0, 280, 2.8, Color(0.85, 0.45, 0.3), Vector2(58, 42))
+	drone.flight_pattern = &"loop"
+	var cruiser := _enemy_scaled(&"strafer", "Armored Cruiser", 4.0, 72.0, 280, 2.8, Color(0.85, 0.45, 0.3), Vector2(58, 42))
 	cruiser.projectile_speed = 185.0
 	cruiser.fire_pattern = &"arc"
-	cruiser.flight_pattern = &"arc"
+	cruiser.flight_pattern = &"loop"
 	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.55, 0.5, 0.48), Vector2(56, 56))
 	asteroid.is_hazard = true
 	asteroid.contact_damage = 1
-	var bio := _enemy(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.9, Color(0.55, 1.0, 0.75), Vector2(48, 48))
+	var bio := _enemy_scaled(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.9, Color(0.55, 1.0, 0.75), Vector2(48, 48))
 	bio.projectile_speed = 165.0
 	bio.fire_pattern = &"helix"
-	bio.flight_pattern = &"weave"
-	var stealth := _enemy(&"scout", "Stealth Craft", 1.0, 150.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(38, 38))
-	stealth.flight_pattern = &"zigzag"
-	var repair := _enemy(&"drone", "Repair Drone", 2.0, 88.0, 160, 2.8, Color(0.4, 0.95, 0.7), Vector2(44, 44))
+	bio.flight_pattern = &"loop"
+	var stealth := _enemy_scaled(&"scout", "Stealth Craft", 1.0, 150.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(38, 38))
+	stealth.flight_pattern = &"sweep"
+	var repair := _enemy_scaled(&"drone", "Repair Drone", 2.0, 88.0, 160, 2.8, Color(0.4, 0.95, 0.7), Vector2(44, 44))
 	repair.fire_pattern = &"arc"
-	repair.flight_pattern = &"hover_dart"
-	var turret := _enemy(&"strafer", "Heavy Turret", 4.0, 32.0, 240, 2.4, Color(1.0, 0.4, 0.5), Vector2(52, 44))
+	repair.flight_pattern = &"loop"
+	var turret := _enemy_scaled(&"strafer", "Heavy Turret", 4.0, 32.0, 240, 2.4, Color(1.0, 0.4, 0.5), Vector2(52, 44))
 	turret.projectile_speed = 220.0
 	turret.fire_pattern = &"spiral"
-	turret.flight_pattern = &"hover_dart"
-	var ace := _enemy(&"strafer", "Ace Fighter", 3.0, 135.0, 300, 2.2, Color(1.0, 0.85, 0.4), Vector2(44, 40))
+	turret.flight_pattern = &"sweep"
+	var ace := _enemy_scaled(&"strafer", "Ace Fighter", 3.0, 135.0, 300, 2.2, Color(1.0, 0.85, 0.4), Vector2(44, 40))
 	ace.projectile_speed = 230.0
 	ace.fire_pattern = &"arc"
-	ace.flight_pattern = &"zigzag"
-	var mirror_drone := _enemy(&"drone", "Prism Drone", 3.0, 80.0, 240, 2.6, Color(0.55, 0.85, 1.0), Vector2(48, 46))
+	ace.flight_pattern = &"loop"
+	var mirror_drone := _enemy_scaled(&"drone", "Prism Drone", 3.0, 80.0, 240, 2.6, Color(0.55, 0.85, 1.0), Vector2(48, 46))
 	mirror_drone.projectile_speed = 200.0
 	mirror_drone.fire_pattern = &"spiral"
-	mirror_drone.flight_pattern = &"spiral"
-	var ion_raider := _enemy(&"strafer", "Ion Raider", 3.0, 110.0, 260, 2.3, Color(0.4, 0.9, 1.0), Vector2(46, 40))
+	mirror_drone.flight_pattern = &"loop"
+	var ion_raider := _enemy_scaled(&"strafer", "Ion Raider", 3.0, 110.0, 260, 2.3, Color(0.4, 0.9, 1.0), Vector2(46, 40))
 	ion_raider.projectile_speed = 240.0
 	ion_raider.fire_pattern = &"helix"
-	ion_raider.flight_pattern = &"zigzag"
-	var phantom := _enemy(&"scout", "Phantom Wisp", 2.0, 145.0, 200, 2.5, Color(0.35, 0.55, 0.95), Vector2(36, 36))
+	ion_raider.flight_pattern = &"sweep"
+	var phantom := _enemy_scaled(&"scout", "Phantom Wisp", 2.0, 145.0, 200, 2.5, Color(0.35, 0.55, 0.95), Vector2(36, 36))
 	phantom.fire_pattern = &"weave"
-	phantom.flight_pattern = &"weave"
-	var scrap_bot := _enemy(&"drone", "Scrap Bot", 4.0, 70.0, 220, 2.7, Color(0.9, 0.55, 0.3), Vector2(50, 48))
+	phantom.flight_pattern = &"sweep"
+	var scrap_bot := _enemy_scaled(&"drone", "Scrap Bot", 4.0, 70.0, 220, 2.7, Color(0.9, 0.55, 0.3), Vector2(50, 48))
 	scrap_bot.fire_pattern = &"arc"
-	scrap_bot.flight_pattern = &"hover_dart"
-	var dawn_guard := _enemy(&"strafer", "Dawn Guard", 4.0, 100.0, 320, 2.1, Color(1.0, 0.7, 0.35), Vector2(48, 42))
+	scrap_bot.flight_pattern = &"sweep"
+	var dawn_guard := _enemy_scaled(&"strafer", "Dawn Guard", 4.0, 100.0, 320, 2.1, Color(1.0, 0.7, 0.35), Vector2(48, 42))
 	dawn_guard.projectile_speed = 245.0
 	dawn_guard.fire_pattern = &"spiral"
-	dawn_guard.flight_pattern = &"arc"
+	dawn_guard.flight_pattern = &"loop"
 
 	var mid1 := _mid_boss("Heavy Transport", 36.0, 60.0, 1600, 1.55, Color(0.55, 0.8, 1.0), Vector2(84, 64), 190.0)
 	var mid2 := _mid_boss("Seismic Drill", 40.0, 48.0, 1800, 1.6, Color(0.8, 0.6, 0.4), Vector2(88, 70), 185.0)
@@ -131,6 +131,10 @@ func _ensure_dirs() -> void:
 	DirAccess.make_dir_recursive_absolute("res://resources/enemies")
 	DirAccess.make_dir_recursive_absolute("res://resources/missions")
 
+
+func _enemy_scaled(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2, factor: float = 1.55) -> EnemyStats:
+	var e := _enemy(id, display, hp, speed * factor, score, fire, color, size)
+	return e
 
 func _enemy(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2) -> EnemyStats:
 	var e := EnemyStats.new()

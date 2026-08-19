@@ -1,7 +1,7 @@
 extends Area2D
 ## Base enemy / hazard with configurable movement patterns.
 
-enum Pattern { DIVE, STRAFE, DRIFT, BOSS, SPIRAL, WEAVE, ZIGZAG, ARC, HOVER_DART }
+enum Pattern { DIVE, STRAFE, DRIFT, BOSS, SPIRAL, WEAVE, ZIGZAG, ARC, HOVER_DART, LOOP, SWEEP }
 
 @export var stats: EnemyStats
 
@@ -28,6 +28,14 @@ var _hover_timer: float = 0.0
 var _hover_phase: int = 0
 var _arc_phase: float = 0.0
 var _flight_seed: float = 0.0
+var _loop_state: int = 0
+var _loop_t: float = 0.0
+var _loop_center: Vector2 = Vector2.ZERO
+var _loop_radius: float = 88.0
+var _loop_dir: float = 1.0
+var _loop_exit: Vector2 = Vector2.ZERO
+var _loop_base_angle: float = 0.0
+var _sweep_t: float = 0.0
 ## Focused Laser Lv3 melt DoT (damage applied once per tick).
 var _melt_ticks_left: int = 0
 var _melt_dps: float = 0.0
@@ -103,6 +111,8 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 			"zigzag": pattern = Pattern.ZIGZAG
 			"arc": pattern = Pattern.ARC
 			"hover_dart": pattern = Pattern.HOVER_DART
+			"loop": pattern = Pattern.LOOP
+			"sweep": pattern = Pattern.SWEEP
 			"strafe": pattern = Pattern.STRAFE
 			"drift": pattern = Pattern.DRIFT
 			_: pattern = Pattern.DIVE
@@ -116,6 +126,14 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	_zigzag_target = (1.0 if _strafe_dir > 0 else -1.0) * randf_range(80.0, 130.0)
 	_hover_timer = randf_range(0.8, 1.6)
 	_arc_phase = randf_range(0.0, TAU)
+	_loop_state = 0
+	_loop_t = 0.0
+	_loop_radius = randf_range(78.0, 118.0)
+	_loop_dir = _strafe_dir
+	_loop_center = Vector2.ZERO
+	_loop_base_angle = 0.0
+	_loop_exit = Vector2(_strafe_dir * randf_range(0.35, 0.75), 1.0).normalized()
+	_sweep_t = 0.0
 	if formation_id != "":
 		var tracker := get_tree().get_first_node_in_group("formation_tracker")
 		if tracker and tracker.has_method("register"):
@@ -214,7 +232,10 @@ func _physics_process(delta: float) -> void:
 	_move(delta)
 	_try_fire(delta)
 	var vp := get_viewport_rect().size
-	if global_position.y > vp.y + 80.0 and not (stats and stats.is_boss):
+	if (global_position.y > vp.y + 80.0 \
+			or global_position.x < -80.0 \
+			or global_position.x > vp.x + 80.0) \
+			and not (stats and stats.is_boss):
 		queue_free()
 
 
@@ -308,6 +329,10 @@ func _move(delta: float) -> void:
 				if _hover_timer <= 0.0:
 					_hover_phase = 0
 					_hover_timer = randf_range(0.9, 1.6)
+		Pattern.LOOP:
+			_loop_move(delta, speed)
+		Pattern.SWEEP:
+			_sweep_move(delta, speed)
 		Pattern.BOSS:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
@@ -324,6 +349,66 @@ func _move(delta: float) -> void:
 		if _poly and _poly.visible:
 			_poly.skew = lerp(_poly.skew, bank_target * 0.42, clampf(delta * 7.0, 0.0, 1.0))
 			_poly.scale.x = lerp(_poly.scale.x, 1.0 - absf(bank_target) * 0.20, clampf(delta * 7.0, 0.0, 1.0))
+
+
+func _loop_move(delta: float, speed: float) -> void:
+	# 0 = fast straight entry from spawn edge, 1 = big predictable circle, 2 = exit
+	var entry_speed := speed * 1.65 + scroll_speed * 0.35
+	var circle_speed := speed * 1.05
+	var exit_speed := speed * 1.55 + scroll_speed * 0.85
+	match _loop_state:
+		0:
+			# Entry: brisk diagonal toward center-line
+			global_position += Vector2(_loop_dir * 0.18, 1.0).normalized() * entry_speed * delta
+			if global_position.y >= 110.0 + randf() * 36.0:
+				_loop_state = 1
+				_loop_t = 0.0
+				# Circle center ahead in the direction of entry, offset sideways
+				var fwd := Vector2(_loop_dir * 0.18, 1.0).normalized()
+				var side := Vector2(-fwd.y, fwd.x) * _loop_dir
+				_loop_center = global_position + fwd * (_loop_radius * 0.55) + side * (_loop_radius * 0.18)
+				_loop_base_angle = (global_position - _loop_center).angle()
+				# Exit slightly outward so the loop reads as a big bend
+				_loop_exit = Vector2(-_loop_dir * randf_range(0.45, 0.85), 1.0).normalized()
+		1:
+			_loop_t += delta * (circle_speed / maxf(_loop_radius, 1.0))
+			# One full 360 before exit — reads clearly
+			var ang := _loop_base_angle + _loop_t * _loop_dir
+			# Orbit the center; keep it stable so the loop looks circular on screen
+			global_position = _loop_center + Vector2(cos(ang), sin(ang)) * _loop_radius
+			# Drift down a touch while circling so the whole maneuver advances
+			global_position.y += entry_speed * 0.08 * delta
+			if _loop_t >= TAU:
+				_loop_state = 2
+				_loop_t = 0.0
+		2:
+			global_position += _loop_exit * exit_speed * delta
+
+
+func _sweep_move(delta: float, speed: float) -> void:
+	# Predictable side entry → horizontal sweep → diagonal exit
+	var entry_speed := speed * 1.75 + scroll_speed * 0.3
+	var sweep_speed := speed * 1.45
+	var exit_speed := speed * 1.6 + scroll_speed * 0.9
+	match _loop_state:
+		0:
+			# Come in from the side that matches _loop_dir
+			var entry := Vector2(-_loop_dir * 0.9, 0.55).normalized()
+			global_position += entry * entry_speed * delta
+			# Sweep starts once we're visibly on-screen
+			if global_position.y > 38.0 and global_position.x > 28.0 and global_position.x < get_viewport_rect().size.x - 28.0:
+				_loop_state = 1
+				_sweep_t = global_position.x
+				_loop_exit = Vector2(_loop_dir * randf_range(0.25, 0.55), 1.0).normalized()
+		1:
+			_sweep_t += _loop_dir * sweep_speed * delta
+			global_position.x = _sweep_t
+			global_position.y += (speed * 0.18 + scroll_speed * 0.55) * delta
+			if (_loop_dir > 0.0 and global_position.x > get_viewport_rect().size.x - 34.0) \
+					or (_loop_dir < 0.0 and global_position.x < 34.0):
+				_loop_state = 2
+		2:
+			global_position += _loop_exit * exit_speed * delta
 
 
 func _try_fire(delta: float) -> void:
@@ -383,6 +468,19 @@ func _fodder_fire() -> void:
 			BossPatterns.spread_fan(self, muzzle, spd * 0.88, dmg, 2, 0.22, {"wave_amp": 14.0, "wave_freq": 7.0})
 		_:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
+
+
+func _side_spawn_setup() -> void:
+	# Called after global_position is known for LOOP / SWEEP — put them off-screen on the side
+	if pattern != Pattern.LOOP and pattern != Pattern.SWEEP:
+		return
+	var vp := get_viewport_rect().size
+	var side := 1.0 if _loop_dir > 0 else -1.0
+	# Nudge X to the chosen side edge so entry reads as "from the side"
+	var edge_x := 14.0 if side < 0 else vp.x - 14.0
+	# Keep Y slightly above screen; loop will dive in
+	global_position.x = edge_x + side * randf_range(8.0, 22.0)
+	global_position.y = -28.0 - randf_range(0.0, 18.0)
 
 
 func _default_flight_pattern() -> String:

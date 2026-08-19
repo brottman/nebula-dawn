@@ -24,9 +24,9 @@ boss_archetype = &"leviathan"
 script = ExtResource("1_owjit")
 display_name = "Stealth Craft"
 max_hp = 1.0
-move_speed = 150.0
+move_speed = 232.5
 score_value = 180
-flight_pattern = &"zigzag"
+flight_pattern = &"sweep"
 color = Color(0.45, 0.35, 0.7, 1)
 size = Vector2(38, 38)
 
@@ -43,8 +43,8 @@ pattern_spread = 50.0
 script = ExtResource("1_owjit")
 display_name = "Interceptor"
 max_hp = 1.0
-move_speed = 130.0
-flight_pattern = &"weave"
+move_speed = 201.5
+flight_pattern = &"sweep"
 size = Vector2(40, 40)
 
 [sub_resource type="Resource" id="Resource_cjs3c"]
@@ -62,12 +62,12 @@ script = ExtResource("1_owjit")
 enemy_id = &"drone"
 display_name = "Bio-Ship"
 max_hp = 3.0
-move_speed = 78.0
+move_speed = 120.9
 score_value = 220
 fire_interval = 2.9
 projectile_speed = 165.0
 fire_pattern = &"helix"
-flight_pattern = &"weave"
+flight_pattern = &"loop"
 color = Color(0.55, 1, 0.75, 1)
 size = Vector2(48, 48)
 

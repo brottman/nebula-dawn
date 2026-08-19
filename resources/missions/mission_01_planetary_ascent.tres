@@ -24,8 +24,8 @@ boss_archetype = &"orbital"
 script = ExtResource("1_0hyco")
 display_name = "Interceptor"
 max_hp = 1.0
-move_speed = 130.0
-flight_pattern = &"weave"
+move_speed = 201.5
+flight_pattern = &"sweep"
 size = Vector2(40, 40)
 
 [sub_resource type="Resource" id="Resource_rwn5r"]
@@ -162,12 +162,12 @@ max_clear_time = 14.0
 script = ExtResource("1_0hyco")
 enemy_id = &"strafer"
 display_name = "Defense Drone"
-move_speed = 95.0
+move_speed = 147.25
 score_value = 150
 fire_interval = 2.6
 projectile_speed = 200.0
 fire_pattern = &"helix"
-flight_pattern = &"weave"
+flight_pattern = &"loop"
 color = Color(1, 0.7, 0.35, 1)
 size = Vector2(46, 38)
 

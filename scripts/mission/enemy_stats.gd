@@ -12,7 +12,7 @@ extends Resource
 @export var contact_damage: int = 1
 ## Fodder fire style: straight | aimed | side | burst | spread | ring | tri | cross | spiral | helix | arc
 @export var fire_pattern: StringName = &"straight"
-## Flight style: dive | strafe | drift | spiral | weave | zigzag | arc | hover_dart
+## Flight style: dive | strafe | drift | spiral | weave | zigzag | arc | hover_dart | loop | sweep
 @export var flight_pattern: StringName = &""
 @export var color: Color = Color(1.0, 0.45, 0.45)
 @export var size: Vector2 = Vector2(28, 28)
