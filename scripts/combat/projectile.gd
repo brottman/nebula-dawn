@@ -14,6 +14,8 @@ extends Area2D
 ##   melt_dps (float)      — damage per melt tick
 ##   cancel_bullets (bool) — destroy enemy projectiles this shot overlaps
 ##   curve (float)         — angular drift in radians/sec (spirals & arcs)
+##   max_curve_angle (float) — clamp total heading change (default 1.42 ~81deg)
+##   curve_decay (float)     — linear decay of curve per second
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 1.0
@@ -29,6 +31,9 @@ var melt_dps: float = 0.0
 var cancel_bullets: bool = false
 var armor_pierce: bool = false
 var curve: float = 0.0
+var _max_curve_angle: float = 1.42
+var _curve_decay: float = 0.55
+var _curved_total: float = 0.0
 
 var _active: bool = false
 var _lifetime: float = 3.0
@@ -81,6 +86,9 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	cancel_bullets = bool(opts.get("cancel_bullets", false))
 	armor_pierce = bool(opts.get("armor_pierce", false))
 	curve = float(opts.get("curve", 0.0))
+	_max_curve_angle = float(opts.get("max_curve_angle", 1.42))
+	_curve_decay = float(opts.get("curve_decay", 0.55))
+	_curved_total = 0.0
 	if velocity.length() > 0.001:
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
 		rotation = velocity.angle() + PI * 0.5
@@ -127,6 +135,7 @@ func on_reflected() -> void:
 	_base_pos = global_position
 	_age = maxf(0.0, _age - 0.35)
 	_reflect_cd = 0.2
+	_curved_total = 0.0
 	if velocity.length() > 0.001:
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
 		rotation = velocity.angle() + PI * 0.5
@@ -140,10 +149,15 @@ func _physics_process(delta: float) -> void:
 	_age += delta
 	if _reflect_cd > 0.0:
 		_reflect_cd -= delta
-	if curve != 0.0:
-		velocity = velocity.rotated(curve * delta)
+	if curve != 0.0 and absf(_curved_total) < _max_curve_angle:
+		var step := curve * delta
+		var remaining := _max_curve_angle - absf(_curved_total)
+		var clamped_step := clampf(step, -remaining, remaining) if remaining > 0.0 else 0.0
+		velocity = velocity.rotated(clamped_step)
+		_curved_total += clamped_step
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
 		rotation = velocity.angle() + PI * 0.5
+		curve = move_toward(curve, 0.0, _curve_decay * delta)
 	if homing > 0.0:
 		_steer_homing(delta)
 	_base_pos += velocity * delta

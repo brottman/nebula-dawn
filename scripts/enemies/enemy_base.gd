@@ -20,6 +20,7 @@ var _boss_phase: int = 0
 var _origin_x: float = 0.0
 var _teleport_cd: float = 0.0
 var _armor_angle: float = 0.0
+var _telegraph_lock: float = 0.0
 var _spiral_angle: float = 0.0
 var _zigzag_timer: float = 0.0
 var _zigzag_target: float = 0.0
