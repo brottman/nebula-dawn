@@ -16,4 +16,3 @@ color = Color(1, 0.35, 0.55, 1)
 size = Vector2(136, 108)
 is_boss = true
 boss_archetype = &"omega"
-scene_path = "res://scenes/entities/enemy_base.tscn"

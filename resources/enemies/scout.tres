@@ -7,5 +7,5 @@ script = ExtResource("1_5q4mm")
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
+flight_pattern = &"weave"
 size = Vector2(40, 40)
-scene_path = "res://scenes/entities/enemy_base.tscn"

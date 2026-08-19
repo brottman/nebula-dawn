@@ -19,7 +19,6 @@ color = Color(0.75, 0.55, 0.4, 1)
 size = Vector2(136, 98)
 is_boss = true
 boss_archetype = &"megalith"
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_6d1ea"]
 script = ExtResource("1_3m4dp")
@@ -31,7 +30,6 @@ score_value = 60
 color = Color(0.55, 0.5, 0.48, 1)
 size = Vector2(56, 56)
 is_hazard = true
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_doyjq"]
 script = ExtResource("4_rhg3f")
@@ -47,8 +45,8 @@ script = ExtResource("1_3m4dp")
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
+flight_pattern = &"weave"
 size = Vector2(40, 40)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_i3qac"]
 script = ExtResource("4_rhg3f")
@@ -173,12 +171,12 @@ enemy_id = &"strafer"
 display_name = "Defense Drone"
 move_speed = 95.0
 score_value = 150
-fire_interval = 1.8
+fire_interval = 2.6
 projectile_speed = 200.0
-fire_pattern = &"side"
+fire_pattern = &"helix"
+flight_pattern = &"weave"
 color = Color(1, 0.7, 0.35, 1)
 size = Vector2(46, 38)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_gf8un"]
 script = ExtResource("4_rhg3f")
@@ -207,12 +205,12 @@ display_name = "Mining Drone"
 max_hp = 3.0
 move_speed = 65.0
 score_value = 200
-fire_interval = 2.2
+fire_interval = 2.9
 projectile_speed = 170.0
-fire_pattern = &"burst"
+fire_pattern = &"spiral"
+flight_pattern = &"spiral"
 color = Color(0.7, 0.4, 1, 1)
 size = Vector2(50, 50)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_bd47u"]
 script = ExtResource("4_rhg3f")
@@ -230,12 +228,12 @@ display_name = "Armored Cruiser"
 max_hp = 4.0
 move_speed = 72.0
 score_value = 280
-fire_interval = 2.0
+fire_interval = 2.8
 projectile_speed = 185.0
-fire_pattern = &"spread"
+fire_pattern = &"arc"
+flight_pattern = &"arc"
 color = Color(0.85, 0.45, 0.3, 1)
 size = Vector2(58, 42)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_sq5ph"]
 script = ExtResource("4_rhg3f")
@@ -339,7 +337,6 @@ size = Vector2(88, 70)
 is_boss = true
 is_mid_boss = true
 boss_archetype = &"drill"
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_c5v1h"]
 script = ExtResource("4_rhg3f")

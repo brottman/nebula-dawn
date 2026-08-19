@@ -1,7 +1,7 @@
 extends Area2D
 ## Base enemy / hazard with configurable movement patterns.
 
-enum Pattern { DIVE, STRAFE, DRIFT, BOSS }
+enum Pattern { DIVE, STRAFE, DRIFT, BOSS, SPIRAL, WEAVE, ZIGZAG, ARC, HOVER_DART }
 
 @export var stats: EnemyStats
 
@@ -20,6 +20,13 @@ var _boss_phase: int = 0
 var _origin_x: float = 0.0
 var _teleport_cd: float = 0.0
 var _armor_angle: float = 0.0
+var _spiral_angle: float = 0.0
+var _zigzag_timer: float = 0.0
+var _zigzag_target: float = 0.0
+var _hover_timer: float = 0.0
+var _hover_phase: int = 0
+var _arc_phase: float = 0.0
+var _flight_seed: float = 0.0
 ## Focused Laser Lv3 melt DoT (damage applied once per tick).
 var _melt_ticks_left: int = 0
 var _melt_dps: float = 0.0
@@ -87,17 +94,26 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 		collision_layer = 32
 		collision_mask = 1 | 2 | 8
 	else:
-		match String(s.enemy_id):
-			"strafer":
-				pattern = Pattern.STRAFE
-			"drone":
-				pattern = Pattern.DRIFT
-			_:
-				pattern = Pattern.DIVE
+		var fp := String(s.flight_pattern) if s.flight_pattern != &"" else _default_flight_pattern()
+		match fp:
+			"spiral": pattern = Pattern.SPIRAL
+			"weave": pattern = Pattern.WEAVE
+			"zigzag": pattern = Pattern.ZIGZAG
+			"arc": pattern = Pattern.ARC
+			"hover_dart": pattern = Pattern.HOVER_DART
+			"strafe": pattern = Pattern.STRAFE
+			"drift": pattern = Pattern.DRIFT
+			_: pattern = Pattern.DIVE
 		add_to_group("enemies")
 		collision_layer = 4
 		collision_mask = 1 | 2
 	_strafe_dir = 1.0 if randf() > 0.5 else -1.0
+	_flight_seed = randf() * TAU
+	_spiral_angle = _flight_seed
+	_zigzag_timer = randf_range(0.4, 1.0)
+	_zigzag_target = (1.0 if _strafe_dir > 0 else -1.0) * randf_range(80.0, 130.0)
+	_hover_timer = randf_range(0.8, 1.6)
+	_arc_phase = randf_range(0.0, TAU)
 	if formation_id != "":
 		var tracker := get_tree().get_first_node_in_group("formation_tracker")
 		if tracker and tracker.has_method("register"):
@@ -225,7 +241,6 @@ func _move(delta: float) -> void:
 	var speed := stats.move_speed if stats else 120.0
 	match pattern:
 		Pattern.DIVE:
-			# Mild sweep so popcorn reads as predictable arcs, not straight drops.
 			global_position.y += (speed + scroll_speed) * delta
 			global_position.x += sin(_t * 2.6 + _origin_x * 0.02) * 70.0 * delta
 		Pattern.STRAFE:
@@ -239,6 +254,63 @@ func _move(delta: float) -> void:
 			global_position.y += (speed + scroll_speed) * delta
 			global_position.x += sin(_t * 2.0) * 40.0 * delta
 			rotation += delta * 0.8 if stats and stats.is_hazard else 0.0
+		Pattern.SPIRAL:
+			global_position.y += (speed * 0.7 + scroll_speed) * delta
+			_spiral_angle += delta * (2.2 if _strafe_dir > 0 else -2.2)
+			var radius := 42.0 + 18.0 * sin(_t * 0.9 + _flight_seed)
+			global_position.x += cos(_spiral_angle) * radius * delta * 1.8
+			global_position.x += sin(_t * 1.4) * 18.0 * delta
+			rotation = sin(_spiral_angle) * 0.35
+		Pattern.WEAVE:
+			global_position.y += (speed * 0.65 + scroll_speed) * delta
+			var w1 := sin(_t * 1.45 + _flight_seed) * 110.0
+			var w2 := sin(_t * 2.9 + _flight_seed * 0.7) * 38.0
+			global_position.x += (w1 + w2) * delta * 1.15
+			rotation = clampf((w1 * 0.008), -0.45, 0.45)
+		Pattern.ZIGZAG:
+			global_position.y += (speed * 0.8 + scroll_speed) * delta
+			_zigzag_timer -= delta
+			if _zigzag_timer <= 0.0:
+				_zigzag_timer = randf_range(0.55, 1.05)
+				_zigzag_target = clampf(
+					global_position.x + _strafe_dir * randf_range(90.0, 180.0),
+					38.0, get_viewport_rect().size.x - 38.0
+				)
+				_strafe_dir = -1.0 if _zigzag_target < global_position.x else 1.0
+				if randf() < 0.22:
+					_strafe_dir *= -1.0
+					_zigzag_target = clampf(global_position.x + _strafe_dir * 110.0, 38.0, get_viewport_rect().size.x - 38.0)
+			var dx := _zigzag_target - global_position.x
+			var steer := clampf(dx * 3.2 * delta, -speed * 1.4 * delta, speed * 1.4 * delta)
+			global_position.x += steer * 2.2
+			rotation = clampf(steer * 0.08, -0.6, 0.6)
+		Pattern.ARC:
+			global_position.y += (speed * 0.75 + scroll_speed) * delta
+			_arc_phase += delta * 1.65
+			var arc_r := 85.0 + 25.0 * sin(_t * 0.7 + _flight_seed)
+			global_position.x += cos(_arc_phase) * arc_r * delta * 1.3
+			rotation = cos(_arc_phase) * 0.3
+		Pattern.HOVER_DART:
+			_hover_timer -= delta
+			if _hover_phase == 0:
+				global_position.y += (speed * 0.25 + scroll_speed * 0.55) * delta
+				global_position.x += sin(_t * 2.4 + _flight_seed) * 22.0 * delta
+				if _hover_timer <= 0.0:
+					_hover_phase = 1
+					_hover_timer = randf_range(0.45, 0.75)
+					_zigzag_target = clampf(
+						randf_range(50.0, get_viewport_rect().size.x - 50.0),
+						40.0, get_viewport_rect().size.x - 40.0
+					)
+			else:
+				global_position.y += (speed * 1.65 + scroll_speed) * delta
+				var hx := _zigzag_target - global_position.x
+				global_position.x += clampf(hx * 4.0 * delta, -speed * 1.6 * delta, speed * 1.6 * delta)
+				rotation = clampf(hx * 0.012, -0.5, 0.5)
+				if _hover_timer <= 0.0:
+					_hover_phase = 0
+					_hover_timer = randf_range(0.9, 1.6)
+					rotation = 0.0
 		Pattern.BOSS:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
@@ -261,7 +333,6 @@ func _try_fire(delta: float) -> void:
 
 
 func _fodder_fire() -> void:
-	## Per-archetype fodder patterns so waves aren't one note.
 	var muzzle := global_position + Vector2(0, 16)
 	var spd := stats.projectile_speed
 	var dmg := float(stats.contact_damage)
@@ -274,32 +345,55 @@ func _fodder_fire() -> void:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(side * 0.55, 1).normalized() * spd, dmg)
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, 1) * spd * 0.95, dmg)
 		"burst":
-			BossPatterns.spread_fan(self, muzzle, spd * 0.92, dmg, 3, 0.28)
+			BossPatterns.spread_fan(self, muzzle, spd * 0.92, dmg, 2, 0.28)
 			_fire_timer = stats.fire_interval * 1.15
 		"spread":
-			BossPatterns.spread_fan(self, muzzle, spd, dmg, 3, 0.4)
+			BossPatterns.spread_fan(self, muzzle, spd, dmg, 2, 0.34)
 		"ring":
-			# Full-circle burst (slower shells so it stays readable).
-			BossPatterns.ring(self, muzzle, spd * 0.8, dmg, 6, {"scale": 0.85})
-			_fire_timer = stats.fire_interval * 1.2
+			BossPatterns.ring(self, muzzle, spd * 0.78, dmg, 5, {"scale": 0.82})
+			_fire_timer = stats.fire_interval * 1.25
 		"tri":
-			# Three-way aimed star.
-			BossPatterns.aimed(self, muzzle, spd, dmg, 3, 0.5)
+			BossPatterns.aimed(self, muzzle, spd, dmg, 2, 0.42)
 		"cross":
-			# Five-way cross denial.
-			BossPatterns.cross(self, muzzle, spd * 0.9, dmg)
+			BossPatterns.cross(self, muzzle, spd * 0.88, dmg, {"scale": 0.9})
+		"spiral":
+			BossPatterns.spiral_shot(self, muzzle, spd, dmg, 1.35 if _strafe_dir > 0 else -1.35)
+			if pattern == Pattern.SPIRAL and randf() < 0.35:
+				BossPatterns.spiral_shot(self, muzzle, spd * 0.85, dmg, -1.35 if _strafe_dir > 0 else 1.35, {"scale": 0.85})
+			_fire_timer = stats.fire_interval * 0.72
+		"helix":
+			BossPatterns.helix_pair(self, muzzle, spd, dmg)
+			_fire_timer = stats.fire_interval * 0.95
+		"arc":
+			var dir := 1.0 if _strafe_dir > 0 else -1.0
+			BossPatterns.arc_shot(self, muzzle, spd, dmg, dir * 1.15)
+			if randf() < 0.4:
+				BossPatterns.arc_shot(self, muzzle, spd * 0.92, dmg, -dir * 1.0, {"scale": 0.88})
+		"weave":
+			BossPatterns.spread_fan(self, muzzle, spd * 0.88, dmg, 2, 0.22, {"wave_amp": 14.0, "wave_freq": 7.0})
 		_:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
 
+
+func _default_flight_pattern() -> String:
+	if stats == null:
+		return "dive"
+	match String(stats.enemy_id):
+		"strafer":
+			return "zigzag" if randf() < 0.5 else "weave"
+		"drone":
+			return "spiral" if randf() < 0.45 else "hover_dart"
+		_:
+			return "dive" if randf() < 0.4 else ("arc" if randf() < 0.5 else "weave")
 
 func _default_fodder_pattern() -> String:
 	if stats == null:
 		return "straight"
 	match String(stats.enemy_id):
 		"strafer":
-			return "side"
+			return "helix" if pattern == Pattern.WEAVE else ("arc" if pattern == Pattern.ZIGZAG else "side")
 		"drone":
-			return "burst"
+			return "spiral" if pattern == Pattern.SPIRAL else ("helix" if pattern == Pattern.HOVER_DART else "arc")
 		_:
 			return "straight"
 

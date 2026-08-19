@@ -18,15 +18,14 @@ color = Color(0.45, 0.9, 1, 1)
 size = Vector2(128, 96)
 is_boss = true
 boss_archetype = &"kaleidoscope"
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_gxu35"]
 script = ExtResource("1_jusr5")
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
+flight_pattern = &"weave"
 size = Vector2(40, 40)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_axlfp"]
 script = ExtResource("4_msbnf")
@@ -45,12 +44,12 @@ display_name = "Prism Drone"
 max_hp = 3.0
 move_speed = 80.0
 score_value = 240
-fire_interval = 1.7
+fire_interval = 2.6
 projectile_speed = 200.0
-fire_pattern = &"ring"
+fire_pattern = &"spiral"
+flight_pattern = &"spiral"
 color = Color(0.55, 0.85, 1, 1)
 size = Vector2(48, 46)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_ficue"]
 script = ExtResource("4_msbnf")
@@ -79,12 +78,12 @@ display_name = "Ace Fighter"
 max_hp = 3.0
 move_speed = 135.0
 score_value = 300
-fire_interval = 1.45
+fire_interval = 2.2
 projectile_speed = 230.0
-fire_pattern = &"aimed"
+fire_pattern = &"arc"
+flight_pattern = &"zigzag"
 color = Color(1, 0.85, 0.4, 1)
 size = Vector2(44, 40)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_iypvf"]
 script = ExtResource("4_msbnf")
@@ -336,7 +335,6 @@ size = Vector2(80, 70)
 is_boss = true
 is_mid_boss = true
 boss_archetype = &"prism"
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_eqo1e"]
 script = ExtResource("4_msbnf")

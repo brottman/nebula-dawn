@@ -13,6 +13,7 @@ extends Area2D
 ##   melt_ticks (int)      — apply melting DoT ticks to the hit target
 ##   melt_dps (float)      — damage per melt tick
 ##   cancel_bullets (bool) — destroy enemy projectiles this shot overlaps
+##   curve (float)         — angular drift in radians/sec (spirals & arcs)
 
 var velocity: Vector2 = Vector2.ZERO
 var damage: float = 1.0
@@ -27,6 +28,7 @@ var melt_ticks: int = 0
 var melt_dps: float = 0.0
 var cancel_bullets: bool = false
 var armor_pierce: bool = false
+var curve: float = 0.0
 
 var _active: bool = false
 var _lifetime: float = 3.0
@@ -78,6 +80,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	melt_dps = float(opts.get("melt_dps", 0.0))
 	cancel_bullets = bool(opts.get("cancel_bullets", false))
 	armor_pierce = bool(opts.get("armor_pierce", false))
+	curve = float(opts.get("curve", 0.0))
 	if velocity.length() > 0.001:
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
 		rotation = velocity.angle() + PI * 0.5
@@ -137,6 +140,10 @@ func _physics_process(delta: float) -> void:
 	_age += delta
 	if _reflect_cd > 0.0:
 		_reflect_cd -= delta
+	if curve != 0.0:
+		velocity = velocity.rotated(curve * delta)
+		_perp = Vector2(-velocity.y, velocity.x).normalized()
+		rotation = velocity.angle() + PI * 0.5
 	if homing > 0.0:
 		_steer_homing(delta)
 	_base_pos += velocity * delta

@@ -19,7 +19,6 @@ color = Color(0.5, 1, 0.7, 1)
 size = Vector2(124, 96)
 is_boss = true
 boss_archetype = &"fabrication"
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_ys75u"]
 script = ExtResource("1_a8bvl")
@@ -27,11 +26,11 @@ enemy_id = &"drone"
 display_name = "Repair Drone"
 move_speed = 88.0
 score_value = 160
-fire_interval = 2.1
-fire_pattern = &"aimed"
+fire_interval = 2.8
+fire_pattern = &"arc"
+flight_pattern = &"hover_dart"
 color = Color(0.4, 0.95, 0.7, 1)
 size = Vector2(44, 44)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_mu0mt"]
 script = ExtResource("4_ufb2g")
@@ -47,8 +46,8 @@ script = ExtResource("1_a8bvl")
 display_name = "Interceptor"
 max_hp = 1.0
 move_speed = 130.0
+flight_pattern = &"weave"
 size = Vector2(40, 40)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_p18a4"]
 script = ExtResource("4_ufb2g")
@@ -66,11 +65,11 @@ display_name = "Heavy Turret"
 max_hp = 4.0
 move_speed = 32.0
 score_value = 240
-fire_interval = 1.55
-fire_pattern = &"aimed"
+fire_interval = 2.4
+fire_pattern = &"spiral"
+flight_pattern = &"hover_dart"
 color = Color(1, 0.4, 0.5, 1)
 size = Vector2(52, 44)
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_fgouo"]
 script = ExtResource("4_ufb2g")
@@ -316,7 +315,6 @@ size = Vector2(78, 78)
 is_boss = true
 is_mid_boss = true
 boss_archetype = &"overseer"
-scene_path = "res://scenes/entities/enemy_base.tscn"
 
 [sub_resource type="Resource" id="Resource_a6n8t"]
 script = ExtResource("4_ufb2g")
