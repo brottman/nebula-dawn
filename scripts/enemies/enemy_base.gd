@@ -34,7 +34,8 @@ var _melt_dps: float = 0.0
 var _melt_timer: float = 0.0
 var _spark_cooldown: float = 0.0
 
-@onready var _sprite: Sprite2D = $Sprite2D
+@onready var _sprite: Sprite2D = $SpriteHolder/Sprite2D
+@onready var _holder: Node2D = $SpriteHolder
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 
@@ -311,10 +312,18 @@ func _move(delta: float) -> void:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
 	if pattern != Pattern.BOSS and not (pattern == Pattern.DRIFT and stats and stats.is_hazard):
-		var vel := (global_position - _prev) / maxf(delta, 0.0001)
-		if vel.length_squared() > 0.01:
-			var target := vel.angle() + PI * 0.5
-			rotation = lerp_angle(rotation, target, clampf(delta * 18.0, 0.0, 1.0))
+		var vx := (global_position.x - _prev.x) / maxf(delta, 0.0001)
+		var bank_target := clampf(vx * 0.0045, -0.62, 0.62)
+		rotation = lerp_angle(rotation, 0.0, clampf(delta * 10.0, 0.0, 1.0))
+		if _holder:
+			_holder.skew = lerp(_holder.skew, bank_target * 0.42, clampf(delta * 7.0, 0.0, 1.0))
+			var squash_x := 1.0 - absf(bank_target) * 0.20
+			var stretch_y := 1.0 + absf(bank_target) * 0.05
+			_holder.scale.x = lerp(_holder.scale.x, squash_x, clampf(delta * 7.0, 0.0, 1.0))
+			_holder.scale.y = lerp(_holder.scale.y, stretch_y, clampf(delta * 7.0, 0.0, 1.0))
+		if _poly and _poly.visible:
+			_poly.skew = lerp(_poly.skew, bank_target * 0.42, clampf(delta * 7.0, 0.0, 1.0))
+			_poly.scale.x = lerp(_poly.scale.x, 1.0 - absf(bank_target) * 0.20, clampf(delta * 7.0, 0.0, 1.0))
 
 
 func _try_fire(delta: float) -> void:
