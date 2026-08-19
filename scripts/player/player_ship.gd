@@ -360,6 +360,14 @@ func play_victory_exit() -> void:
 		_engine.emitting = true
 	var vis := _visual()
 	vis.modulate = _ship_tint
+	_bank = 0.0
+	_last_x = global_position.x
+	var lvl := create_tween()
+	lvl.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	lvl.tween_property(vis, "rotation", 0.0, 0.22)
+	await lvl.finished
+	if not is_inside_tree():
+		return
 
 	var vp := get_viewport_rect().size
 	var center := Vector2(vp.x * 0.5, vp.y * 0.48)
