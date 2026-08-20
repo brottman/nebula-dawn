@@ -10,9 +10,9 @@ extends Resource
 @export var fire_interval: float = 0.0
 @export var projectile_speed: float = 220.0
 @export var contact_damage: int = 1
-## Fodder fire style: straight | aimed | side | burst | spread | ring | tri | cross | spiral | helix | arc
+## Fodder fire style: straight | aimed | side | burst | spread | ring | tri | cross | spiral | helix | arc | snipe | shotgun | double_aim | scatter | mine | laser_line | boomerang | volley | weave
 @export var fire_pattern: StringName = &"straight"
-## Flight style: dive | strafe | drift | spiral | weave | zigzag | arc | hover_dart | loop | sweep
+## Flight style: dive | strafe | drift | spiral | weave | zigzag | arc | hover_dart | loop | sweep | figure8 | pendulum | charge | orbit | s_curve | jitter | chase
 @export var flight_pattern: StringName = &""
 @export var color: Color = Color(1.0, 0.45, 0.45)
 @export var size: Vector2 = Vector2(28, 28)

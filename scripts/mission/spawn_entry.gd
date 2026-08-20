@@ -11,7 +11,8 @@ extends Resource
 ## Non-empty = all units in this entry share a formation for chain-reaction clears.
 @export var formation_id: String = ""
 ## Geometric layout: line, column, v, inv_v, wedge, diamond, arc, box, cross,
-## wave, circle, ring, star, spiral, chevron.
+## wave, circle, ring, star, spiral, chevron, echelon, arrow, wall, wedge2,
+## hourglass, scattered, pincer, block.
 @export var pattern: StringName = &"line"
 ## Distance between members in named patterns (pixels).
 @export var pattern_spread: float = 52.0
@@ -74,6 +75,54 @@ static func pattern_offsets(
 		"wave":
 			for i in n:
 				out.append(Vector2(float(i) * spread, sin(float(i) * 1.1) * spread * 0.65))
+		"echelon":
+			for i in n:
+				out.append(Vector2(float(i) * spread * 0.85, float(i) * spread * 0.45))
+		"arrow":
+			var arrow_mid := (n - 1) * 0.5
+			for i in n:
+				var d := float(i) - arrow_mid
+				out.append(Vector2(absf(d) * spread * 0.5, d * spread * 0.55))
+		"wall":
+			for i in n:
+				var x := float(i % 2) * spread - spread * 0.5
+				var y := float(i / 2) * spread * 0.5
+				if i % 2 == 1:
+					y += spread * 0.25
+				out.append(Vector2(x, y))
+		"wedge2":
+			var w2_mid := (n - 1) * 0.5
+			for i in n:
+				var d := float(i) - w2_mid
+				out.append(Vector2(d * spread, absf(d) * spread * 0.35))
+		"hourglass":
+			for i in n:
+				var t := float(i) / float(maxi(n - 1, 1))
+				var x := (1.0 - absf(t - 0.5) * 2.0) * spread * 0.9
+				var y := (t - 0.5) * spread * 2.2
+				var flip := 1.0 if i % 2 == 0 else -1.0
+				out.append(Vector2(x * flip, y))
+		"scattered":
+			for i in n:
+				var a := TAU * float(i) / float(n) + 0.7 * float(i)
+				var r := spread * (0.4 + 0.6 * randf())
+				out.append(Vector2(cos(a), sin(a) * 0.55) * r)
+		"pincer":
+			var half := n / 2
+			for i in n:
+				var side := -1.0 if i < half else 1.0
+				var row := i % half
+				out.append(Vector2(side * (spread + float(row) * spread * 0.5), float(row) * spread * 0.55))
+		"block":
+			var bcols := 2 if n <= 6 else 3
+			var brows := ceili(float(n) / float(bcols))
+			var bi := 0
+			for r in brows:
+				for c in bcols:
+					if bi >= n:
+						break
+					out.append(Vector2((float(c) - (bcols - 1) * 0.5) * spread, float(r) * spread * 0.7))
+					bi += 1
 		_:
 			# line (default) — honour legacy spacing vector
 			for i in n:

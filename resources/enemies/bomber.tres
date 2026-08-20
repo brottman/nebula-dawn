@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
+[resource]
+script = ExtResource("1_oggcu")
+enemy_id = &"bomber"
+display_name = "Bomber"
+max_hp = 2.0
+move_speed = 95.0
+score_value = 200
+fire_interval = 1.8
+projectile_speed = 160.0
+fire_pattern = &"mine"
+flight_pattern = &"drift"
+color = Color(0.9, 0.3, 0.3, 1)
+size = Vector2(48, 44)

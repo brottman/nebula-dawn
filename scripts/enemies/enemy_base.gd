@@ -1,7 +1,7 @@
 extends Area2D
 ## Base enemy / hazard with configurable movement patterns.
 
-enum Pattern { DIVE, STRAFE, DRIFT, BOSS, SPIRAL, WEAVE, ZIGZAG, ARC, HOVER_DART, LOOP, SWEEP }
+enum Pattern { DIVE, STRAFE, DRIFT, BOSS, SPIRAL, WEAVE, ZIGZAG, ARC, HOVER_DART, LOOP, SWEEP, FIGURE8, PENDULUM, CHARGE, ORBIT, S_CURVE, JITTER, CHASE }
 
 @export var stats: EnemyStats
 
@@ -36,6 +36,14 @@ var _loop_dir: float = 1.0
 var _loop_exit: Vector2 = Vector2.ZERO
 var _loop_base_angle: float = 0.0
 var _sweep_t: float = 0.0
+var _orbit_angle: float = 0.0
+var _orbit_anchor: Vector2 = Vector2.ZERO
+var _charge_timer: float = 0.0
+var _charge_state: int = 0
+var _charge_dir: Vector2 = Vector2.ZERO
+var _jitter_timer: float = 0.0
+var _jitter_target: Vector2 = Vector2.ZERO
+var _s_curve_phase: float = 0.0
 var _vel: Vector2 = Vector2.ZERO
 var _desired_vel: Vector2 = Vector2.ZERO
 var _turn_rate: float = 5.5
@@ -57,6 +65,13 @@ const SPRITE_PATHS := {
 	"asteroid": "res://assets/sprites/enemy_asteroid.svg",
 	"boss": "res://assets/sprites/enemy_boss.svg",
 	"mid_boss": "res://assets/sprites/enemy_mid_boss.svg",
+	"dasher": "res://assets/sprites/enemy_strafer.svg",
+	"weaver": "res://assets/sprites/enemy_scout.svg",
+	"heavy": "res://assets/sprites/enemy_drone.svg",
+	"bomber": "res://assets/sprites/enemy_drone.svg",
+	"support": "res://assets/sprites/enemy_strafer.svg",
+	"sniper": "res://assets/sprites/enemy_scout.svg",
+	"swarmer": "res://assets/sprites/enemy_scout.svg",
 }
 const BOSS_SPRITE_PATHS := {
 	"kaleidoscope": "res://assets/sprites/enemy_boss_kaleidoscope.svg",
@@ -118,6 +133,13 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 			"sweep": pattern = Pattern.SWEEP
 			"strafe": pattern = Pattern.STRAFE
 			"drift": pattern = Pattern.DRIFT
+			"figure8": pattern = Pattern.FIGURE8
+			"pendulum": pattern = Pattern.PENDULUM
+			"charge": pattern = Pattern.CHARGE
+			"orbit": pattern = Pattern.ORBIT
+			"s_curve": pattern = Pattern.S_CURVE
+			"jitter": pattern = Pattern.JITTER
+			"chase": pattern = Pattern.CHASE
 			_: pattern = Pattern.DIVE
 		add_to_group("enemies")
 		collision_layer = 4
@@ -140,6 +162,14 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	_loop_base_angle = 0.0
 	_loop_exit = Vector2(_strafe_dir * randf_range(0.35, 0.75), 1.0).normalized()
 	_sweep_t = 0.0
+	_orbit_angle = _flight_seed
+	_orbit_anchor = global_position + Vector2(0, 70)
+	_charge_timer = randf_range(1.0, 2.2)
+	_charge_state = 0
+	_charge_dir = Vector2.DOWN
+	_jitter_timer = 0.4
+	_jitter_target = Vector2.ZERO
+	_s_curve_phase = randf_range(0.0, TAU)
 	if formation_id != "":
 		var tracker := get_tree().get_first_node_in_group("formation_tracker")
 		if tracker and tracker.has_method("register"):
@@ -196,6 +226,38 @@ func _apply_visuals() -> void:
 					Vector2(-half.x * 0.6, -half.y), Vector2(half.x, -half.y * 0.4),
 					Vector2(half.x * 0.7, half.y), Vector2(-half.x, half.y * 0.5),
 					Vector2(-half.x * 0.9, -half.y * 0.2)
+				])
+			"dasher":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, -half.y), Vector2(half.x, 0), Vector2(0, half.y), Vector2(-half.x * 0.6, 0)
+				])
+			"weaver":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, -half.y), Vector2(half.x * 0.7, -half.y * 0.3),
+					Vector2(half.x * 0.4, half.y), Vector2(-half.x * 0.4, half.y), Vector2(-half.x * 0.7, -half.y * 0.3)
+				])
+			"heavy":
+				_poly.polygon = PackedVector2Array([
+					Vector2(-half.x, -half.y * 0.7), Vector2(half.x, -half.y * 0.7),
+					Vector2(half.x * 0.85, half.y * 0.7), Vector2(-half.x * 0.85, half.y * 0.7)
+				])
+			"bomber":
+				_poly.polygon = PackedVector2Array([
+					Vector2(-half.x * 0.8, -half.y * 0.5), Vector2(half.x * 0.8, -half.y * 0.5),
+					Vector2(half.x, half.y * 0.6), Vector2(0, half.y), Vector2(-half.x, half.y * 0.6)
+				])
+			"support":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, -half.y), Vector2(half.x, -half.y * 0.4), Vector2(half.x, half.y * 0.4),
+					Vector2(0, half.y), Vector2(-half.x, half.y * 0.4), Vector2(-half.x, -half.y * 0.4)
+				])
+			"sniper":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, -half.y), Vector2(half.x * 0.5, -half.y * 0.2), Vector2(half.x * 0.3, half.y), Vector2(-half.x * 0.3, half.y), Vector2(-half.x * 0.5, -half.y * 0.2)
+				])
+			"swarmer":
+				_poly.polygon = PackedVector2Array([
+					Vector2(0, -half.y * 0.9), Vector2(half.x * 0.9, half.y * 0.4), Vector2(0, half.y * 0.7), Vector2(-half.x * 0.9, half.y * 0.4)
 				])
 			"boss":
 				_poly.polygon = PackedVector2Array([
@@ -277,6 +339,10 @@ func _steer(delta: float, desired: Vector2) -> Vector2:
 		rate = 3.0
 	elif pattern == Pattern.ARC or pattern == Pattern.WEAVE:
 		rate = 4.0
+	elif pattern == Pattern.FIGURE8 or pattern == Pattern.ORBIT:
+		rate = 2.8
+	elif pattern == Pattern.CHARGE or pattern == Pattern.JITTER:
+		rate = 6.0
 	var cur_ang := _vel.angle() if _vel.length_squared() > 1.0 else desired.angle()
 	var des_ang := desired.angle()
 	var ang_diff := wrapf(des_ang - cur_ang, -PI, PI)
@@ -359,6 +425,71 @@ func _move(delta: float) -> void:
 			_loop_move(delta, speed)
 		Pattern.SWEEP:
 			_sweep_move(delta, speed)
+		Pattern.FIGURE8:
+			var f8 := Vector2(sin(_t * 1.4 + _flight_seed) * 110.0, sin(_t * 2.8) * 28.0 + speed * 0.45 + scroll_speed)
+			global_position += _steer(delta, f8)
+		Pattern.PENDULUM:
+			var pend := Vector2(sin(_t * 1.85 + _flight_seed) * 160.0, speed * 0.55 + scroll_speed)
+			global_position += _steer(delta, pend)
+		Pattern.CHARGE:
+			_charge_timer -= delta
+			if _charge_state == 0:
+				var charge_hover := Vector2(sin(_t * 1.1 + _flight_seed) * 40.0, speed * 0.3 + scroll_speed * 0.5)
+				global_position += _steer(delta, charge_hover)
+				if _charge_timer <= 0.0:
+					_charge_state = 1
+					_charge_timer = 0.22
+					var player := get_tree().get_first_node_in_group("player") as Node2D
+					if player and is_instance_valid(player):
+						_charge_dir = (player.global_position - global_position).normalized()
+					else:
+						_charge_dir = Vector2.DOWN
+					if _charge_dir.y < 0.15:
+						_charge_dir.y = 0.3
+						_charge_dir = _charge_dir.normalized()
+					EventBus.gimmick_toast.emit("CHARGE")
+			elif _charge_state == 1:
+				var dash := _charge_dir * (speed * 2.4 + scroll_speed * 0.4)
+				global_position += _steer(delta, dash)
+				if _charge_timer <= 0.0:
+					_charge_state = 2
+					_charge_timer = randf_range(1.2, 2.0)
+			else:
+				var recov := Vector2(sin(_t * 0.8) * 30.0, speed * 0.5 + scroll_speed)
+				global_position += _steer(delta, recov)
+				if _charge_timer <= 0.0:
+					_charge_state = 0
+					_charge_timer = randf_range(0.8, 1.6)
+		Pattern.ORBIT:
+			_orbit_angle += delta * (1.6 if _strafe_dir > 0 else -1.6)
+			_orbit_anchor.y += (speed * 0.35 + scroll_speed) * delta
+			var orbit_r := 52.0 + 12.0 * sin(_t * 0.7 + _flight_seed)
+			var orbit_pos := _orbit_anchor + Vector2(cos(_orbit_angle), sin(_orbit_angle)) * orbit_r
+			var to_orbit := (orbit_pos - global_position) / maxf(delta, 0.001)
+			var capped_orbit := to_orbit.normalized() * minf(to_orbit.length(), speed * 1.2)
+			global_position += _steer(delta, capped_orbit)
+		Pattern.S_CURVE:
+			_s_curve_phase += delta * 0.9
+			var lateral := sin(_s_curve_phase) * 95.0 * (1.2 + sin(_t * 0.6) * 0.3)
+			var s_vel := Vector2(lateral, speed * 0.65 + scroll_speed)
+			global_position += _steer(delta, s_vel)
+		Pattern.JITTER:
+			_jitter_timer -= delta
+			if _jitter_timer <= 0.0:
+				_jitter_timer = randf_range(0.22, 0.55)
+				_jitter_target = Vector2(randf_range(-110.0, 110.0), randf_range(-20.0, 40.0))
+			var jitt := _jitter_target + Vector2(0, speed * 0.6 + scroll_speed)
+			global_position += _steer(delta, jitt)
+		Pattern.CHASE:
+			var chase_player := get_tree().get_first_node_in_group("player") as Node2D
+			var chase_dir := Vector2.DOWN
+			if chase_player and is_instance_valid(chase_player):
+				chase_dir = (chase_player.global_position - global_position).normalized()
+				if chase_dir.y < 0.2:
+					chase_dir.y = 0.4
+					chase_dir = chase_dir.normalized()
+			var chase_v := chase_dir * speed + Vector2(0, scroll_speed * 0.6)
+			global_position += _steer(delta, chase_v)
 		Pattern.BOSS:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
@@ -495,6 +626,38 @@ func _fodder_fire() -> void:
 				BossPatterns.arc_shot(self, muzzle, spd * 0.92, dmg, -dir * 1.0, {"scale": 0.88})
 		"weave":
 			BossPatterns.spread_fan(self, muzzle, spd * 0.88, dmg, 2, 0.22)
+		"snipe":
+			BossPatterns.aimed(self, muzzle, spd * 1.25, dmg, 1, 0.06, {"scale": 1.15, "lifetime": 4.0})
+			_fire_timer = stats.fire_interval * 1.35
+		"shotgun":
+			BossPatterns.spread_fan(self, muzzle, spd * 0.82, dmg, 5, 0.62)
+			_fire_timer = stats.fire_interval * 1.45
+		"double_aim":
+			BossPatterns.aimed(self, muzzle, spd, dmg, 1, 0.0)
+			BossPatterns.aimed(self, muzzle + Vector2(10, 0), spd * 0.92, dmg, 1, 0.0)
+			_fire_timer = stats.fire_interval * 1.1
+		"scatter":
+			for k in 4:
+				var rdir := Vector2(randf_range(-0.75, 0.75), 1).normalized()
+				BossPatterns.spawn_shot(self, muzzle, rdir * spd * randf_range(0.75, 1.08), dmg, {"scale": randf_range(0.7, 1.0)})
+			_fire_timer = stats.fire_interval * 1.25
+		"mine":
+			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd * 0.45), dmg, {"scale": 1.55, "lifetime": 4.8, "color": Color(1.0, 0.45, 0.2)})
+			_fire_timer = stats.fire_interval * 1.5
+		"laser_line":
+			BossPatterns.aimed(self, muzzle, spd * 1.35, dmg, 3, 0.05, {"scale": 0.72, "lifetime": 3.2})
+			_fire_timer = stats.fire_interval * 1.2
+		"boomerang":
+			var bdir := 1.0 if _strafe_dir > 0 else -1.0
+			BossPatterns.arc_shot(self, muzzle, spd * 0.88, dmg, bdir * 1.35, {"scale": 0.95, "lifetime": 3.4})
+			BossPatterns.arc_shot(self, muzzle, spd * 0.88, dmg, -bdir * 1.35, {"scale": 0.95, "lifetime": 3.4})
+		"volley":
+			BossPatterns.spread_fan(self, muzzle, spd, dmg, 3, 0.42)
+			get_tree().create_timer(0.14).timeout.connect(func() -> void:
+				if is_instance_valid(self) and alive and projectile_pool != null:
+					BossPatterns.spread_fan(self, muzzle, spd * 0.92, dmg, 3, 0.42, {"scale": 0.92})
+			)
+			_fire_timer = stats.fire_interval * 1.55
 		_:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
 
@@ -514,11 +677,30 @@ func _default_flight_pattern() -> String:
 		return "dive"
 	match String(stats.enemy_id):
 		"strafer":
-			return "zigzag" if randf() < 0.5 else "weave"
+			var strafer_picks := ["zigzag", "weave", "pendulum", "s_curve"]
+			return strafer_picks[randi() % strafer_picks.size()]
 		"drone":
-			return "spiral" if randf() < 0.45 else "hover_dart"
+			var drone_picks := ["spiral", "hover_dart", "orbit", "jitter"]
+			return drone_picks[randi() % drone_picks.size()]
+		"dasher":
+			return "charge" if randf() < 0.6 else "figure8"
+		"weaver":
+			var weaver_picks := ["figure8", "s_curve", "pendulum"]
+			return weaver_picks[randi() % weaver_picks.size()]
+		"heavy":
+			return "orbit" if randf() < 0.5 else "jitter"
+		"bomber":
+			return "drift" if randf() < 0.5 else "jitter"
+		"support":
+			return "hover_dart" if randf() < 0.5 else "orbit"
+		"sniper":
+			return "hover_dart" if randf() < 0.6 else "jitter"
+		"swarmer":
+			var swarm_picks := ["dive", "arc", "chase", "s_curve"]
+			return swarm_picks[randi() % swarm_picks.size()]
 		_:
-			return "dive" if randf() < 0.4 else ("arc" if randf() < 0.5 else "weave")
+			var scout_picks := ["dive", "arc", "weave", "s_curve", "chase"]
+			return scout_picks[randi() % scout_picks.size()]
 
 func _default_fodder_pattern() -> String:
 	if stats == null:
@@ -528,8 +710,23 @@ func _default_fodder_pattern() -> String:
 			return "helix" if pattern == Pattern.WEAVE else ("arc" if pattern == Pattern.ZIGZAG else "side")
 		"drone":
 			return "spiral" if pattern == Pattern.SPIRAL else ("helix" if pattern == Pattern.HOVER_DART else "arc")
+		"dasher":
+			return "shotgun" if randf() < 0.6 else "spread"
+		"weaver":
+			return "scatter" if randf() < 0.5 else "weave"
+		"heavy":
+			return "shotgun" if randf() < 0.5 else "volley"
+		"bomber":
+			return "mine" if randf() < 0.6 else "scatter"
+		"support":
+			return "helix" if randf() < 0.5 else "cross"
+		"sniper":
+			return "snipe"
+		"swarmer":
+			return "spread" if randf() < 0.5 else "scatter"
 		_:
-			return "straight"
+			var scout_picks := ["straight", "burst", "scatter", "side"]
+			return scout_picks[randi() % scout_picks.size()]
 
 
 func _boss_fire() -> void:
