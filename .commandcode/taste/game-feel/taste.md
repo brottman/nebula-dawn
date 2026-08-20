@@ -8,3 +8,4 @@
 - Prefers enemy projectiles to look polished rather than crude. Confidence: 0.6
 - Prefers player ship to level to wings-level (reset bank/roll to neutral) before scripted post-boss victory fly-off rather than carrying banked tilt into the exit animation. Confidence: 0.85
 - Wants hazard/damage effects to be visually bright and high-impact so they read clearly — explicitly asked to make the solar flare's zap "much brighter" after adding its telegraph. Confidence: 0.7
+- Prefers pickup sprites to be polished and visually distinct rather than crude/placeholder — explicitly called out "most of our pickups still have very bad sprites" as requiring replacement, indicating high quality bar for all pickup types. Confidence: 0.8

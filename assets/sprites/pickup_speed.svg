@@ -3,5 +3,6 @@
   <circle cx="24" cy="24" r="17" fill="none" stroke="#8cffbf" stroke-width="2.6"/>
   <circle cx="24" cy="24" r="13.5" fill="#8cffbf" opacity="0.16"/>
   <circle cx="24" cy="24" r="17" fill="none" stroke="white" stroke-width="0.8" opacity="0.35" stroke-dasharray="2 6"/>
-  <path d="M16 15 L27 24 L16 33 Z" fill="white"/><path d="M26 15 L37 24 L26 33 Z" fill="#5fe6a0"/>
+  <path d="M14.2 24.2 L29.2 13.8 L22.4 24.2 L30.6 24.2 L14.8 34.6 L21.4 24.2 Z" fill="white" stroke="#0a0e18" stroke-width="0.7" stroke-linejoin="round"/>
+  <path d="M32.2 17.6 L35.4 15.2 L34.2 19.2 M32.2 24.2 L35.4 22 M32.2 30.6 L35.4 32.8" stroke="white" stroke-width="1.35" stroke-linecap="round" opacity="0.85"/>
 </svg>

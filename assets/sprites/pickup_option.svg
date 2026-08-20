@@ -3,5 +3,9 @@
   <circle cx="24" cy="24" r="17" fill="none" stroke="#8cf2ff" stroke-width="2.6"/>
   <circle cx="24" cy="24" r="13.5" fill="#8cf2ff" opacity="0.16"/>
   <circle cx="24" cy="24" r="17" fill="none" stroke="white" stroke-width="0.8" opacity="0.35" stroke-dasharray="2 6"/>
-  <path d="M24 13 L32 24 L24 35 L16 24 Z" fill="white" stroke="#0e1626" stroke-width="1.6"/><circle cx="24" cy="24" r="3.2" fill="#0e1626"/>
+  <path d="M24 12.6 L31.6 19.2 L29.2 19.2 L29.2 33.4 L18.8 33.4 L18.8 19.2 L16.4 19.2 Z" fill="white" stroke="#0a0e18" stroke-width="0.7" stroke-linejoin="round"/>
+  <rect x="21.2" y="24.2" width="5.6" height="6.2" rx="1.25" fill="#0a0e18"/>
+  <rect x="22.2" y="25.3" width="3.6" height="4" rx="0.85" fill="#8cf2ff"/>
+  <circle cx="26.6" cy="20.55" r="1.05" fill="#8cf2ff" opacity="0.95"/>
+  <circle cx="24" cy="36.1" r="1.05" fill="white" opacity="0.9"/>
 </svg>
