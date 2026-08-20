@@ -205,7 +205,7 @@ func _on_weapon_tier(slot: String, level: int, chips: int, chips_needed: int, ex
 	var title: String = SLOT_TITLE.get(key, key)
 	weapon_badge.text = "[%s] %s" % [tag, title]
 	weapon_badge.add_theme_color_override("font_color", color)
-	var at_max := level >= 3 and chips >= chips_needed
+	var at_max := level >= chips_needed
 	weapon_level.text = "MAX" if at_max else "LV %d" % level
 	weapon_level.add_theme_color_override("font_color", CHIP_MAX if at_max else color)
 	var fill_color: Color = CHIP_MAX if key == "BLASTER" else color
@@ -297,7 +297,7 @@ func _on_pickup(kind: String) -> void:
 	if kind in [
 		"spread", "vulcan", "red", "laser", "beam", "blue", "homing", "missiles", "green",
 		"power", "pchip", "p-chip", "gold", "power_orb", "orb",
-		"option", "bit", "drone", "speed",
+		"option", "bit", "drone",
 	]:
 		return
 	pickup_toast.visible = true
@@ -308,7 +308,6 @@ func _on_pickup(kind: String) -> void:
 		"power": "POWER", "pchip": "POWER", "p-chip": "POWER", "gold": "POWER",
 		"power_orb": "POWER ORB", "orb": "POWER ORB",
 		"option": "DRONE", "bit": "DRONE", "drone": "DRONE",
-		"speed": "SPEED",
 		"shield": "SHIELD", "barrier": "SHIELD",
 		"bomb": "BOMB", "cleaver": "BOMB",
 		"energy": "HEAL", "overdrive_pickup": "HEAL", "rapid": "HEAL",

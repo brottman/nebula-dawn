@@ -27,7 +27,6 @@ const SPRITE_PATHS := {
 	"option": "res://assets/sprites/pickup_option.svg",
 	"bit": "res://assets/sprites/pickup_option.svg",
 	"drone": "res://assets/sprites/pickup_option.svg",
-	"speed": "res://assets/sprites/pickup_speed.svg",
 	"shield": "res://assets/sprites/pickup_shield.svg",
 	"barrier": "res://assets/sprites/pickup_shield.svg",
 	"bomb": "res://assets/sprites/pickup_bomb.svg",
@@ -57,7 +56,6 @@ const TOAST_NAMES := {
 	"option": "DRONE",
 	"bit": "DRONE",
 	"drone": "DRONE",
-	"speed": "SPEED",
 	"shield": "SHIELD",
 	"barrier": "SHIELD",
 	"bomb": "BOMB",
@@ -117,8 +115,6 @@ func setup(k: String) -> void:
 			_poly.color = Color(1.0, 0.85, 0.25)
 		"option", "bit", "drone":
 			_poly.color = Color(0.55, 0.95, 1.0)
-		"speed":
-			_poly.color = Color(0.55, 1.0, 0.75)
 		"shield", "barrier":
 			_poly.color = Color(0.45, 0.75, 1.0)
 		"bomb", "cleaver":
@@ -141,8 +137,6 @@ func _glyph_for(k: String) -> String:
 			return "P"
 		"option", "bit", "drone":
 			return "D"
-		"speed":
-			return ">"
 		"shield", "barrier":
 			return "S"
 		"bomb", "cleaver":

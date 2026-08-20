@@ -8,7 +8,6 @@ extends CharacterBody2D
 const PLAYFIELD_MARGIN := 24.0
 const TOUCH_FOLLOW := 28.0
 const GRAZE_RADIUS := 30.0
-const SPEED_STACK_BONUS := 0.12
 
 enum Weapon { BLASTER, VULCAN, LASER, HOMING }
 
@@ -33,7 +32,6 @@ var _life_peak_chips: int = 0
 var _death_bomb_time: float = 0.0
 var _respawning: bool = false
 var drone_count: int = 0
-var speed_stacks: int = 0
 var _flash_timer: float = 0.0
 var dead: bool = false
 
@@ -258,15 +256,14 @@ func add_overdrive(amount: float) -> void:
 
 func _handle_movement(delta: float) -> void:
 	var vp := get_viewport_rect().size
-	var speed_mult := 1.0 + SPEED_STACK_BONUS * float(speed_stacks)
 	if _touch_active:
-		var follow := TOUCH_FOLLOW * GameState.touch_sensitivity * (1.0 + 0.15 * float(speed_stacks))
+		var follow := TOUCH_FOLLOW * GameState.touch_sensitivity
 		var target := _touch_world + _touch_grab_offset
 		global_position = global_position.lerp(target, 1.0 - exp(-follow * delta))
 		velocity = Vector2.ZERO
 	else:
 		var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		velocity = dir * move_speed * speed_mult
+		velocity = dir * move_speed
 		move_and_slide()
 	if absf(scrap_push) > 0.01:
 		global_position.x += scrap_push * delta
@@ -413,8 +410,6 @@ func apply_pickup(kind: String) -> void:
 			weapons.apply_power_orb(2.0)
 		"option", "bit", "drone":
 			weapons.add_drone()
-		"speed":
-			weapons.add_speed()
 		"shield", "barrier":
 			life.add_shield(2)
 		"bomb", "cleaver":

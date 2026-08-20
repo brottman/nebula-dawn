@@ -1,14 +1,12 @@
 class_name WeaponSystem
 extends Node
-## Color weapons, shared power tier, drones, and speed stacks.
+## Color weapons, shared power tier, and drones.
 ## Blue Laser is a continuous piercing column (see laser_beam.gd), not projectiles.
 
 const Ships := preload("res://scripts/hangar/ship_catalog.gd")
-const MAX_WEAPON_LEVEL := 3
-const CHIPS_PER_LEVEL := 5
+const MAX_WEAPON_LEVEL := 5
+const CHIPS_PER_LEVEL := 1
 const MAX_DRONES := 3
-const MAX_SPEED_STACKS := 3
-const SPEED_STACK_BONUS := 0.12
 
 const BLASTER := 0
 const VULCAN := 1
@@ -31,8 +29,8 @@ const WEAPON_COOLDOWNS := {
 
 const _LaserBeam := preload("res://scripts/player/laser_beam.gd")
 const LASER_ORIGIN := Vector2(0, -18)
-const LASER_DPS := {1: 8.0, 2: 11.0, 3: 15.0}
-const LASER_HALF_W := {1: 5.0, 2: 8.0, 3: 12.0}
+const LASER_DPS := {1: 7.0, 2: 9.5, 3: 12.0, 4: 15.0, 5: 19.0}
+const LASER_HALF_W := {1: 5.0, 2: 7.0, 3: 9.0, 4: 11.0, 5: 13.0}
 
 var ship: CharacterBody2D
 var _drones: Array[Drone] = []
@@ -74,14 +72,20 @@ func _weapon_cooldown() -> float:
 	match weapon:
 		VULCAN:
 			if level >= 2:
-				cd = 0.11
-			if level >= 3:
 				cd = 0.12
+			if level >= 3:
+				cd = 0.10
+			if level >= 5:
+				cd = 0.08
 		HOMING:
 			if level == 2:
-				cd = 0.34
-			elif level >= 3:
-				cd = 0.22
+				cd = 0.38
+			elif level == 3:
+				cd = 0.30
+			elif level == 4:
+				cd = 0.24
+			elif level >= 5:
+				cd = 0.18
 	var hull_cd := float(ship.fire_cooldown)
 	if Ships.BASE_FIRE_COOLDOWN > 0.0:
 		cd *= hull_cd / Ships.BASE_FIRE_COOLDOWN
@@ -171,26 +175,18 @@ func _add_chips(count: int) -> void:
 	if count <= 0:
 		return
 	if ship.weapon_level >= MAX_WEAPON_LEVEL:
-		ship.chip_progress = CHIPS_PER_LEVEL
 		GameState.add_score(150 * count)
 		EventBus.gimmick_toast.emit("POWER MAX")
 		emit_changed()
 		return
 	for _i in count:
-		ship.chip_progress += 1
-		if ship.chip_progress >= CHIPS_PER_LEVEL:
-			ship.chip_progress = 0
-			ship.weapon_level = mini(MAX_WEAPON_LEVEL, ship.weapon_level + 1)
-			note_peak_loadout()
-			GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
-			if ship.weapon_level >= MAX_WEAPON_LEVEL:
-				ship.chip_progress = CHIPS_PER_LEVEL
-				EventBus.gimmick_toast.emit("POWER  MAX")
-				break
-			EventBus.gimmick_toast.emit("POWER  Lv%d" % ship.weapon_level)
-		else:
-			EventBus.gimmick_toast.emit("POWER  %d/%d" % [ship.chip_progress, CHIPS_PER_LEVEL])
-	note_peak_loadout()
+		ship.weapon_level = mini(MAX_WEAPON_LEVEL, ship.weapon_level + 1)
+		note_peak_loadout()
+		GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
+		if ship.weapon_level >= MAX_WEAPON_LEVEL:
+			EventBus.gimmick_toast.emit("POWER  MAX")
+			break
+		EventBus.gimmick_toast.emit("POWER  Lv%d" % ship.weapon_level)
 	emit_changed()
 
 
@@ -200,9 +196,7 @@ func note_peak_loadout() -> void:
 	ship._life_peak_weapon = ship.weapon
 	if ship.weapon_level > ship._life_peak_level:
 		ship._life_peak_level = ship.weapon_level
-		ship._life_peak_chips = ship.chip_progress
-	elif ship.weapon_level == ship._life_peak_level:
-		ship._life_peak_chips = maxi(ship._life_peak_chips, ship.chip_progress)
+		ship._life_peak_chips = 0
 
 
 func add_drone() -> void:
@@ -216,16 +210,6 @@ func add_drone() -> void:
 	_drones.append(drone)
 	ship.drone_count = _drones.size()
 	EventBus.gimmick_toast.emit("DRONE  ×%d" % ship.drone_count)
-	emit_changed()
-
-
-func add_speed() -> void:
-	if ship.speed_stacks >= MAX_SPEED_STACKS:
-		GameState.add_score(100)
-		EventBus.gimmick_toast.emit("SPEED MAX")
-		return
-	ship.speed_stacks += 1
-	EventBus.gimmick_toast.emit("SPEED  ×%d" % ship.speed_stacks)
 	emit_changed()
 
 
@@ -262,7 +246,7 @@ func extinguish_laser() -> void:
 
 func reset_weapon() -> void:
 	_unlocked.clear()
-	if ship.weapon == BLASTER and ship.weapon_level == 1 and ship.chip_progress == 0:
+	if ship.weapon == BLASTER and ship.weapon_level == 1:
 		emit_changed()
 		return
 	ship.weapon = BLASTER
@@ -273,8 +257,7 @@ func reset_weapon() -> void:
 
 func set_boss_rush_loadout() -> void:
 	ship.weapon = HOMING
-	ship.weapon_level = 2
-	ship.chip_progress = 0
+	ship.weapon_level = 3
 	_unlock(HOMING)
 	note_peak_loadout()
 	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
@@ -292,23 +275,16 @@ func restore_on_respawn(floor_lv: int) -> void:
 		ship.weapon = ship._life_peak_weapon
 		ship.weapon_level = floor_lv
 		_unlock(ship.weapon)
-		if ship.weapon_level >= MAX_WEAPON_LEVEL:
-			ship.chip_progress = CHIPS_PER_LEVEL
 	else:
 		ship.weapon = BLASTER
 		ship.weapon_level = clampi(floor_lv, 1, MAX_WEAPON_LEVEL)
-		if ship.weapon_level >= MAX_WEAPON_LEVEL:
-			ship.chip_progress = CHIPS_PER_LEVEL
 
 
 func apply_power_orb(amount: float) -> void:
 	if amount <= 0.0:
 		return
 	var chips: int = maxi(1, int(round(amount)))
-	var peak_total: int = (int(ship._life_peak_level) - 1) * CHIPS_PER_LEVEL + int(ship._life_peak_chips)
-	var cur_chips: int = int(ship.chip_progress) if int(ship.weapon_level) < MAX_WEAPON_LEVEL else CHIPS_PER_LEVEL
-	var cur_total: int = (int(ship.weapon_level) - 1) * CHIPS_PER_LEVEL + cur_chips
-	var room: int = maxi(0, peak_total - cur_total)
+	var room: int = maxi(0, int(ship._life_peak_level) - int(ship.weapon_level))
 	if room <= 0:
 		GameState.add_score(80)
 		emit_changed()
@@ -326,17 +302,11 @@ func emit_changed() -> void:
 	var extras_parts: PackedStringArray = []
 	if ship.drone_count > 0:
 		extras_parts.append("DRONE×%d" % ship.drone_count)
-	if ship.speed_stacks > 0:
-		extras_parts.append("SPD×%d" % ship.speed_stacks)
 	if can_cycle():
 		extras_parts.append("WEP×%d" % _unlocked.size())
 	parts.append_array(extras_parts)
 	EventBus.weapon_changed.emit("  ".join(parts))
-	var chips: int = ship.chip_progress
-	var needed := CHIPS_PER_LEVEL
-	if ship.weapon_level >= MAX_WEAPON_LEVEL:
-		chips = CHIPS_PER_LEVEL
-	EventBus.weapon_tier_changed.emit(slot, ship.weapon_level, chips, needed, "  ".join(extras_parts))
+	EventBus.weapon_tier_changed.emit(slot, ship.weapon_level, ship.weapon_level, MAX_WEAPON_LEVEL, "  ".join(extras_parts))
 
 
 func _shoot() -> void:
@@ -353,28 +323,35 @@ func _shoot() -> void:
 		HOMING:
 			_shoot_homing(origin)
 		_:
-			for i in int(ship.weapon_level):
-				var offset: float = (i - (int(ship.weapon_level) - 1) * 0.5) * 12.0
+			var blaster_count := clampi(int(ship.weapon_level), 1, 5)
+			var blaster_spread := 10.0 + 2.0 * float(blaster_count)
+			for i in blaster_count:
+				var offset: float = (float(i) - float(blaster_count - 1) * 0.5) * blaster_spread
 				ship.projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -ship.bullet_speed), dmg)
 			AudioBus.play_shoot()
 
 
 func _shoot_spread(origin: Vector2, dmg: float) -> void:
-	var count: int = 1 + int(ship.weapon_level) * 2
-	var spread: float = 0.42 + 0.10 * float(ship.weapon_level)
-	var shot_dmg: float = dmg * (0.85 + 0.05 * float(ship.weapon_level))
+	var lv := clampi(int(ship.weapon_level), 1, 5)
+	var count: int = 1 + lv * 2
+	var spread: float = 0.32 + 0.08 * float(lv)
+	var shot_dmg: float = dmg * (0.75 + 0.06 * float(lv))
 	for i in count:
 		var t := float(i) / float(maxi(count - 1, 1))
 		var dir := Vector2(-spread + 2.0 * spread * t, -1.0).normalized()
 		ship.projectile_pool.spawn_player(origin, dir * (ship.bullet_speed * 0.95), shot_dmg, {
 			"scale": 0.85, "color": Color(1.0, 0.35, 0.32), "lifetime": 1.6})
-	if ship.weapon_level >= 3:
+	if lv >= 3:
 		for side in [-1.0, 1.0]:
 			ship.projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(side * 90.0, -420.0), shot_dmg * 0.55, {
 				"cancel_bullets": true,
 				"scale": 1.2,
 				"color": Color(1.0, 0.55, 0.4),
 				"lifetime": 1.4})
+	if lv >= 5:
+		for side in [-1.0, 1.0]:
+			ship.projectile_pool.spawn_player(origin + Vector2(side * 6.0, 0.0), Vector2(0, -ship.bullet_speed * 0.88), shot_dmg * 0.7, {
+				"scale": 0.95, "color": Color(1.0, 0.45, 0.35), "lifetime": 1.6})
 	AudioBus.play_shoot(720.0)
 
 
@@ -407,25 +384,36 @@ func _tick_laser(delta: float) -> void:
 		dps *= Ships.BASE_FIRE_COOLDOWN / maxf(float(ship.fire_cooldown), Ships.MIN_FIRE_COOLDOWN)
 	if float(ship.get("rapid_time")) > 0.0:
 		dps *= 1.35
-	var melt := 0.45 * float(ship.damage_mult) if level >= 3 else 0.0
-	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, false)
+	var melt := 0.45 * float(ship.damage_mult) if level >= 4 else 0.0
+	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, level >= 5)
 
 
 func _shoot_homing(origin: Vector2) -> void:
-	match ship.weapon_level:
+	var lv := clampi(int(ship.weapon_level), 1, 5)
+	match lv:
 		1:
 			for i in 2:
 				var dir := Vector2((-0.28 if i == 0 else 0.28), -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 260.0, 1.35 * ship.damage_mult, {
 					"homing": 7.0, "scale": 1.25, "color": Color(0.35, 1.0, 0.45), "lifetime": 3.0})
 		2:
+			for i in 3:
+				var dir := Vector2((float(i) - 1.0) * 0.28, -1.0).normalized()
+				ship.projectile_pool.spawn_player(origin, dir * 360.0, 1.15 * ship.damage_mult, {
+					"homing": 9.0, "scale": 1.0, "color": Color(0.4, 1.0, 0.5), "lifetime": 2.6})
+		3:
 			for i in 4:
-				var dir := Vector2((i - 1.5) * 0.28, -1.0).normalized()
+				var dir := Vector2((float(i) - 1.5) * 0.28, -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 420.0, 0.95 * ship.damage_mult, {
 					"homing": 12.0, "scale": 0.8, "color": Color(0.45, 1.0, 0.55), "lifetime": 2.4})
+		4:
+			for i in 5:
+				var dir := Vector2((float(i) - 2.0) * 0.24, -1.0).normalized()
+				ship.projectile_pool.spawn_player(origin, dir * 410.0, 1.0 * ship.damage_mult, {
+					"homing": 13.0, "scale": 0.9, "color": Color(0.4, 1.0, 0.52), "lifetime": 2.5})
 		_:
 			for i in 6:
-				var dir := Vector2((i - 2.5) * 0.22, -1.0).normalized()
+				var dir := Vector2((float(i) - 2.5) * 0.22, -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 400.0, 1.05 * ship.damage_mult, {
 					"homing": 14.0,
 					"scale": 0.95,

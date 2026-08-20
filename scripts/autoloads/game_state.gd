@@ -490,10 +490,12 @@ func compute_clear_rank() -> Dictionary:
 			points += 12
 		elif run_kills >= 50:
 			points += 7
-	if run_max_weapon_level >= 3:
+	if run_max_weapon_level >= 5:
 		points += 15
+	elif run_max_weapon_level >= 3:
+		points += 10
 	elif run_max_weapon_level >= 2:
-		points += 8
+		points += 5
 	if run_bosses_defeated >= 2:
 		points += 5
 
