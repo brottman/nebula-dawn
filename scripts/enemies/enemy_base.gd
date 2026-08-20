@@ -36,6 +36,9 @@ var _loop_dir: float = 1.0
 var _loop_exit: Vector2 = Vector2.ZERO
 var _loop_base_angle: float = 0.0
 var _sweep_t: float = 0.0
+var _vel: Vector2 = Vector2.ZERO
+var _desired_vel: Vector2 = Vector2.ZERO
+var _turn_rate: float = 5.5
 ## Focused Laser Lv3 melt DoT (damage applied once per tick).
 var _melt_ticks_left: int = 0
 var _melt_dps: float = 0.0
@@ -122,6 +125,9 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	_strafe_dir = 1.0 if randf() > 0.5 else -1.0
 	_flight_seed = randf() * TAU
 	_spiral_angle = _flight_seed
+	_vel = Vector2.ZERO
+	_desired_vel = Vector2.ZERO
+	_turn_rate = 5.5
 	_zigzag_timer = randf_range(0.4, 1.0)
 	_zigzag_target = (1.0 if _strafe_dir > 0 else -1.0) * randf_range(80.0, 130.0)
 	_hover_timer = randf_range(0.8, 1.6)
@@ -260,61 +266,79 @@ func _tick_melt(delta: float) -> void:
 		_melt_dps = 0.0
 
 
+func _steer(delta: float, desired: Vector2) -> Vector2:
+	_desired_vel = desired
+	if _vel.length_squared() < 0.01:
+		_vel = desired.normalized() * minf(desired.length(), 120.0)
+	var rate := _turn_rate
+	if pattern == Pattern.LOOP or pattern == Pattern.SWEEP:
+		rate = 2.2
+	elif pattern == Pattern.ZIGZAG or pattern == Pattern.HOVER_DART:
+		rate = 3.0
+	elif pattern == Pattern.ARC or pattern == Pattern.WEAVE:
+		rate = 4.0
+	var cur_ang := _vel.angle() if _vel.length_squared() > 1.0 else desired.angle()
+	var des_ang := desired.angle()
+	var ang_diff := wrapf(des_ang - cur_ang, -PI, PI)
+	var max_step := rate * delta
+	ang_diff = clampf(ang_diff, -max_step, max_step)
+	var mag := lerpf(_vel.length(), desired.length(), clampf(delta * 4.0, 0.0, 1.0))
+	_vel = Vector2.from_angle(cur_ang + ang_diff) * mag
+	return _vel * delta
+
+
 func _move(delta: float) -> void:
 	var speed := stats.move_speed if stats else 120.0
-	var _prev := global_position
 	match pattern:
 		Pattern.DIVE:
-			global_position.y += (speed + scroll_speed) * delta
-			global_position.x += sin(_t * 2.6 + _origin_x * 0.02) * 70.0 * delta
+			var dive_desired := Vector2(sin(_t * 2.6 + _origin_x * 0.02) * 70.0, speed + scroll_speed)
+			global_position += _steer(delta, dive_desired)
 		Pattern.STRAFE:
-			global_position.y += (speed * 0.35 + scroll_speed) * delta
-			global_position.x += _strafe_dir * speed * delta
+			var strafe_desired := Vector2(_strafe_dir * speed, speed * 0.35 + scroll_speed)
+			global_position += _steer(delta, strafe_desired)
 			var vp := get_viewport_rect().size
 			if global_position.x < 30.0 or global_position.x > vp.x - 30.0:
 				_strafe_dir *= -1.0
+				_desired_vel.x *= -1.0
+				_vel.x *= -0.4
 				global_position.x = clampf(global_position.x, 30.0, vp.x - 30.0)
 		Pattern.DRIFT:
-			global_position.y += (speed + scroll_speed) * delta
-			global_position.x += sin(_t * 2.0) * 40.0 * delta
-			rotation += delta * 0.8 if stats and stats.is_hazard else 0.0
+			var drift_desired := Vector2(sin(_t * 2.0) * 40.0, speed + scroll_speed)
+			global_position += _steer(delta, drift_desired)
 		Pattern.SPIRAL:
-			global_position.y += (speed * 0.7 + scroll_speed) * delta
 			_spiral_angle += delta * (2.2 if _strafe_dir > 0 else -2.2)
 			var radius := 42.0 + 18.0 * sin(_t * 0.9 + _flight_seed)
-			global_position.x += cos(_spiral_angle) * radius * delta * 1.8
-			global_position.x += sin(_t * 1.4) * 18.0 * delta
+			var spiral_desired := Vector2(cos(_spiral_angle) * radius * 1.8 + sin(_t * 1.4) * 18.0, speed * 0.7 + scroll_speed)
+			global_position += _steer(delta, spiral_desired)
 		Pattern.WEAVE:
-			global_position.y += (speed * 0.65 + scroll_speed) * delta
 			var w1 := sin(_t * 1.45 + _flight_seed) * 110.0
 			var w2 := sin(_t * 2.9 + _flight_seed * 0.7) * 38.0
-			global_position.x += (w1 + w2) * delta * 1.15
+			var weave_desired := Vector2((w1 + w2) * 1.15, speed * 0.65 + scroll_speed)
+			global_position += _steer(delta, weave_desired)
 		Pattern.ZIGZAG:
-			global_position.y += (speed * 0.8 + scroll_speed) * delta
 			_zigzag_timer -= delta
 			if _zigzag_timer <= 0.0:
-				_zigzag_timer = randf_range(0.55, 1.05)
+				_zigzag_timer = randf_range(1.2, 2.0)
 				_zigzag_target = clampf(
 					global_position.x + _strafe_dir * randf_range(90.0, 180.0),
 					38.0, get_viewport_rect().size.x - 38.0
 				)
 				_strafe_dir = -1.0 if _zigzag_target < global_position.x else 1.0
-				if randf() < 0.22:
+				if randf() < 0.12:
 					_strafe_dir *= -1.0
 					_zigzag_target = clampf(global_position.x + _strafe_dir * 110.0, 38.0, get_viewport_rect().size.x - 38.0)
 			var dx := _zigzag_target - global_position.x
-			var steer := clampf(dx * 3.2 * delta, -speed * 1.4 * delta, speed * 1.4 * delta)
-			global_position.x += steer * 2.2
+			var steer_x := clampf(dx * 1.2, -speed * 0.9, speed * 0.9)
+			var zig_desired := Vector2(steer_x, speed * 0.8 + scroll_speed)
+			global_position += _steer(delta, zig_desired)
 		Pattern.ARC:
-			global_position.y += (speed * 0.75 + scroll_speed) * delta
-			_arc_phase += delta * 1.65
+			_arc_phase += delta * 0.55
 			var arc_r := 85.0 + 25.0 * sin(_t * 0.7 + _flight_seed)
-			global_position.x += cos(_arc_phase) * arc_r * delta * 1.3
+			var arc_desired := Vector2(cos(_arc_phase) * arc_r * 1.1, speed * 0.75 + scroll_speed)
+			global_position += _steer(delta, arc_desired)
 		Pattern.HOVER_DART:
 			_hover_timer -= delta
 			if _hover_phase == 0:
-				global_position.y += (speed * 0.25 + scroll_speed * 0.55) * delta
-				global_position.x += sin(_t * 2.4 + _flight_seed) * 22.0 * delta
 				if _hover_timer <= 0.0:
 					_hover_phase = 1
 					_hover_timer = randf_range(0.45, 0.75)
@@ -322,10 +346,12 @@ func _move(delta: float) -> void:
 						randf_range(50.0, get_viewport_rect().size.x - 50.0),
 						40.0, get_viewport_rect().size.x - 40.0
 					)
+				var hover_desired := Vector2(sin(_t * 0.9 + _flight_seed) * 28.0, speed * 0.25 + scroll_speed * 0.55)
+				global_position += _steer(delta, hover_desired)
 			else:
-				global_position.y += (speed * 1.65 + scroll_speed) * delta
 				var hx := _zigzag_target - global_position.x
-				global_position.x += clampf(hx * 4.0 * delta, -speed * 1.6 * delta, speed * 1.6 * delta)
+				var dart_desired := Vector2(clampf(hx * 1.2, -speed * 0.85, speed * 0.85), speed * 1.1 + scroll_speed)
+				global_position += _steer(delta, dart_desired)
 				if _hover_timer <= 0.0:
 					_hover_phase = 0
 					_hover_timer = randf_range(0.9, 1.6)
@@ -336,19 +362,22 @@ func _move(delta: float) -> void:
 		Pattern.BOSS:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
-	if pattern != Pattern.BOSS and not (pattern == Pattern.DRIFT and stats and stats.is_hazard):
-		var vx := (global_position.x - _prev.x) / maxf(delta, 0.0001)
-		var bank_target := clampf(vx * 0.0045, -0.62, 0.62)
-		rotation = lerp_angle(rotation, 0.0, clampf(delta * 10.0, 0.0, 1.0))
+	if pattern == Pattern.DRIFT and stats and stats.is_hazard:
+		rotation += delta * 0.8
+	elif pattern != Pattern.BOSS:
+		var heading := _vel.angle() + PI * 0.5 if _vel.length_squared() > 4.0 else rotation
+		rotation = lerp_angle(rotation, heading, clampf(delta * _turn_rate, 0.0, 1.0))
+		var vx := _vel.x
+		var bank_target := clampf(vx * 0.0040, -0.62, 0.62)
 		if _holder:
-			_holder.skew = lerp(_holder.skew, bank_target * 0.42, clampf(delta * 7.0, 0.0, 1.0))
-			var squash_x := 1.0 - absf(bank_target) * 0.20
+			_holder.skew = lerp(_holder.skew, bank_target * 0.38, clampf(delta * 7.0, 0.0, 1.0))
+			var squash_x := 1.0 - absf(bank_target) * 0.18
 			var stretch_y := 1.0 + absf(bank_target) * 0.05
 			_holder.scale.x = lerp(_holder.scale.x, squash_x, clampf(delta * 7.0, 0.0, 1.0))
 			_holder.scale.y = lerp(_holder.scale.y, stretch_y, clampf(delta * 7.0, 0.0, 1.0))
 		if _poly and _poly.visible:
-			_poly.skew = lerp(_poly.skew, bank_target * 0.42, clampf(delta * 7.0, 0.0, 1.0))
-			_poly.scale.x = lerp(_poly.scale.x, 1.0 - absf(bank_target) * 0.20, clampf(delta * 7.0, 0.0, 1.0))
+			_poly.skew = lerp(_poly.skew, bank_target * 0.38, clampf(delta * 7.0, 0.0, 1.0))
+			_poly.scale.x = lerp(_poly.scale.x, 1.0 - absf(bank_target) * 0.18, clampf(delta * 7.0, 0.0, 1.0))
 
 
 func _loop_move(delta: float, speed: float) -> void:
@@ -359,10 +388,10 @@ func _loop_move(delta: float, speed: float) -> void:
 	match _loop_state:
 		0:
 			var target := Vector2(vp.x * 0.5, vp.y * 0.42)
-			var dir := (target - global_position).normalized()
-			if dir.length_squared() < 0.001:
-				dir = Vector2(-_loop_dir * 0.15, 1.0).normalized()
-			global_position += dir * entry_speed * delta
+			var desired := (target - global_position).normalized() * entry_speed
+			if desired.length_squared() < 1.0:
+				desired = Vector2(-_loop_dir * 0.15, 1.0).normalized() * entry_speed
+			global_position += _steer(delta, desired)
 			if global_position.distance_to(target) < 26.0 or global_position.y >= target.y:
 				_loop_state = 1
 				_loop_t = 0.0
@@ -372,13 +401,16 @@ func _loop_move(delta: float, speed: float) -> void:
 		1:
 			_loop_t += delta * (circle_speed / maxf(_loop_radius, 1.0))
 			var ang := _loop_base_angle + _loop_t * _loop_dir
-			global_position = _loop_center + Vector2(cos(ang), sin(ang)) * _loop_radius
-			global_position.y += entry_speed * 0.08 * delta
+			var orbit_pos := _loop_center + Vector2(cos(ang), sin(ang)) * _loop_radius
+			orbit_pos.y += entry_speed * 0.08 * delta * (_loop_t / TAU)
+			var orbit_vel := (orbit_pos - global_position) / maxf(delta, 0.0001)
+			var capped := orbit_vel.normalized() * minf(orbit_vel.length(), circle_speed * 1.4)
+			global_position += _steer(delta, capped)
 			if _loop_t >= TAU:
 				_loop_state = 2
 				_loop_t = 0.0
 		2:
-			global_position += _loop_exit * exit_speed * delta
+			global_position += _steer(delta, _loop_exit * exit_speed)
 
 
 func _sweep_move(delta: float, speed: float) -> void:
@@ -389,23 +421,23 @@ func _sweep_move(delta: float, speed: float) -> void:
 	match _loop_state:
 		0:
 			var target := Vector2(vp.x * 0.5, vp.y * 0.38)
-			var dir := (target - global_position).normalized()
-			if dir.length_squared() < 0.001:
-				dir = Vector2(-_loop_dir * 0.4, 0.85).normalized()
-			global_position += dir * entry_speed * delta
+			var desired := (target - global_position).normalized() * entry_speed
+			if desired.length_squared() < 1.0:
+				desired = Vector2(-_loop_dir * 0.4, 0.85).normalized() * entry_speed
+			global_position += _steer(delta, desired)
 			if global_position.distance_to(target) < 28.0 or global_position.y >= target.y:
 				_loop_state = 1
 				_sweep_t = global_position.x
 				_loop_exit = Vector2(_loop_dir * randf_range(0.25, 0.55), 1.0).normalized()
 		1:
-			_sweep_t += _loop_dir * sweep_speed * delta
-			global_position.x = _sweep_t
-			global_position.y += (speed * 0.18 + scroll_speed * 0.55) * delta
+			var sweep_desired := Vector2(_loop_dir * sweep_speed, speed * 0.18 + scroll_speed * 0.55)
+			global_position += _steer(delta, sweep_desired)
+			_sweep_t = global_position.x
 			if (_loop_dir > 0.0 and global_position.x > vp.x - 34.0) \
 					or (_loop_dir < 0.0 and global_position.x < 34.0):
 				_loop_state = 2
 		2:
-			global_position += _loop_exit * exit_speed * delta
+			global_position += _steer(delta, _loop_exit * exit_speed)
 
 
 func _try_fire(delta: float) -> void:
