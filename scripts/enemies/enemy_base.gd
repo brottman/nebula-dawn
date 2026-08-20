@@ -352,31 +352,27 @@ func _move(delta: float) -> void:
 
 
 func _loop_move(delta: float, speed: float) -> void:
-	# 0 = fast straight entry from spawn edge, 1 = big predictable circle, 2 = exit
+	var vp := get_viewport_rect().size
 	var entry_speed := speed * 1.65 + scroll_speed * 0.35
 	var circle_speed := speed * 1.05
 	var exit_speed := speed * 1.55 + scroll_speed * 0.85
 	match _loop_state:
 		0:
-			# Entry: brisk diagonal toward center-line
-			global_position += Vector2(_loop_dir * 0.18, 1.0).normalized() * entry_speed * delta
-			if global_position.y >= 110.0 + randf() * 36.0:
+			var target := Vector2(vp.x * 0.5, vp.y * 0.42)
+			var dir := (target - global_position).normalized()
+			if dir.length_squared() < 0.001:
+				dir = Vector2(-_loop_dir * 0.15, 1.0).normalized()
+			global_position += dir * entry_speed * delta
+			if global_position.distance_to(target) < 26.0 or global_position.y >= target.y:
 				_loop_state = 1
 				_loop_t = 0.0
-				# Circle center ahead in the direction of entry, offset sideways
-				var fwd := Vector2(_loop_dir * 0.18, 1.0).normalized()
-				var side := Vector2(-fwd.y, fwd.x) * _loop_dir
-				_loop_center = global_position + fwd * (_loop_radius * 0.55) + side * (_loop_radius * 0.18)
+				_loop_center = target
 				_loop_base_angle = (global_position - _loop_center).angle()
-				# Exit slightly outward so the loop reads as a big bend
-				_loop_exit = Vector2(-_loop_dir * randf_range(0.45, 0.85), 1.0).normalized()
+				_loop_exit = Vector2(-_loop_dir * randf_range(0.35, 0.75), 1.0).normalized()
 		1:
 			_loop_t += delta * (circle_speed / maxf(_loop_radius, 1.0))
-			# One full 360 before exit — reads clearly
 			var ang := _loop_base_angle + _loop_t * _loop_dir
-			# Orbit the center; keep it stable so the loop looks circular on screen
 			global_position = _loop_center + Vector2(cos(ang), sin(ang)) * _loop_radius
-			# Drift down a touch while circling so the whole maneuver advances
 			global_position.y += entry_speed * 0.08 * delta
 			if _loop_t >= TAU:
 				_loop_state = 2
@@ -386,17 +382,18 @@ func _loop_move(delta: float, speed: float) -> void:
 
 
 func _sweep_move(delta: float, speed: float) -> void:
-	# Predictable side entry → horizontal sweep → diagonal exit
+	var vp := get_viewport_rect().size
 	var entry_speed := speed * 1.75 + scroll_speed * 0.3
 	var sweep_speed := speed * 1.45
 	var exit_speed := speed * 1.6 + scroll_speed * 0.9
 	match _loop_state:
 		0:
-			# Come in from the side that matches _loop_dir
-			var entry := Vector2(-_loop_dir * 0.9, 0.55).normalized()
-			global_position += entry * entry_speed * delta
-			# Sweep starts once we're visibly on-screen
-			if global_position.y > 38.0 and global_position.x > 28.0 and global_position.x < get_viewport_rect().size.x - 28.0:
+			var target := Vector2(vp.x * 0.5, vp.y * 0.38)
+			var dir := (target - global_position).normalized()
+			if dir.length_squared() < 0.001:
+				dir = Vector2(-_loop_dir * 0.4, 0.85).normalized()
+			global_position += dir * entry_speed * delta
+			if global_position.distance_to(target) < 28.0 or global_position.y >= target.y:
 				_loop_state = 1
 				_sweep_t = global_position.x
 				_loop_exit = Vector2(_loop_dir * randf_range(0.25, 0.55), 1.0).normalized()
@@ -404,7 +401,7 @@ func _sweep_move(delta: float, speed: float) -> void:
 			_sweep_t += _loop_dir * sweep_speed * delta
 			global_position.x = _sweep_t
 			global_position.y += (speed * 0.18 + scroll_speed * 0.55) * delta
-			if (_loop_dir > 0.0 and global_position.x > get_viewport_rect().size.x - 34.0) \
+			if (_loop_dir > 0.0 and global_position.x > vp.x - 34.0) \
 					or (_loop_dir < 0.0 and global_position.x < 34.0):
 				_loop_state = 2
 		2:
@@ -471,16 +468,13 @@ func _fodder_fire() -> void:
 
 
 func _side_spawn_setup() -> void:
-	# Called after global_position is known for LOOP / SWEEP — put them off-screen on the side
 	if pattern != Pattern.LOOP and pattern != Pattern.SWEEP:
 		return
 	var vp := get_viewport_rect().size
 	var side := 1.0 if _loop_dir > 0 else -1.0
-	# Nudge X to the chosen side edge so entry reads as "from the side"
-	var edge_x := 14.0 if side < 0 else vp.x - 14.0
-	# Keep Y slightly above screen; loop will dive in
-	global_position.x = edge_x + side * randf_range(8.0, 22.0)
-	global_position.y = -28.0 - randf_range(0.0, 18.0)
+	var edge_x := -24.0 if side < 0 else vp.x + 24.0
+	global_position.x = edge_x + side * randf_range(10.0, 26.0)
+	global_position.y = vp.y * 0.22 + randf_range(-28.0, 28.0)
 
 
 func _default_flight_pattern() -> String:

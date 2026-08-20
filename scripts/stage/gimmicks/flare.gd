@@ -54,15 +54,24 @@ func _trigger_flare() -> void:
 	entities.add_child(zone)
 	track(zone)
 	zone.global_position = Vector2(vp.x * 0.5, vp.y * 0.78)
+	zone.monitoring = false
+	zone.monitorable = false
 	zone.body_entered.connect(_on_flare_hit)
-	var peak_alpha := 0.12 if GameState.reduce_flashes else 0.35
+	var preview_alpha := 0.08 if GameState.reduce_flashes else 0.18
+	var peak_alpha := 0.22 if GameState.reduce_flashes else 0.62
 	var tw := create_tween()
-	tw.tween_property(_flare_overlay, "color:a", peak_alpha, 0.2)
+	tw.tween_property(_flare_overlay, "color:a", preview_alpha, 0.15)
+	tw.tween_interval(0.55)
+	tw.tween_property(_flare_overlay, "color:a", peak_alpha, 0.12)
+	tw.tween_callback(func() -> void:
+		zone.monitoring = true
+		zone.monitorable = true
+		if pool and pool.has_method("clear_enemy_in_radius"):
+			pool.clear_enemy_in_radius(Vector2(vp.x * 0.5, vp.y * 0.25), vp.x * 0.7)
+	)
 	tw.tween_interval(0.85)
 	tw.tween_property(_flare_overlay, "color:a", 0.0, 0.35)
 	tw.tween_callback(_expire_flare.bind(zone))
-	if pool and pool.has_method("clear_enemy_in_radius"):
-		pool.clear_enemy_in_radius(Vector2(vp.x * 0.5, vp.y * 0.25), vp.x * 0.7)
 
 
 func _on_flare_hit(b: Node) -> void:

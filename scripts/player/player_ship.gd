@@ -361,13 +361,18 @@ func play_victory_exit() -> void:
 	var vis := _visual()
 	vis.modulate = _ship_tint
 	_bank = 0.0
+	bank_vx = 0.0
 	_last_x = global_position.x
+	vis.rotation = lerpf(vis.rotation, 0.0, 0.5)
 	var lvl := create_tween()
 	lvl.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	lvl.tween_property(vis, "rotation", 0.0, 0.22)
+	lvl.parallel().tween_method(func(_v: float) -> void: _bank = 0.0, 0.0, 1.0, 0.22)
 	await lvl.finished
 	if not is_inside_tree():
 		return
+	vis.rotation = 0.0
+	_bank = 0.0
 
 	var vp := get_viewport_rect().size
 	var center := Vector2(vp.x * 0.5, vp.y * 0.48)
@@ -376,14 +381,20 @@ func play_victory_exit() -> void:
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(self, "global_position", center, 1.15)
+	tween.parallel().tween_property(vis, "rotation", 0.0, 1.15)
 	tween.tween_property(self, "global_position", center + Vector2(0, -10), 0.35)
+	tween.parallel().tween_property(vis, "rotation", 0.0, 0.35)
 	tween.tween_property(self, "global_position", center + Vector2(0, 8), 0.35)
+	tween.parallel().tween_property(vis, "rotation", 0.0, 0.35)
 	tween.tween_property(self, "global_position", center, 0.3)
+	tween.parallel().tween_property(vis, "rotation", 0.0, 0.3)
 	tween.tween_interval(0.35)
+	tween.parallel().tween_property(vis, "rotation", 0.0, 0.35)
 	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "global_position", offscreen, 0.75)
 	tween.parallel().tween_property(self, "scale", Vector2(0.7, 1.45), 0.75)
 	tween.parallel().tween_property(vis, "modulate:a", 0.0, 0.55).set_delay(0.2)
+	tween.parallel().tween_property(vis, "rotation", 0.0, 0.75)
 	await tween.finished
 	visible = false
 

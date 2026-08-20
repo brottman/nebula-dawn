@@ -126,10 +126,12 @@ static func _flare_telegraph(boss: Node, dur: float) -> void:
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	rect.offset_top = vp.y * 0.55
 	layer.add_child(rect)
-	var peak := 0.12 if GameState.reduce_flashes else 0.26
+	var peak := 0.22 if GameState.reduce_flashes else 0.58
 	var tw := layer.create_tween()
-	tw.tween_property(rect, "color:a", peak, 0.18)
-	tw.tween_interval(dur - 0.45)
+	tw.tween_property(rect, "color:a", peak * 0.35, 0.15)
+	tw.tween_interval(dur - 0.60)
+	tw.tween_property(rect, "color:a", peak, 0.12)
+	tw.tween_interval(0.10)
 	tw.tween_property(rect, "color:a", 0.0, 0.32)
 	tw.tween_callback(layer.queue_free)
 
