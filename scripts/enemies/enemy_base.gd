@@ -494,7 +494,7 @@ func _fodder_fire() -> void:
 			if randf() < 0.4:
 				BossPatterns.arc_shot(self, muzzle, spd * 0.92, dmg, -dir * 1.0, {"scale": 0.88})
 		"weave":
-			BossPatterns.spread_fan(self, muzzle, spd * 0.88, dmg, 2, 0.22, {"wave_amp": 14.0, "wave_freq": 7.0})
+			BossPatterns.spread_fan(self, muzzle, spd * 0.88, dmg, 2, 0.22)
 		_:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
 

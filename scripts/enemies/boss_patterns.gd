@@ -251,7 +251,7 @@ static func _fire_orbital(boss: Node, phase: int, muzzle: Vector2, spd: float, d
 	for i in arms:
 		var a := base + TAU * float(i) / float(arms)
 		var dir := Vector2(sin(a) * 0.85, 0.55 + 0.35 * absf(cos(a))).normalized()
-		var o := {"curve": 0.38 if i % 2 == 0 else -0.38, "lifetime": 2.6, "scale": 1.05 if vulnerable else 0.95}
+		var o := {"lifetime": 2.6, "scale": 1.05 if vulnerable else 0.95}
 		spawn_shot(boss, muzzle, dir * spd, dmg, o)
 	if vulnerable:
 		_ghost_ring(boss, muzzle, Color(0.45, 0.85, 1.0), 22.0, 0.55)
@@ -292,11 +292,8 @@ static func _fire_leviathan(boss: Node, phase: int, muzzle: Vector2, spd: float,
 		var a := lerpf(-0.5, 0.5, t)
 		var dir := Vector2(a, 1).normalized()
 		var o := {
-			"wave_amp": 18.0 + 8.0 * float(phase),
-			"wave_freq": 6.0,
 			"color": Color(0.85, 0.45, 1.0),
 			"scale": 0.9,
-			"curve": 0.24 * (1.0 if i % 2 == 0 else -1.0),
 			"lifetime": 2.6,
 		}
 		spawn_shot(boss, muzzle, dir * spd * 0.9, dmg, o)
@@ -357,7 +354,7 @@ static func _fire_omega(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg
 				continue
 			var a := TAU * float(i) / float(count) + o_t * 0.5
 			var dir := Vector2(sin(a), cos(a) * 0.45 + 0.65).normalized()
-			var o := {"curve": 0.58 * (1.0 if i % 2 == 0 else -1.0), "scale": 0.9, "lifetime": 2.6}
+			var o := {"scale": 0.9, "lifetime": 2.6}
 			spawn_shot(boss, o_muzzle, dir * o_spd * (0.72 if o_phase == 0 else 0.68), o_dmg, o)
 	)
 	if phase == 0:
@@ -392,7 +389,7 @@ static func _fire_kaleidoscope(boss: Node, phase: int, muzzle: Vector2, spd: flo
 		for i in k_arms:
 			var a := k_rot + TAU * float(i) / float(k_arms)
 			var dir := Vector2(sin(a), absf(cos(a)) * 0.4 + 0.6).normalized()
-			var o := {"color": Color(0.45, 0.9, 1.0), "scale": 0.9, "curve": 0.48 if i % 2 == 0 else -0.48, "lifetime": 2.6}
+			var o := {"color": Color(0.45, 0.9, 1.0), "scale": 0.9, "lifetime": 2.6}
 			spawn_shot(boss, k_muzzle, dir * k_spd, k_dmg, o)
 	)
 	if phase >= 1:
@@ -561,7 +558,7 @@ static func _fire_prism(boss: Node, phase: int, muzzle: Vector2, spd: float, dmg
 		if not is_instance_valid(boss) or boss.get("alive") == false:
 			return
 		for d in [Vector2(0.95, 0.32), Vector2(-0.95, 0.32)]:
-			var o := {"color": Color(0.5, 0.9, 1.0), "scale": 0.9, "curve": 0.52 if d.x > 0 else -0.52, "lifetime": 2.6}
+			var o := {"color": Color(0.5, 0.9, 1.0), "scale": 0.9, "lifetime": 2.6}
 			spawn_shot(boss, p_muzzle, d.normalized() * p_spd, p_dmg, o)
 	)
 	helix_pair(boss, muzzle, spd * 0.92, dmg)
@@ -768,9 +765,8 @@ static func ring(boss: Node, muzzle: Vector2, spd: float, dmg: float, count: int
 		spawn_shot(boss, muzzle, dir * spd, dmg, opts)
 
 
-static func spiral_shot(boss: Node, muzzle: Vector2, spd: float, dmg: float, curve: float, opts: Dictionary = {}) -> void:
+static func spiral_shot(boss: Node, muzzle: Vector2, spd: float, dmg: float, _curve: float, opts: Dictionary = {}) -> void:
 	var o := opts.duplicate()
-	o["curve"] = curve
 	var player := boss.get_tree().get_first_node_in_group("player") if boss.get_tree() else null
 	var aim := Vector2(0, 1)
 	if player is Node2D and is_instance_valid(player):
@@ -781,28 +777,22 @@ static func spiral_shot(boss: Node, muzzle: Vector2, spd: float, dmg: float, cur
 	spawn_shot(boss, muzzle, aim * spd, dmg, o)
 
 
-static func arc_shot(boss: Node, muzzle: Vector2, spd: float, dmg: float, curve: float, opts: Dictionary = {}) -> void:
+static func arc_shot(boss: Node, muzzle: Vector2, spd: float, dmg: float, _curve: float, opts: Dictionary = {}) -> void:
 	var o := opts.duplicate()
-	o["curve"] = curve
 	spawn_shot(boss, muzzle, Vector2(0, 1) * spd, dmg, o)
 
 
 static func helix_pair(boss: Node, muzzle: Vector2, spd: float, dmg: float, opts: Dictionary = {}) -> void:
 	var o1 := opts.duplicate()
 	var o2 := opts.duplicate()
-	o1["wave_amp"] = 18.0
-	o1["wave_freq"] = 6.5
-	o2["wave_amp"] = -18.0
-	o2["wave_freq"] = 6.5
 	spawn_shot(boss, muzzle + Vector2(-8, 0), Vector2(-0.18, 1).normalized() * spd, dmg, o1)
 	spawn_shot(boss, muzzle + Vector2(8, 0), Vector2(0.18, 1).normalized() * spd, dmg, o2)
 
 
-static func spiral_burst(boss: Node, muzzle: Vector2, spd: float, dmg: float, count: int, curve: float, opts: Dictionary = {}) -> void:
+static func spiral_burst(boss: Node, muzzle: Vector2, spd: float, dmg: float, count: int, _curve: float, opts: Dictionary = {}) -> void:
 	var t_rot: float = boss.get("_t")
 	for i in count:
 		var a := TAU * float(i) / float(count) + t_rot * 0.5
 		var dir := Vector2(sin(a), cos(a) * 0.45 + 0.65).normalized()
 		var o := opts.duplicate()
-		o["curve"] = curve * (1.0 if i % 2 == 0 else -1.0)
 		spawn_shot(boss, muzzle, dir * spd, dmg, o)

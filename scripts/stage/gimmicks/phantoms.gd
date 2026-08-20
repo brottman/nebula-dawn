@@ -62,8 +62,6 @@ func _fire_phantom_echo(target: Vector2) -> void:
 		pool.spawn_enemy(muzzle, Vector2(a, 1).normalized() * 210.0, 1.0, {
 			"color": Color(0.45, 0.7, 1.0, 0.55),
 			"scale": 0.85,
-			"wave_amp": 12.0,
-			"wave_freq": 5.0,
 		})
 	AudioBus.play_enemy_shoot()
 	EventBus.gimmick_toast.emit("ECHO")

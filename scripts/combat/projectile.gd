@@ -13,7 +13,7 @@ extends Area2D
 ##   melt_ticks (int)      — apply melting DoT ticks to the hit target
 ##   melt_dps (float)      — damage per melt tick
 ##   cancel_bullets (bool) — destroy enemy projectiles this shot overlaps
-##   curve (float)         — angular drift in radians/sec (spirals & arcs)
+##   curve (float)         — (disabled, kept for compat)
 ##   max_curve_angle (float) — clamp total heading change (default 1.42 ~81deg)
 ##   curve_decay (float)     — linear decay of curve per second
 
@@ -23,7 +23,7 @@ var from_player: bool = true
 var pierce_left: int = 0
 var homing: float = 0.0
 var wave_amp: float = 0.0
-var wave_freq: float = 8.0
+var wave_freq: float = 0.0
 var splash_radius: float = 0.0
 var splash_damage: float = 0.0
 var melt_ticks: int = 0
@@ -31,8 +31,8 @@ var melt_dps: float = 0.0
 var cancel_bullets: bool = false
 var armor_pierce: bool = false
 var curve: float = 0.0
-var _max_curve_angle: float = 1.42
-var _curve_decay: float = 0.55
+var _max_curve_angle: float = 0.0
+var _curve_decay: float = 0.0
 var _curved_total: float = 0.0
 
 var _active: bool = false
@@ -78,8 +78,8 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	_reflect_cd = 0.0
 	pierce_left = int(opts.get("pierce", 0))
 	homing = float(opts.get("homing", 0.0))
-	wave_amp = float(opts.get("wave_amp", 0.0))
-	wave_freq = float(opts.get("wave_freq", 8.0))
+	wave_amp = 0.0
+	wave_freq = 0.0
 	_lifetime = float(opts.get("lifetime", 3.0))
 	_base_scale = float(opts.get("scale", 1.0))
 	scale = Vector2.ONE * _base_scale
@@ -89,9 +89,9 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	melt_dps = float(opts.get("melt_dps", 0.0))
 	cancel_bullets = bool(opts.get("cancel_bullets", false))
 	armor_pierce = bool(opts.get("armor_pierce", false))
-	curve = float(opts.get("curve", 0.0))
-	_max_curve_angle = float(opts.get("max_curve_angle", 1.42))
-	_curve_decay = float(opts.get("curve_decay", 0.55))
+	curve = 0.0
+	_max_curve_angle = 0.0
+	_curve_decay = 0.0
 	_curved_total = 0.0
 	if velocity.length() > 0.001:
 		_perp = Vector2(-velocity.y, velocity.x).normalized()
@@ -171,23 +171,10 @@ func _physics_process(delta: float) -> void:
 		_poly.scale.y = _pulse * _stretch
 	if _core:
 		_core.scale.y = _pulse * _stretch
-	if curve != 0.0 and absf(_curved_total) < _max_curve_angle:
-		var step := curve * delta
-		var remaining := _max_curve_angle - absf(_curved_total)
-		var clamped_step := clampf(step, -remaining, remaining) if remaining > 0.0 else 0.0
-		velocity = velocity.rotated(clamped_step)
-		_curved_total += clamped_step
-		_perp = Vector2(-velocity.y, velocity.x).normalized()
-		rotation = velocity.angle() + PI * 0.5
-		curve = move_toward(curve, 0.0, _curve_decay * delta)
 	if homing > 0.0:
 		_steer_homing(delta)
 	_base_pos += velocity * delta
-	if wave_amp != 0.0:
-		_wave_phase += delta * wave_freq
-		global_position = _base_pos + _perp * sin(_wave_phase) * wave_amp
-	else:
-		global_position = _base_pos
+	global_position = _base_pos
 	var vp := get_viewport_rect().size
 	if _age > _lifetime or global_position.y < -60.0 or global_position.y > vp.y + 60.0 \
 			or global_position.x < -60.0 or global_position.x > vp.x + 60.0:

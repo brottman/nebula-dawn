@@ -371,8 +371,6 @@ func _shoot_spread(origin: Vector2, dmg: float) -> void:
 	if ship.weapon_level >= 3:
 		for side in [-1.0, 1.0]:
 			ship.projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(side * 90.0, -420.0), shot_dmg * 0.55, {
-				"wave_amp": side * 36.0,
-				"wave_freq": 9.0,
 				"cancel_bullets": true,
 				"scale": 1.2,
 				"color": Color(1.0, 0.55, 0.4),
