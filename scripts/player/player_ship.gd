@@ -13,7 +13,7 @@ const SPEED_STACK_BONUS := 0.12
 enum Weapon { BLASTER, VULCAN, LASER, HOMING }
 
 @export var move_speed: float = 310.0
-@export var max_hp: int = 7
+@export var max_hp: int = 5
 @export var fire_cooldown: float = 0.16
 @export var bullet_speed: float = 560.0
 @export var bullet_damage: float = 1.0
@@ -100,7 +100,7 @@ func _ready() -> void:
 
 func apply_hangar_loadout() -> void:
 	var spec: Dictionary = GameState.get_active_loadout()
-	max_hp = int(spec.get("max_hp", 7))
+	max_hp = int(spec.get("max_hp", 5))
 	move_speed = float(spec.get("move_speed", 310.0))
 	fire_cooldown = float(spec.get("fire_cooldown", 0.16))
 	bullet_speed = float(spec.get("bullet_speed", 560.0))

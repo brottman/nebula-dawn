@@ -6,6 +6,10 @@ extends CanvasLayer
 
 const CHIP_EMPTY := Color(0.18, 0.22, 0.32, 1.0)
 const CHIP_MAX := Color(1.0, 0.82, 0.35, 1.0)
+const HEALTH_FILLED := Color(0.45, 0.95, 0.65, 1.0)
+const HEALTH_MID := Color(1.0, 0.82, 0.35, 1.0)
+const HEALTH_LOW := Color(1.0, 0.35, 0.35, 1.0)
+const HEALTH_EMPTY := Color(0.14, 0.18, 0.28, 1.0)
 const SLOT_COLOR := {
 	"BLASTER": Color(0.78, 0.84, 0.95, 1.0),
 	"SPREAD": Color(1.0, 0.4, 0.34, 1.0),
@@ -26,7 +30,7 @@ const SLOT_TITLE := {
 }
 
 @onready var wave_label: Label = $Root/WaveLabel
-@onready var health_bar: ProgressBar = $Root/TopBar/Margin/Row/Left/HealthBar
+@onready var health_row: HBoxContainer = $Root/TopBar/Margin/Row/Left/HealthRow
 @onready var lives_label: Label = $Root/TopBar/Margin/Row/Left/LivesLabel
 @onready var weapon_badge: Label = $Root/TopBar/Margin/Row/Center/WeaponRow/WeaponBadge
 @onready var weapon_level: Label = $Root/TopBar/Margin/Row/Center/WeaponRow/WeaponLevel
@@ -46,12 +50,16 @@ const SLOT_TITLE := {
 
 var _bombs: int = 0
 var _chips: Array[ColorRect] = []
+var _health_segs: Array[ColorRect] = []
 
 
 func _ready() -> void:
 	for child in chip_row.get_children():
 		if child is ColorRect:
 			_chips.append(child)
+	for child in health_row.get_children():
+		if child is ColorRect:
+			_health_segs.append(child)
 	boss_bar.visible = false
 	boss_label.visible = false
 	pickup_toast.visible = false
@@ -162,8 +170,24 @@ func _on_bombs(bombs: int) -> void:
 
 
 func _on_hp(current: int, maximum: int) -> void:
-	health_bar.max_value = maximum
-	health_bar.value = current
+	var total := maxi(_health_segs.size(), 1)
+	var filled := clampi(current, 0, total)
+	for i in _health_segs.size():
+		var seg: ColorRect = _health_segs[i]
+		if i >= maximum:
+			seg.visible = false
+			continue
+		seg.visible = true
+		if i < filled:
+			var ratio := float(filled) / float(maximum) if maximum > 0 else 0.0
+			if ratio <= 0.2:
+				seg.color = HEALTH_LOW
+			elif ratio <= 0.4:
+				seg.color = HEALTH_MID
+			else:
+				seg.color = HEALTH_FILLED
+		else:
+			seg.color = HEALTH_EMPTY
 
 
 func _on_lives(lives: int) -> void:

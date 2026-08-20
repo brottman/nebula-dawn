@@ -21,6 +21,7 @@ const UPGRADE_HINTS := {
 	"core": "+4% fire rate per rank",
 }
 
+const MAX_HP_CAP := 5
 const HULL_HP_PER_RANK := 1
 const THRUST_PER_RANK := 0.05
 const CANNON_PER_RANK := 0.08
@@ -119,7 +120,7 @@ static func resolve(ship_id: String, ranks: Dictionary = {}) -> Dictionary:
 		"cost": int(def["cost"]),
 		"sprite": String(def["sprite"]),
 		"tint": def["tint"],
-		"max_hp": int(def["max_hp"]) + hull * HULL_HP_PER_RANK,
+		"max_hp": mini(MAX_HP_CAP, int(def["max_hp"]) + hull * HULL_HP_PER_RANK),
 		"move_speed": float(def["move_speed"]) * (1.0 + THRUST_PER_RANK * float(thrust)),
 		"fire_cooldown": maxf(MIN_FIRE_COOLDOWN, cooldown),
 		"bullet_damage": float(def["bullet_damage"]) * (1.0 + CANNON_PER_RANK * float(cannon)),
@@ -141,7 +142,7 @@ static func stats_text(spec: Dictionary) -> String:
 		extras.append("Shield ×%d" % shields)
 	var extra := "   ·   " + "  ".join(extras) if not extras.is_empty() else ""
 	return "HP %d    SPD %d    DMG %.2f    ROF %.2fs\nLives ×%d%s" % [
-		int(spec.get("max_hp", 7)),
+		int(spec.get("max_hp", 5)),
 		int(round(float(spec.get("move_speed", 310.0)))),
 		float(spec.get("bullet_damage", 1.0)),
 		float(spec.get("fire_cooldown", BASE_FIRE_COOLDOWN)),
@@ -160,7 +161,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 0,
 		"sprite": "res://assets/sprites/player_ship.svg",
 		"tint": Color(1.0, 1.0, 1.0),
-		"max_hp": 7,
+		"max_hp": 4,
 		"move_speed": 310.0,
 		"fire_cooldown": 0.16,
 		"bullet_damage": 1.0,
@@ -177,7 +178,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 2500,
 		"sprite": "res://assets/sprites/player_interceptor.svg",
 		"tint": Color(0.55, 0.95, 1.0),
-		"max_hp": 5,
+		"max_hp": 3,
 		"move_speed": 385.0,
 		"fire_cooldown": 0.13,
 		"bullet_damage": 0.90,
@@ -194,7 +195,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 5500,
 		"sprite": "res://assets/sprites/player_aegis.svg",
 		"tint": Color(1.0, 0.82, 0.45),
-		"max_hp": 10,
+		"max_hp": 5,
 		"move_speed": 255.0,
 		"fire_cooldown": 0.19,
 		"bullet_damage": 1.20,
@@ -211,7 +212,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 6500,
 		"sprite": "res://assets/sprites/player_interceptor.svg",
 		"tint": Color(1.0, 0.42, 0.35),
-		"max_hp": 5,
+		"max_hp": 3,
 		"move_speed": 375.0,
 		"fire_cooldown": 0.13,
 		"bullet_damage": 1.10,
@@ -228,7 +229,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 10000,
 		"sprite": "res://assets/sprites/player_aegis.svg",
 		"tint": Color(0.4, 0.95, 0.75),
-		"max_hp": 11,
+		"max_hp": 5,
 		"move_speed": 245.0,
 		"fire_cooldown": 0.20,
 		"bullet_damage": 1.25,
@@ -245,7 +246,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 12000,
 		"sprite": "res://assets/sprites/player_wraith.svg",
 		"tint": Color(0.78, 0.55, 1.0),
-		"max_hp": 6,
+		"max_hp": 5,
 		"move_speed": 345.0,
 		"fire_cooldown": 0.14,
 		"bullet_damage": 1.05,
@@ -262,7 +263,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 15000,
 		"sprite": "res://assets/sprites/player_wraith.svg",
 		"tint": Color(0.45, 0.7, 1.0),
-		"max_hp": 6,
+		"max_hp": 5,
 		"move_speed": 360.0,
 		"fire_cooldown": 0.13,
 		"bullet_damage": 1.05,
@@ -279,7 +280,7 @@ static func _build() -> Array[Dictionary]:
 		"cost": 24000,
 		"sprite": "res://assets/sprites/player_dawn.svg",
 		"tint": Color(1.0, 0.92, 0.55),
-		"max_hp": 8,
+		"max_hp": 5,
 		"move_speed": 330.0,
 		"fire_cooldown": 0.15,
 		"bullet_damage": 1.25,
@@ -290,13 +291,12 @@ static func _build() -> Array[Dictionary]:
 	})
 	list.append({
 		"id": "vanguard",
-		"name": "Vanguard",
 		"role": "Yard flagship",
 		"blurb": "Dawn-class prototype with a crimson heart. The best gun in the fleet, armor to match.",
 		"cost": 32000,
 		"sprite": "res://assets/sprites/player_dawn.svg",
 		"tint": Color(1.0, 0.35, 0.4),
-		"max_hp": 10,
+		"max_hp": 5,
 		"move_speed": 340.0,
 		"fire_cooldown": 0.14,
 		"bullet_damage": 1.35,

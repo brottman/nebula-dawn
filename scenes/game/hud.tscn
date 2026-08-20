@@ -143,15 +143,41 @@ theme_override_colors/font_color = Color(0.75, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 13
 text = "×3"
 
-[node name="HealthBar" type="ProgressBar" parent="Root/TopBar/Margin/Row/Left"]
-custom_minimum_size = Vector2(0, 12)
+[node name="HealthRow" type="HBoxContainer" parent="Root/TopBar/Margin/Row/Left"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/background = SubResource("HealthBarBg")
-theme_override_styles/fill = SubResource("HealthBarFill")
-max_value = 7.0
-value = 7.0
-show_percentage = false
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Seg0" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(18, 12)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.45, 0.95, 0.65, 1)
+
+[node name="Seg1" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(18, 12)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.45, 0.95, 0.65, 1)
+
+[node name="Seg2" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(18, 12)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.45, 0.95, 0.65, 1)
+
+[node name="Seg3" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(18, 12)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.45, 0.95, 0.65, 1)
+
+[node name="Seg4" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(18, 12)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.45, 0.95, 0.65, 1)
 
 [node name="Center" type="VBoxContainer" parent="Root/TopBar/Margin/Row"]
 layout_mode = 2
