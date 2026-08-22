@@ -16,6 +16,7 @@ var _age: float = 0.0
 var _hit_sfx_cd: float = 0.0
 var _spark_cd: Dictionary = {}
 var _melt_cd: Dictionary = {}
+var _level: int = 1
 
 
 func _ready() -> void:
@@ -46,8 +47,9 @@ func extinguish() -> void:
 	_melt_cd.clear()
 
 
-func fire(delta: float, origin: Vector2, half_width: float, dps: float, armor_pierce: bool, melt_dps: float, cancel_bullets: bool) -> void:
+func fire(delta: float, origin: Vector2, half_width: float, dps: float, armor_pierce: bool, melt_dps: float, cancel_bullets: bool, level: int = 1) -> void:
 	global_position = origin
+	_level = clampi(level, 1, 5)
 	_age += delta
 	if _hit_sfx_cd > 0.0:
 		_hit_sfx_cd -= delta
@@ -68,21 +70,42 @@ func fire(delta: float, origin: Vector2, half_width: float, dps: float, armor_pi
 func _process(_delta: float) -> void:
 	if not visible:
 		return
-	var pulse := 0.82 + 0.18 * sin(_age * 36.0)
-	modulate = Color(1.0, 1.0, 1.0, pulse)
+	# Higher levels pulse brighter and faster — Lv1 gentle, Lv5 intense white-hot.
+	var lvl_factor := clampf(float(_level - 1) / 4.0, 0.0, 1.0)
+	var pulse_amp := 0.10 + 0.14 * lvl_factor
+	var pulse_base := 0.88 + 0.07 * lvl_factor
+	var pulse_speed := 28.0 + 14.0 * lvl_factor
+	var pulse := pulse_base + pulse_amp * sin(_age * pulse_speed)
+	# Overall brightness lifts with level (Lv5 ~1.25x)
+	var bright := 1.0 + 0.28 * lvl_factor
+	modulate = Color(bright, bright, bright, pulse)
 
 
 func _draw_beam(half_width: float, length: float) -> void:
-	var flicker := 1.0 + 0.08 * sin(_age * 42.0)
+	var lvl_factor := clampf(float(_level - 1) / 4.0, 0.0, 1.0)
+	# Lv1 thin/flickery, Lv5 thick/stable and intense
+	var flicker := 1.0 + (0.10 - 0.06 * lvl_factor) * sin(_age * (32.0 + 14.0 * lvl_factor))
 	var top := -length
-	_set_rect(_glow, half_width * 2.4 * flicker, top)
-	_set_rect(_mid, half_width * 1.15 * flicker, top)
-	_set_rect(_core, maxf(1.6, half_width * 0.32), top)
-	var flare_w := half_width * 1.6
+	# Glow grows disproportionately — Lv5 has huge soft aura
+	var glow_scale := 1.9 + 0.95 * lvl_factor
+	var mid_scale := 1.08 + 0.22 * lvl_factor
+	var core_scale := 0.28 + 0.14 * lvl_factor
+	_set_rect(_glow, half_width * glow_scale * flicker, top)
+	_set_rect(_mid, half_width * mid_scale * flicker, top)
+	_set_rect(_core, maxf(1.4, half_width * core_scale), top)
+	# Per-level color/alpha shift — thin blue at Lv1 → white-hot at Lv5
+	var glow_alpha := 0.15 + 0.16 * lvl_factor
+	var mid_alpha := 0.58 + 0.18 * lvl_factor
+	_glow.color = Color(0.25, 0.7, 1.0, glow_alpha)
+	_mid.color = Color(0.45 + 0.18 * lvl_factor, 0.85 + 0.06 * lvl_factor, 1.0, mid_alpha)
+	_core.color = Color(0.92 + 0.07 * lvl_factor, 0.98, 1.0, 0.88 + 0.08 * lvl_factor)
+	var flare_w := half_width * (1.35 + 0.45 * lvl_factor)
+	var flare_h := 18.0 + 8.0 * lvl_factor
+	_flare.color = Color(0.75, 0.95, 1.0, 0.55 + 0.35 * lvl_factor)
 	_flare.polygon = PackedVector2Array([
 		Vector2(0.0, 6.0),
 		Vector2(flare_w, -10.0),
-		Vector2(0.0, -22.0),
+		Vector2(0.0, -flare_h),
 		Vector2(-flare_w, -10.0),
 	])
 

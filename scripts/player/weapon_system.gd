@@ -30,7 +30,7 @@ const WEAPON_COOLDOWNS := {
 const _LaserBeam := preload("res://scripts/player/laser_beam.gd")
 const LASER_ORIGIN := Vector2(0, -18)
 const LASER_DPS := {1: 7.0, 2: 9.5, 3: 12.0, 4: 15.0, 5: 19.0}
-const LASER_HALF_W := {1: 5.0, 2: 7.0, 3: 9.0, 4: 11.0, 5: 13.0}
+const LASER_HALF_W := {1: 3.5, 2: 6.5, 3: 10.0, 4: 14.0, 5: 19.0}
 
 var ship: CharacterBody2D
 var _drones: Array[Drone] = []
@@ -347,9 +347,27 @@ func _shoot() -> void:
 		_:
 			var blaster_count := clampi(int(ship.weapon_level), 1, 5)
 			var blaster_spread := 10.0 + 2.0 * float(blaster_count)
+			# Visual scaling: more bullets plus bigger/brighter per level (Lv1 dim thin → Lv5 white-hot)
+			var blaster_scale := 0.78 + 0.11 * float(blaster_count)
+			var blaster_life := 1.35 + 0.12 * float(blaster_count)
+			var blaster_color := Color(
+				clampf(0.50 + 0.10 * float(blaster_count), 0.5, 1.0),
+				clampf(0.84 + 0.032 * float(blaster_count), 0.84, 1.0),
+				1.0
+			)
+			var blaster_opts := {
+				"scale": blaster_scale,
+				"color": blaster_color,
+				"lifetime": blaster_life,
+			}
+			# Lv4+ gains pierce for that power-fantasy punch
+			if blaster_count >= 4:
+				blaster_opts["pierce"] = 1
+			if blaster_count >= 5:
+				blaster_opts["pierce"] = 2
 			for i in blaster_count:
 				var offset: float = (float(i) - float(blaster_count - 1) * 0.5) * blaster_spread
-				ship.projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -ship.bullet_speed), dmg)
+				ship.projectile_pool.spawn_player(origin + Vector2(offset, 0.0), Vector2(0, -ship.bullet_speed), dmg, blaster_opts)
 			AudioBus.play_shoot()
 
 
@@ -358,22 +376,34 @@ func _shoot_spread(origin: Vector2, dmg: float) -> void:
 	var count: int = 1 + lv * 2
 	var spread: float = 0.32 + 0.08 * float(lv)
 	var shot_dmg: float = dmg * (0.75 + 0.06 * float(lv))
+	# Lv1 thin dim red → Lv5 thick bright orange-white
+	var main_scale := 0.70 + 0.11 * float(lv)
+	var main_color := Color(
+		1.0,
+		clampf(0.26 + 0.06 * float(lv), 0.26, 0.58),
+		clampf(0.22 + 0.05 * float(lv), 0.22, 0.52)
+	)
+	var main_life := 1.45 + 0.08 * float(lv)
 	for i in count:
 		var t := float(i) / float(maxi(count - 1, 1))
 		var dir := Vector2(-spread + 2.0 * spread * t, -1.0).normalized()
 		ship.projectile_pool.spawn_player(origin, dir * (ship.bullet_speed * 0.95), shot_dmg, {
-			"scale": 0.85, "color": Color(1.0, 0.35, 0.32), "lifetime": 1.6})
+			"scale": main_scale, "color": main_color, "lifetime": main_life})
 	if lv >= 3:
+		var side_scale := 1.08 + 0.09 * float(lv)
+		var side_color := Color(1.0, clampf(0.42 + 0.05 * float(lv), 0.42, 0.72), clampf(0.30 + 0.06 * float(lv), 0.30, 0.62))
 		for side in [-1.0, 1.0]:
 			ship.projectile_pool.spawn_player(origin + Vector2(side * 10.0, 0.0), Vector2(side * 90.0, -420.0), shot_dmg * 0.55, {
 				"cancel_bullets": true,
-				"scale": 1.2,
-				"color": Color(1.0, 0.55, 0.4),
-				"lifetime": 1.4})
+				"scale": side_scale,
+				"color": side_color,
+				"lifetime": 1.4 + 0.06 * float(lv)})
 	if lv >= 5:
+		var extra_scale := 0.85 + 0.10 * float(lv)
+		var extra_color := Color(1.0, clampf(0.35 + 0.08 * float(lv), 0.35, 0.75), clampf(0.25 + 0.08 * float(lv), 0.25, 0.68))
 		for side in [-1.0, 1.0]:
 			ship.projectile_pool.spawn_player(origin + Vector2(side * 6.0, 0.0), Vector2(0, -ship.bullet_speed * 0.88), shot_dmg * 0.7, {
-				"scale": 0.95, "color": Color(1.0, 0.45, 0.35), "lifetime": 1.6})
+				"scale": extra_scale, "color": extra_color, "lifetime": 1.6 + 0.04 * float(lv)})
 	AudioBus.play_shoot(720.0)
 
 
@@ -407,7 +437,7 @@ func _tick_laser(delta: float) -> void:
 	if float(ship.get("rapid_time")) > 0.0:
 		dps *= 1.35
 	var melt := 0.45 * float(ship.damage_mult) if level >= 4 else 0.0
-	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, level >= 5)
+	_laser.fire(delta, origin, half_w, dps, level >= 2, melt, level >= 5, level)
 
 
 func _shoot_homing(origin: Vector2) -> void:
@@ -417,30 +447,30 @@ func _shoot_homing(origin: Vector2) -> void:
 			for i in 2:
 				var dir := Vector2((-0.28 if i == 0 else 0.28), -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 620.0, 1.35 * ship.damage_mult, {
-					"homing": 10.0, "scale": 1.25, "color": Color(0.35, 1.0, 0.45), "lifetime": 3.0})
+					"homing": 10.0, "scale": 1.08, "color": Color(0.32, 0.82, 0.42), "lifetime": 2.7})
 		2:
 			for i in 3:
 				var dir := Vector2((float(i) - 1.0) * 0.28, -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 720.0, 1.15 * ship.damage_mult, {
-					"homing": 13.0, "scale": 1.0, "color": Color(0.4, 1.0, 0.5), "lifetime": 2.6})
+					"homing": 13.0, "scale": 1.00, "color": Color(0.36, 0.90, 0.48), "lifetime": 2.6})
 		3:
 			for i in 4:
 				var dir := Vector2((float(i) - 1.5) * 0.28, -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 850.0, 0.95 * ship.damage_mult, {
-					"homing": 16.0, "scale": 0.8, "color": Color(0.45, 1.0, 0.55), "lifetime": 2.4})
+					"homing": 16.0, "scale": 0.95, "color": Color(0.42, 0.96, 0.55), "lifetime": 2.4})
 		4:
 			for i in 5:
 				var dir := Vector2((float(i) - 2.0) * 0.24, -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 850.0, 1.0 * ship.damage_mult, {
-					"homing": 18.0, "scale": 0.9, "color": Color(0.4, 1.0, 0.52), "lifetime": 2.5})
+					"homing": 18.0, "scale": 1.08, "color": Color(0.48, 1.0, 0.62), "lifetime": 2.5})
 		_:
 			for i in 6:
 				var dir := Vector2((float(i) - 2.5) * 0.22, -1.0).normalized()
 				ship.projectile_pool.spawn_player(origin, dir * 900.0, 1.05 * ship.damage_mult, {
 					"homing": 20.0,
-					"scale": 0.95,
-					"color": Color(0.3, 1.0, 0.5),
-					"lifetime": 2.6,
-					"splash_radius": 42.0,
-					"splash_damage": 0.7 * ship.damage_mult})
+					"scale": 1.22,
+					"color": Color(0.58, 1.0, 0.68),
+					"lifetime": 2.7,
+					"splash_radius": 48.0,
+					"splash_damage": 0.85 * ship.damage_mult})
 	AudioBus.play_shoot(600.0)
