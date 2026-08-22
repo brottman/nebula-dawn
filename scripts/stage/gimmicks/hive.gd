@@ -41,11 +41,14 @@ func _clear_barriers() -> void:
 
 func _spawn_barrier_pair() -> void:
 	var scene: PackedScene = load("res://scenes/stage/barrier.tscn")
+	var connector_scene: PackedScene = load("res://scenes/stage/barrier_connector.tscn")
 	if scene == null or entities == null:
 		return
 	var vp := vp_size()
 	var gap_x := rng.randf_range(vp.x * 0.25, vp.x * 0.75)
 	var gap_w := 120.0
+	var left_barrier: Node = null
+	var right_barrier: Node = null
 	for side in [-1, 1]:
 		var b: Node = scene.instantiate()
 		entities.add_child(b)
@@ -54,6 +57,19 @@ func _spawn_barrier_pair() -> void:
 			var x0 := 0.0 if side < 0 else gap_x + gap_w * 0.5
 			var x1 := gap_x - gap_w * 0.5 if side < 0 else vp.x
 			b.setup(Vector2(x0, -20.0), Vector2(x1, -20.0), scroll_speed())
+		if side < 0:
+			left_barrier = b
+		else:
+			right_barrier = b
+	# Electrical bridge in the gap — shoot to sever the fence
+	if connector_scene != null and left_barrier != null and right_barrier != null:
+		var conn: Node = connector_scene.instantiate()
+		entities.add_child(conn)
+		_barriers.append(conn)
+		if conn.has_method("setup"):
+			var gap_from := Vector2(gap_x - gap_w * 0.5 + 4.0, -20.0)
+			var gap_to := Vector2(gap_x + gap_w * 0.5 - 4.0, -20.0)
+			conn.setup(gap_from, gap_to, scroll_speed(), left_barrier, right_barrier)
 
 
 func _spawn_terminal() -> void:

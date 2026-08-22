@@ -23,7 +23,7 @@ func setup(from: Vector2, to: Vector2, scroll: float) -> void:
 	var mid := (from + to) * 0.5
 	global_position = mid
 	var width := absf(to.x - from.x)
-	var height := 14.0
+	var height := 18.0
 	if _poly:
 		_poly.polygon = PackedVector2Array([
 			Vector2(-width * 0.5, -height * 0.5),

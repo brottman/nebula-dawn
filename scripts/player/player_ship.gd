@@ -254,20 +254,53 @@ func add_overdrive(amount: float) -> void:
 
 func _handle_movement(delta: float) -> void:
 	var vp := get_viewport_rect().size
+	var prev_pos := global_position
 	if _touch_active:
 		var follow := TOUCH_FOLLOW * GameState.touch_sensitivity
 		var target := _touch_world + _touch_grab_offset
-		global_position = global_position.lerp(target, 1.0 - exp(-follow * delta))
+		var desired := global_position.lerp(target, 1.0 - exp(-follow * delta))
+		global_position = _clip_movement_by_barriers(prev_pos, desired)
 		velocity = Vector2.ZERO
 	else:
 		var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		velocity = dir * move_speed
 		move_and_slide()
 	if absf(scrap_push) > 0.01:
-		global_position.x += scrap_push * delta
+		var pushed := global_position
+		pushed.x += scrap_push * delta
+		global_position = _clip_movement_by_barriers(global_position, pushed)
 	global_position.x = clampf(global_position.x, PLAYFIELD_MARGIN, vp.x - PLAYFIELD_MARGIN)
 	global_position.y = clampf(global_position.y, PLAYFIELD_MARGIN, vp.y - PLAYFIELD_MARGIN)
 	_resolve_barrier_overlap()
+
+
+func _clip_movement_by_barriers(from: Vector2, to: Vector2) -> Vector2:
+	if not is_inside_tree():
+		return to
+	var half := Vector2(15.0, 16.0)
+	var to_rect := Rect2(to - half, half * 2.0)
+	for b in get_tree().get_nodes_in_group("barriers"):
+		if not b.has_method("get_solid_rect"):
+			continue
+		var r: Rect2 = b.get_solid_rect()
+		if r.size.x <= 0.0:
+			continue
+		if to_rect.intersects(r):
+			var dir := to - from
+			if dir.length_squared() < 0.01:
+				return from
+			# Barriers are horizontal — prefer vertical push
+			if absf(dir.y) > absf(dir.x):
+				if dir.y > 0.0:
+					return Vector2(to.x, r.position.y - half.y - 0.5)
+				else:
+					return Vector2(to.x, r.position.y + r.size.y + half.y + 0.5)
+			else:
+				if dir.x > 0.0:
+					return Vector2(r.position.x - half.x - 0.5, to.y)
+				else:
+					return Vector2(r.position.x + r.size.x + half.x + 0.5, to.y)
+	return to
 
 
 func _resolve_barrier_overlap() -> void:
@@ -418,13 +451,22 @@ func apply_pickup(kind: String) -> void:
 
 func _update_visuals(delta: float) -> void:
 	var vis := _visual()
-	# Banking roll — tilt the hull toward measured lateral movement.
+	# Airplane roll — tilt via skew/squash, not yaw turn. Nose stays forward.
 	var vx := (global_position.x - _last_x) / maxf(delta, 0.0001)
 	_last_x = global_position.x
 	bank_vx = vx
 	var bank_target := clampf(vx / maxf(move_speed, 1.0), -1.0, 1.0) * MAX_BANK
 	_bank = lerpf(_bank, bank_target, 1.0 - exp(-BANK_RATE * delta))
-	vis.rotation = _bank
+	var tilt := _bank
+	# Keep yaw minimal — most of the motion is roll (skew) + squash
+	vis.rotation = tilt * 0.18
+	vis.skew = tilt * 0.92
+	var squash := 1.0 - absf(tilt) * 0.24
+	var stretch := 1.0 + absf(tilt) * 0.07
+	vis.scale.x = lerpf(vis.scale.x, squash, 1.0 - exp(-BANK_RATE * 1.7 * delta))
+	vis.scale.y = lerpf(vis.scale.y, stretch, 1.0 - exp(-BANK_RATE * 1.7 * delta))
+	if _engine:
+		_engine.position.x = lerpf(_engine.position.x, -tilt * 10.0, 1.0 - exp(-BANK_RATE * delta))
 	if invuln_time > 0.0:
 		if GameState.reduce_flashes:
 			vis.modulate.a = 0.5 + 0.4 * sin(Time.get_ticks_msec() * 0.012)
