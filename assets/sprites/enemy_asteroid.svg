@@ -1,69 +1,70 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56">
   <defs>
-    <radialGradient id="c1" cx="0.38" cy="0.30" r="0.78">
-      <stop offset="0" stop-color="#9e9a90"/>
-      <stop offset="0.45" stop-color="#6e6a62"/>
-      <stop offset="0.78" stop-color="#3c3a36"/>
-      <stop offset="1" stop-color="#1a1917"/>
-    </radialGradient>
-    <radialGradient id="c2" cx="0.42" cy="0.35" r="0.72">
+    <radialGradient id="cr1" cx="0.35" cy="0.30" r="0.80">
       <stop offset="0" stop-color="#a8a49a"/>
-      <stop offset="0.55" stop-color="#5d5a53"/>
-      <stop offset="1" stop-color="#201f1d"/>
+      <stop offset="0.45" stop-color="#6b6860"/>
+      <stop offset="0.75" stop-color="#3a3836"/>
+      <stop offset="1" stop-color="#151412"/>
+    </radialGradient>
+    <radialGradient id="cr2" cx="0.40" cy="0.33" r="0.75">
+      <stop offset="0" stop-color="#b0aca3"/>
+      <stop offset="0.50" stop-color="#5e5b54"/>
+      <stop offset="1" stop-color="#1c1b19"/>
     </radialGradient>
   </defs>
-  <!-- ultra-jagged silhouette — no nose, no symmetry, no engine -->
-  <path d="M22 2 L29 3.5 L35 6 L41 9.5 L47 15 L52 21.5 L53 29 L51 36.5 L47 42 L42 48.5 L34 52.5 L26 54 L18 51.5 L11 46.5 L6 41 L3 33 L2 24 L4 16 L8 9 L14 4 Z
-           M22 2 L21 5 L18 7 Z M35 6 L34 10 L37 11 Z M47 15 L45 19 L48 20 Z"
-        fill="#8c867e" stroke="#1a1816" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/>
-  <!-- broken top plates — small scattered facets, not large ship panels -->
-  <path d="M22 2 L29 3.5 L27 8 L23 7 Z" fill="#b8b4a8" stroke="#1a1816" stroke-width="0.6" opacity="0.95"/>
-  <path d="M35 6 L41 9.5 L39 14 L34 10 Z" fill="#a8a49a" stroke="#1a1816" stroke-width="0.5" opacity="0.9"/>
-  <path d="M11 46.5 L18 51.5 L17 46 L12 42 Z" fill="#6e6a62" stroke="#1a1816" stroke-width="0.55"/>
-  <path d="M47 42 L42 48.5 L39 43 L44 38 Z" fill="#5d5a53" stroke="#1a1816" stroke-width="0.55"/>
-  <path d="M3 33 L6 41 L10 37 L6 30 Z" fill="#9a958d" stroke="#1a1816" stroke-width="0.5"/>
-  <path d="M51 36.5 L47 42 L46 38 L50 33 Z" fill="#5a5751" stroke="#1a1816" stroke-width="0.5"/>
-  <!-- micro facets for rocky chaos -->
-  <path d="M27 8 L31 12 L29 16 L24 11 Z" fill="#a8a49a" opacity="0.72"/>
-  <path d="M31 12 L39 14 L37 19 L29 16 Z" fill="#7a7772" opacity="0.65"/>
-  <path d="M14 4 L18 7 L16 12 L10 9 Z" fill="#c2beb3" opacity="0.78"/>
-  <path d="M18 51.5 L26 54 L24 48 L17 46 Z" fill="#4a4743" opacity="0.75"/>
-  <!-- cracks — irregular, branching -->
-  <path d="M24 11 L22 16 L26 21 L23 27 L25 33" fill="none" stroke="#1e1d1a" stroke-width="0.85" stroke-linecap="round" opacity="0.9"/>
-  <path d="M26 21 L30 22 L32 27" fill="none" stroke="#2a2825" stroke-width="0.65" opacity="0.8"/>
-  <path d="M31 12 L33 17 L35 15" fill="none" stroke="#2a2825" stroke-width="0.6" opacity="0.75"/>
-  <path d="M14 42 L16 38 L20 40" fill="none" stroke="#1e1d1a" stroke-width="0.6" opacity="0.8"/>
-  <path d="M42 48.5 L40 43 L44 38 L46 42" fill="none" stroke="#1e1d1a" stroke-width="0.6" opacity="0.82"/>
-  <path d="M6 41 L9 37 L8 30" fill="none" stroke="#2a2825" stroke-width="0.55" opacity="0.78"/>
-  <!-- surface noise pits -->
-  <circle cx="10.5" cy="28" r="0.85" fill="#1e1d1a" opacity="0.68"/>
-  <circle cx="12.8" cy="31" r="0.65" fill="#1e1d1a" opacity="0.6"/>
-  <circle cx="43" cy="33" r="0.75" fill="#1e1d1a" opacity="0.62"/>
-  <circle cx="40" cy="29" r="0.55" fill="#2a2825" opacity="0.58"/>
-  <circle cx="28" cy="11" r="0.7" fill="#3a3833" opacity="0.65"/>
-  <circle cx="33" cy="9" r="0.5" fill="#3a3833" opacity="0.6"/>
-  <!-- CRATER A — huge off-center, very deep -->
-  <ellipse cx="19.5" cy="24.5" rx="7.8" ry="7.0" fill="#1f1e1b" stroke="#0f0e0d" stroke-width="1.0"/>
-  <ellipse cx="19.5" cy="24.5" rx="7.8" ry="7.0" fill="url(#c1)" opacity="0.96"/>
-  <ellipse cx="18.2" cy="23.2" rx="5.0" ry="4.4" fill="#4a4742" stroke="#5c5850" stroke-width="0.45" opacity="0.92"/>
-  <ellipse cx="17.0" cy="22.0" rx="1.6" ry="1.3" fill="#7a7772" opacity="0.52"/>
-  <path d="M12.5 20.8 A7.8 7 0 0 1 16.2 18.0" fill="none" stroke="#d4d0c5" stroke-width="0.85" opacity="0.48"/>
-  <!-- CRATER B — upper, overlapping rim -->
-  <ellipse cx="33.5" cy="16.5" rx="5.0" ry="4.6" fill="#1f1e1b" stroke="#0f0e0d" stroke-width="0.85"/>
-  <ellipse cx="33.5" cy="16.5" rx="5.0" ry="4.6" fill="url(#c2)" opacity="0.95"/>
-  <ellipse cx="32.4" cy="15.4" rx="3.1" ry="2.8" fill="#4e4b46" stroke="#5d5a53" stroke-width="0.4" opacity="0.9"/>
-  <ellipse cx="31.5" cy="14.6" rx="1.05" ry="0.9" fill="#7a7772" opacity="0.5"/>
-  <!-- CRATER C — lower right, double rim -->
-  <ellipse cx="37.5" cy="38.5" rx="6.2" ry="5.6" fill="#1c1b19" stroke="#0f0e0d" stroke-width="0.95"/>
-  <ellipse cx="37.5" cy="38.5" rx="6.2" ry="5.6" fill="url(#c1)" opacity="0.95"/>
-  <ellipse cx="36.2" cy="37.0" rx="3.9" ry="3.4" fill="#4a4742" stroke="#5c5850" stroke-width="0.45" opacity="0.9"/>
-  <ellipse cx="35.1" cy="35.8" rx="1.2" ry="1.0" fill="#7a7772" opacity="0.5"/>
-  <!-- CRATER D — small, on edge, clipped -->
-  <ellipse cx="14.2" cy="39.8" rx="3.6" ry="3.2" fill="#1f1e1b" stroke="#0f0e0d" stroke-width="0.7"/>
-  <ellipse cx="14.2" cy="39.8" rx="3.6" ry="3.2" fill="#3f3d39" opacity="0.92"/>
-  <ellipse cx="13.4" cy="38.7" rx="2.0" ry="1.7" fill="#5a5751" stroke="#5c5850" stroke-width="0.35" opacity="0.88"/>
-  <!-- CRATER E — tiny, near top edge -->
-  <ellipse cx="27.5" cy="8.5" rx="2.4" ry="2.1" fill="#1f1e1b" stroke="#0f0e0d" stroke-width="0.6"/>
-  <ellipse cx="27.5" cy="8.5" rx="2.4" ry="2.1" fill="url(#c2)" opacity="0.9"/>
-  <ellipse cx="27.0" cy="8.0" rx="1.3" ry="1.1" fill="#5a5751" opacity="0.85"/>
+  <!-- EXTREMELY jagged asteroid — no ship nose, no symmetry, no engine -->
+  <path d="M20 4 L24 2.2 L28 3.2 L34 5 L36.5 7.5 L41 8 L43.5 11.5 L48 14 L50.5 17.5 L53 20 L52.5 24.5 L54 28 L53.2 32.5 L52 36 L49.5 40.2 L48 42 L44.5 45.5 L41 49 L37.5 51.5 L33 52.8 L28 54 L23 53.5 L18 51.2 L14 48.5 L9 46 L6.5 42.5 L4 38 L2.5 33 L2 28 L2.2 23 L3 18 L5.5 13.5 L7 10 L10.5 6.5 L13 5 L16 3.2 Z
+           M20 4 L21.5 6.5 L19 7.5 Z M34 5 L33.5 8.5 L35.5 9 Z M48 14 L46.5 17.5 L48.5 18.5 Z M53 20 L51 22.5 L52.5 24.5 Z M2 28 L3.5 30 L2.5 33 Z"
+        fill="#7e7a74" stroke="#0f0e0d" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- tiny broken facets — scattered, not large ship panels -->
+  <path d="M20 4 L24 2.2 L23 6 L20 5.5 Z" fill="#a8a49a" stroke="#0f0e0d" stroke-width="0.5" opacity="0.92"/>
+  <path d="M34 5 L36.5 7.5 L35 11 L32 8 Z" fill="#9e9a90" stroke="#0f0e0d" stroke-width="0.45"/>
+  <path d="M48 14 L50.5 17.5 L48.5 20 L45 16 Z" fill="#8a867e" stroke="#0f0e0d" stroke-width="0.45"/>
+  <path d="M9 46 L14 48.5 L13 43 L10 41 Z" fill="#5e5b54" stroke="#0f0e0d" stroke-width="0.5"/>
+  <path d="M44.5 45.5 L41 49 L39 45 L43 42 Z" fill="#4a4743" stroke="#0f0e0d" stroke-width="0.5"/>
+  <path d="M4 38 L6.5 42.5 L9 40 L6 33 Z" fill="#8a867e" stroke="#0f0e0d" stroke-width="0.45"/>
+  <path d="M52 36 L49.5 40.2 L48 37 L50 32 Z" fill="#4e4b46" stroke="#0f0e0d" stroke-width="0.45"/>
+  <!-- micro rock chips -->
+  <path d="M26 7 L29 10 L27 14 L23 9 Z" fill="#9e9a90" opacity="0.68"/>
+  <path d="M29 14 L33 16 L31 20 L26 14 Z" fill="#6b6860" opacity="0.62"/>
+  <path d="M13 5 L16 3.2 L16 7 L12 8 Z" fill="#b0aca3" opacity="0.74"/>
+  <path d="M16 51 L23 53.5 L21 48 L17 46 Z" fill="#3e3c38" opacity="0.72"/>
+  <!-- chaotic cracks -->
+  <path d="M23 9 L21 13 L25 18 L22 24 L24 30" fill="none" stroke="#0f0e0d" stroke-width="0.80" stroke-linecap="round" opacity="0.92"/>
+  <path d="M25 18 L28 19 L31 24" fill="none" stroke="#1e1d1a" stroke-width="0.60" opacity="0.82"/>
+  <path d="M33 11 L35 14 L34 18" fill="none" stroke="#1e1d1a" stroke-width="0.55" opacity="0.78"/>
+  <path d="M13 43 L15 38 L19 40" fill="none" stroke="#0f0e0d" stroke-width="0.58" opacity="0.82"/>
+  <path d="M43 46 L40 42 L43 38 L45 41" fill="none" stroke="#0f0e0d" stroke-width="0.58" opacity="0.84"/>
+  <path d="M6.5 42.5 L9 38 L7 32" fill="none" stroke="#1e1d1a" stroke-width="0.52" opacity="0.80"/>
+  <path d="M36.5 7.5 L38 10 L37 13" fill="none" stroke="#1e1d1a" stroke-width="0.50" opacity="0.76"/>
+  <!-- pits -->
+  <circle cx="10.2" cy="27.5" r="0.80" fill="#0f0e0d" opacity="0.66"/>
+  <circle cx="12.5" cy="30.2" r="0.60" fill="#0f0e0d" opacity="0.60"/>
+  <circle cx="42.5" cy="32.5" r="0.70" fill="#0f0e0d" opacity="0.62"/>
+  <circle cx="40.2" cy="28.5" r="0.52" fill="#1e1d1a" opacity="0.58"/>
+  <circle cx="27.5" cy="10.5" r="0.65" fill="#2a2825" opacity="0.64"/>
+  <!-- CRATER 0 — massive central -->
+  <ellipse cx="20.2" cy="24.2" rx="7.4" ry="6.6" fill="#0f0e0d" stroke="#0a0a09" stroke-width="1.0"/>
+  <ellipse cx="20.2" cy="24.2" rx="7.4" ry="6.6" fill="url(#cr1)" opacity="0.97"/>
+  <ellipse cx="18.9" cy="22.9" rx="4.9" ry="4.2" fill="#4a4742" stroke="#5a5751" stroke-width="0.42" opacity="0.92"/>
+  <ellipse cx="17.6" cy="21.6" rx="1.45" ry="1.15" fill="#7a7772" opacity="0.50"/>
+  <path d="M13.4 20.4 A7.4 6.6 0 0 1 16.8 17.8" fill="none" stroke="#d4d0c5" stroke-width="0.80" opacity="0.46"/>
+  <!-- CRATER 1 — upper overlapping -->
+  <ellipse cx="32.8" cy="15.8" rx="4.8" ry="4.4" fill="#0f0e0d" stroke="#0a0a09" stroke-width="0.85"/>
+  <ellipse cx="32.8" cy="15.8" rx="4.8" ry="4.4" fill="url(#cr2)" opacity="0.96"/>
+  <ellipse cx="31.7" cy="14.7" rx="3.0" ry="2.6" fill="#4e4b46" stroke="#5a5751" stroke-width="0.38" opacity="0.91"/>
+  <ellipse cx="30.8" cy="13.9" rx="1.0" ry="0.85" fill="#7a7772" opacity="0.48"/>
+  <!-- CRATER 2 — lower right deep -->
+  <ellipse cx="38.2" cy="38.8" rx="6.0" ry="5.4" fill="#0f0e0d" stroke="#0a0a09" stroke-width="0.92"/>
+  <ellipse cx="38.2" cy="38.8" rx="6.0" ry="5.4" fill="url(#cr1)" opacity="0.96"/>
+  <ellipse cx="36.9" cy="37.3" rx="3.7" ry="3.2" fill="#4a4742" stroke="#5a5751" stroke-width="0.42" opacity="0.91"/>
+  <ellipse cx="35.8" cy="36.1" rx="1.15" ry="0.95" fill="#7a7772" opacity="0.48"/>
+  <!-- CRATER 3 — edge clipped small -->
+  <ellipse cx="14.8" cy="39.5" rx="3.4" ry="3.0" fill="#0f0e0d" stroke="#0a0a09" stroke-width="0.68"/>
+  <ellipse cx="14.8" cy="39.5" rx="3.4" ry="3.0" fill="#3f3d39" opacity="0.93"/>
+  <ellipse cx="14.0" cy="38.4" rx="1.9" ry="1.6" fill="#5a5751" stroke="#5a5751" stroke-width="0.32" opacity="0.89"/>
+  <!-- CRATER 4 — tiny top -->
+  <ellipse cx="26.8" cy="8.2" rx="2.2" ry="1.9" fill="#0f0e0d" stroke="#0a0a09" stroke-width="0.58"/>
+  <ellipse cx="26.8" cy="8.2" rx="2.2" ry="1.9" fill="url(#cr2)" opacity="0.91"/>
+  <ellipse cx="26.3" cy="7.7" rx="1.2" ry="1.0" fill="#5a5751" opacity="0.86"/>
 </svg>
