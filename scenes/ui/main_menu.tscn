@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://mainmenu001"]
+[gd_scene load_steps=5 format=3 uid="uid://mainmenu001"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/menu_bg.gd" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/enemy_asteroid.svg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemy_scout.svg" id="4"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -42,22 +43,40 @@ theme_override_font_sizes/font_size = 14
 text = "Strike through the dying light"
 horizontal_alignment = 1
 
-[node name="AsteroidPreviewBox" type="HBoxContainer" parent="Center/VBox"]
+[node name="PreviewBox" type="HBoxContainer" parent="Center/VBox"]
 layout_mode = 2
 alignment = 1
+theme_override_constants/separation = 18
 
-[node name="AsteroidPreview" type="TextureRect" parent="Center/VBox/AsteroidPreviewBox"]
-custom_minimum_size = Vector2(48, 48)
+[node name="AsteroidPreview" type="TextureRect" parent="Center/VBox/PreviewBox"]
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 texture = ExtResource("3")
 
-[node name="AsteroidLabel" type="Label" parent="Center/VBox/AsteroidPreviewBox"]
+[node name="AsteroidLabel" type="Label" parent="Center/VBox/PreviewBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.78, 0.68, 1)
 theme_override_font_sizes/font_size = 10
-text = "◀ THIS IS A ROCK — 1-2 ASTEROID"
+text = "ROCK"
+
+[node name="Spacer2" type="Control" parent="Center/VBox/PreviewBox"]
+custom_minimum_size = Vector2(12, 0)
+layout_mode = 2
+
+[node name="ShipPreview" type="TextureRect" parent="Center/VBox/PreviewBox"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+texture = ExtResource("4")
+
+[node name="ShipLabel" type="Label" parent="Center/VBox/PreviewBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.45, 0.45, 1)
+theme_override_font_sizes/font_size = 10
+text = "SHIP ▶"
 
 [node name="Spacer" type="Control" parent="Center/VBox"]
 custom_minimum_size = Vector2(0, 24)
@@ -123,5 +142,5 @@ grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 0.85, 0.45, 1)
 theme_override_font_sizes/font_size = 11
-text = "v0.14.9"
+text = "v0.14.10"
 horizontal_alignment = 1

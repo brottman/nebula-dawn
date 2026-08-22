@@ -2,7 +2,7 @@ extends Control
 ## Title screen.
 
 const Ships := preload("res://scripts/hangar/ship_catalog.gd")
-const APP_VERSION := "v0.14.9"
+const APP_VERSION := "v0.14.10"
 
 @onready var campaign_btn: Button = $Center/VBox/CampaignButton
 @onready var hangar_btn: Button = $Center/VBox/HangarButton

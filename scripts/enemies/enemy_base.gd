@@ -501,7 +501,7 @@ func _move(delta: float) -> void:
 			_armor_angle += delta * 1.4
 			BossPatterns.move(self, delta)
 	if pattern == Pattern.DRIFT and stats and stats.is_hazard:
-		rotation += delta * 0.8
+		rotation += delta * 2.8
 		_prev_pos = global_position
 	elif pattern == Pattern.BOSS:
 		var boss_vel := (global_position - _prev_pos) / maxf(delta, 0.001)
