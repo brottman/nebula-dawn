@@ -225,9 +225,10 @@ func _apply_visuals() -> void:
 				])
 			"asteroid":
 				_poly.polygon = PackedVector2Array([
-					Vector2(-half.x * 0.6, -half.y), Vector2(half.x, -half.y * 0.4),
-					Vector2(half.x * 0.7, half.y), Vector2(-half.x, half.y * 0.5),
-					Vector2(-half.x * 0.9, -half.y * 0.2)
+					Vector2(-half.x * 0.55, -half.y * 0.95), Vector2(half.x * 0.25, -half.y),
+					Vector2(half.x * 0.85, -half.y * 0.45), Vector2(half.x * 0.95, half.y * 0.15),
+					Vector2(half.x * 0.45, half.y * 0.95), Vector2(-half.x * 0.25, half.y * 0.85),
+					Vector2(-half.x * 0.95, half.y * 0.25), Vector2(-half.x * 0.75, -half.y * 0.35),
 				])
 			"dasher":
 				_poly.polygon = PackedVector2Array([
