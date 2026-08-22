@@ -19,7 +19,7 @@ func _init() -> void:
 	cruiser.projectile_speed = 185.0
 	cruiser.fire_pattern = &"arc"
 	cruiser.flight_pattern = &"loop"
-	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.82, 0.80, 0.77), Vector2(56, 56))
+	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.62, 0.52, 0.42), Vector2(64, 64))
 	asteroid.is_hazard = true
 	asteroid.contact_damage = 1
 	var bio := _enemy_scaled(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.9, Color(0.55, 1.0, 0.75), Vector2(48, 48))

@@ -27,8 +27,8 @@ display_name = "Asteroid"
 max_hp = 3.0
 move_speed = 70.0
 score_value = 60
-color = Color(0.82, 0.8, 0.77, 1)
-size = Vector2(56, 56)
+color = Color(0.62, 0.52, 0.42, 1)
+size = Vector2(64, 64)
 is_hazard = true
 
 [sub_resource type="Resource" id="Resource_doyjq"]

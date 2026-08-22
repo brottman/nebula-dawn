@@ -892,7 +892,7 @@ func _split_asteroid() -> void:
 	if parent == null:
 		return
 	var child_tier := asteroid_tier - 1
-	var scale := 0.55 if child_tier == 1 else 0.5
+	var scale := 0.68 if child_tier == 1 else 0.60
 	for i in 2:
 		var child_stats := stats.duplicate() as EnemyStats
 		child_stats.max_hp = maxf(1.0, stats.max_hp * 0.45)
