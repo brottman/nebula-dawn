@@ -1,6 +1,6 @@
 extends Area2D
-## Electrical bridge spanning a barrier gap — shoot to disable the fence.
-## Linked to the two Barrier nodes that form the gap.
+## Electrical bridge spanning a barrier gap — shoot the gap to break the connection.
+## Barrier segments themselves remain solid; only this bridge is destroyable.
 
 var hp: float = 6.0
 var scroll_speed: float = 50.0
@@ -10,6 +10,7 @@ var _barriers: Array[Node] = []
 @onready var _poly: Polygon2D = $Polygon2D
 @onready var _glow: Polygon2D = $Glow
 @onready var _collision: CollisionShape2D = $CollisionShape2D
+@onready var _solid: CollisionShape2D = $Solid/CollisionShape2D
 
 
 func _ready() -> void:
@@ -46,6 +47,8 @@ func setup(from: Vector2, to: Vector2, scroll: float, left_barrier: Node, right_
 		_glow.color = Color(0.45, 0.75, 1.0, 0.28)
 	if _collision and _collision.shape is RectangleShape2D:
 		(_collision.shape as RectangleShape2D).size = Vector2(maxf(width, 12.0), height)
+	if _solid and _solid.shape is RectangleShape2D:
+		(_solid.shape as RectangleShape2D).size = Vector2(maxf(width, 12.0), height)
 
 
 func _physics_process(delta: float) -> void:
@@ -89,22 +92,12 @@ func _die() -> void:
 	EventBus.screen_shake.emit(3.0, 0.12)
 	if get_parent():
 		CombatFX.spawn_burst(get_parent(), global_position, Color(0.55, 0.85, 1.0), 8, 22.0)
-	# Permanently disable the linked barriers
-	for b in _barriers:
-		if is_instance_valid(b) and b.has_method("disable_temporarily"):
-			b.disable_temporarily(12.0)
-		elif is_instance_valid(b) and b.has_method("queue_free"):
-			b.queue_free()
-	# Also clear enemy bullets nearby like terminal
-	if get_tree():
-		for proj in get_tree().get_nodes_in_group("enemy_projectiles"):
-			if proj and is_instance_valid(proj) and proj is Node2D:
-				if (proj as Node2D).global_position.distance_to(global_position) < 120.0:
-					if proj.has_method("deactivate"):
-						proj.deactivate()
+	# Barriers remain permanently solid — only the bridge is removed, opening the gap
 	monitoring = false
 	monitorable = false
 	visible = false
+	if _solid:
+		_solid.set_deferred("disabled", true)
 	# Keep node for a moment then free so scroll doesn't need to handle
 	await get_tree().create_timer(0.1).timeout
 	queue_free()

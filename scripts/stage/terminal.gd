@@ -53,9 +53,6 @@ func _die() -> void:
 	EventBus.screen_shake.emit(4.0, 0.1)
 	if projectile_pool:
 		projectile_pool.clear_enemy_in_radius(global_position, 160.0)
-	for b in get_tree().get_nodes_in_group("barriers"):
-		if b.has_method("disable_temporarily") and global_position.distance_to(b.global_position) < 280.0:
-			b.disable_temporarily(4.0)
 	queue_free()
 
 
