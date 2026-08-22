@@ -66,13 +66,13 @@ const SPRITE_PATHS := {
 	"asteroid": "res://assets/sprites/enemy_asteroid.svg",
 	"boss": "res://assets/sprites/enemy_boss.svg",
 	"mid_boss": "res://assets/sprites/enemy_mid_boss.svg",
-	"dasher": "res://assets/sprites/enemy_strafer.svg",
-	"weaver": "res://assets/sprites/enemy_scout.svg",
-	"heavy": "res://assets/sprites/enemy_drone.svg",
-	"bomber": "res://assets/sprites/enemy_drone.svg",
-	"support": "res://assets/sprites/enemy_strafer.svg",
-	"sniper": "res://assets/sprites/enemy_scout.svg",
-	"swarmer": "res://assets/sprites/enemy_scout.svg",
+	"dasher": "res://assets/sprites/enemy_dasher.svg",
+	"weaver": "res://assets/sprites/enemy_weaver.svg",
+	"heavy": "res://assets/sprites/enemy_heavy.svg",
+	"bomber": "res://assets/sprites/enemy_bomber.svg",
+	"support": "res://assets/sprites/enemy_support.svg",
+	"sniper": "res://assets/sprites/enemy_sniper.svg",
+	"swarmer": "res://assets/sprites/enemy_weaver.svg",
 }
 const BOSS_SPRITE_PATHS := {
 	"kaleidoscope": "res://assets/sprites/enemy_boss_kaleidoscope.svg",
@@ -96,7 +96,7 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 
-func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: String = "") -> void:
+func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: String = "", flight_override: StringName = &"") -> void:
 	stats = s
 	projectile_pool = pool
 	scroll_speed = world_scroll
@@ -123,7 +123,7 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 		collision_layer = 32
 		collision_mask = 1 | 2 | 8
 	else:
-		var fp := String(s.flight_pattern) if s.flight_pattern != &"" else _default_flight_pattern()
+		var fp := String(flight_override) if flight_override != &"" else (String(s.flight_pattern) if s.flight_pattern != &"" else _default_flight_pattern())
 		match fp:
 			"spiral": pattern = Pattern.SPIRAL
 			"weave": pattern = Pattern.WEAVE
@@ -681,6 +681,12 @@ func _fodder_fire() -> void:
 					BossPatterns.spread_fan(self, muzzle, spd * 0.92, dmg, 3, 0.42, {"scale": 0.92})
 			)
 			_fire_timer = stats.fire_interval * 1.55
+		"split":
+			# New: forward + perpendicular split — distinct from scatter/burst
+			BossPatterns.spawn_shot(self, muzzle, Vector2(0, 1) * spd, dmg, {"scale": 0.95})
+			BossPatterns.spawn_shot(self, muzzle, Vector2(0.85, 0.55).normalized() * spd * 0.92, dmg, {"scale": 0.85})
+			BossPatterns.spawn_shot(self, muzzle, Vector2(-0.85, 0.55).normalized() * spd * 0.92, dmg, {"scale": 0.85})
+			_fire_timer = stats.fire_interval * 1.1
 		_:
 			BossPatterns.spawn_shot(self, muzzle, Vector2(0, spd), dmg)
 
@@ -736,7 +742,10 @@ func _default_fodder_pattern() -> String:
 		"dasher":
 			return "shotgun" if randf() < 0.6 else "spread"
 		"weaver":
-			return "scatter" if randf() < 0.5 else "weave"
+			var weaver_r := randf()
+			if weaver_r < 0.4:
+				return "split"
+			return "scatter" if weaver_r < 0.7 else "weave"
 		"heavy":
 			return "shotgun" if randf() < 0.5 else "volley"
 		"bomber":
@@ -746,7 +755,10 @@ func _default_fodder_pattern() -> String:
 		"sniper":
 			return "snipe"
 		"swarmer":
-			return "spread" if randf() < 0.5 else "scatter"
+			var swarm_r := randf()
+			if swarm_r < 0.35:
+				return "split"
+			return "spread" if swarm_r < 0.65 else "scatter"
 		_:
 			var scout_picks := ["straight", "burst", "scatter", "side"]
 			return scout_picks[randi() % scout_picks.size()]

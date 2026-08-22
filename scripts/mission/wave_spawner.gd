@@ -114,7 +114,7 @@ func _run_wave(wave: WaveDef) -> void:
 		await get_tree().create_timer(entry.delay).timeout
 		var offs := entry.offsets()
 		for off in offs:
-			_spawn_enemy(entry.enemy, entry.position + off, true, entry.formation_id)
+			_spawn_enemy(entry.enemy, entry.position + off, true, entry.formation_id, entry.flight_pattern)
 	_spawning = false
 	if wave.clear_required:
 		_waiting_clear = true
@@ -126,7 +126,7 @@ func _run_wave(wave: WaveDef) -> void:
 		_next_wave()
 
 
-func _spawn_enemy(stats: EnemyStats, pos: Vector2, count_for_wave: bool = false, formation_id: String = "") -> void:
+func _spawn_enemy(stats: EnemyStats, pos: Vector2, count_for_wave: bool = false, formation_id: String = "", flight_override: StringName = &"") -> void:
 	var path := stats.scene_path if stats.scene_path != "" else "res://scenes/entities/enemy_base.tscn"
 	var scene: PackedScene = load(path)
 	if scene == null:
@@ -135,7 +135,7 @@ func _spawn_enemy(stats: EnemyStats, pos: Vector2, count_for_wave: bool = false,
 	enemy_container.add_child(enemy)
 	enemy.global_position = pos
 	if enemy.has_method("setup"):
-		enemy.setup(stats, projectile_pool, scroll_speed, formation_id)
+		enemy.setup(stats, projectile_pool, scroll_speed, formation_id, flight_override)
 	if enemy.has_method("_side_spawn_setup"):
 		enemy._side_spawn_setup()
 	_active_enemies += 1

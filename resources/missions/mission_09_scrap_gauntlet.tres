@@ -29,7 +29,7 @@ move_speed = 108.5
 score_value = 220
 fire_interval = 2.7
 fire_pattern = &"arc"
-flight_pattern = &"sweep"
+flight_pattern = &"drift"
 color = Color(0.9, 0.55, 0.3, 1)
 size = Vector2(50, 48)
 
@@ -37,11 +37,10 @@ size = Vector2(50, 48)
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_we6f7")
 position = Vector2(240, -50)
-count = 5
+count = 6
 spacing = Vector2(56, 0)
-formation_id = "s2_v1"
-pattern = &"v"
-pattern_spread = 54.0
+formation_id = "scrap_b1"
+pattern = &"box"
 
 [sub_resource type="Resource" id="Resource_kllg2"]
 script = ExtResource("1_x3nam")
@@ -53,29 +52,19 @@ score_value = 280
 fire_interval = 2.8
 projectile_speed = 185.0
 fire_pattern = &"arc"
-flight_pattern = &"loop"
+flight_pattern = &"orbit"
 color = Color(0.85, 0.45, 0.3, 1)
 size = Vector2(58, 42)
 
 [sub_resource type="Resource" id="Resource_ma2bc"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
-delay = 1.3
+delay = 1.2
 position = Vector2(240, -55)
-count = 4
+count = 3
 spacing = Vector2(56, 0)
-pattern_spread = 70.0
-
-[sub_resource type="Resource" id="Resource_7xh2b"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.3
-position = Vector2(240, -50)
-count = 5
-spacing = Vector2(56, 0)
-formation_id = "s2_a1"
-pattern = &"arc"
-pattern_spread = 50.0
+formation_id = "scrap_l1"
+pattern_spread = 68.0
 
 [sub_resource type="Resource" id="Resource_66vmb"]
 script = ExtResource("1_x3nam")
@@ -91,37 +80,54 @@ flight_pattern = &"loop"
 color = Color(0.7, 0.4, 1, 1)
 size = Vector2(50, 50)
 
+[sub_resource type="Resource" id="Resource_7xh2b"]
+script = ExtResource("4_xotwt")
+enemy = SubResource("Resource_66vmb")
+delay = 1.1
+position = Vector2(140, -50)
+count = 3
+spacing = Vector2(56, 0)
+formation_id = "scrap_p1"
+pattern = &"pincer"
+pattern_spread = 48.0
+
 [sub_resource type="Resource" id="Resource_uml7o"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_66vmb")
-delay = 1.2
-position = Vector2(140, -55)
+delay = 0.3
+position = Vector2(340, -50)
+count = 3
 spacing = Vector2(56, 0)
-pattern_spread = 56.0
+formation_id = "scrap_p2"
+pattern = &"pincer"
+pattern_spread = 48.0
 
 [sub_resource type="Resource" id="Resource_nub2c"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_66vmb")
-delay = 0.3
-position = Vector2(340, -55)
-spacing = Vector2(56, 0)
-pattern_spread = 56.0
-
-[sub_resource type="Resource" id="Resource_287uw"]
 script = ExtResource("3_pxta5")
 label = "Act 1 — Opener"
 start_delay = 1.0
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_r1rrs"), SubResource("Resource_ma2bc"), SubResource("Resource_7xh2b"), SubResource("Resource_uml7o"), SubResource("Resource_nub2c")])
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_r1rrs"), SubResource("Resource_ma2bc"), SubResource("Resource_7xh2b"), SubResource("Resource_uml7o")])
 max_clear_time = 14.0
+
+[sub_resource type="Resource" id="Resource_287uw"]
+script = ExtResource("4_xotwt")
+enemy = SubResource("Resource_we6f7")
+position = Vector2(240, -55)
+count = 6
+spacing = Vector2(56, 0)
+formation_id = "scrap_blk1"
+pattern = &"block"
 
 [sub_resource type="Resource" id="Resource_2s4up"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
+delay = 1.1
 position = Vector2(100, -50)
 count = 3
 spacing = Vector2(56, 0)
+formation_id = "scrap_c1"
 pattern = &"column"
-pattern_spread = 40.0
+pattern_spread = 38.0
 
 [sub_resource type="Resource" id="Resource_i8cit"]
 script = ExtResource("4_xotwt")
@@ -130,66 +136,70 @@ delay = 0.3
 position = Vector2(380, -50)
 count = 3
 spacing = Vector2(56, 0)
+formation_id = "scrap_c2"
 pattern = &"column"
-pattern_spread = 40.0
+pattern_spread = 38.0
 
 [sub_resource type="Resource" id="Resource_fvg7r"]
 script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.2
+enemy = SubResource("Resource_66vmb")
+delay = 1.1
 position = Vector2(240, -55)
-count = 6
+count = 5
 spacing = Vector2(56, 0)
-formation_id = "s2_d1"
-pattern = &"diamond"
-pattern_spread = 48.0
+formation_id = "scrap_x1"
+pattern = &"cross"
+pattern_spread = 46.0
 
 [sub_resource type="Resource" id="Resource_ja6fl"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_we6f7")
-delay = 1.2
-position = Vector2(240, -55)
-count = 7
+delay = 1.1
+position = Vector2(240, -50)
+count = 4
 spacing = Vector2(56, 0)
-formation_id = "s2_c1"
-pattern = &"circle"
-pattern_spread = 56.0
+formation_id = "scrap_b2"
+pattern = &"box"
+pattern_spread = 54.0
 
 [sub_resource type="Resource" id="Resource_gvsjm"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_66vmb")
-delay = 1.2
-position = Vector2(240, -50)
-count = 3
-spacing = Vector2(56, 0)
-pattern = &"wave"
-pattern_spread = 64.0
-
-[sub_resource type="Resource" id="Resource_2lfkn"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.2
-position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
-formation_id = "s2_i1"
-pattern = &"inv_v"
-
-[sub_resource type="Resource" id="Resource_gbsre"]
 script = ExtResource("3_pxta5")
 label = "Act 1 — Sweep"
 start_delay = 1.4
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_2s4up"), SubResource("Resource_i8cit"), SubResource("Resource_fvg7r"), SubResource("Resource_ja6fl"), SubResource("Resource_gvsjm"), SubResource("Resource_2lfkn")])
-max_clear_time = 14.0
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_287uw"), SubResource("Resource_2s4up"), SubResource("Resource_i8cit"), SubResource("Resource_fvg7r"), SubResource("Resource_ja6fl")])
+max_clear_time = 15.0
+
+[sub_resource type="Resource" id="Resource_2lfkn"]
+script = ExtResource("4_xotwt")
+enemy = SubResource("Resource_kllg2")
+position = Vector2(240, -55)
+count = 4
+spacing = Vector2(56, 0)
+formation_id = "scrap_b3"
+pattern = &"box"
+pattern_spread = 58.0
+
+[sub_resource type="Resource" id="Resource_gbsre"]
+script = ExtResource("4_xotwt")
+enemy = SubResource("Resource_we6f7")
+delay = 1.0
+position = Vector2(240, -55)
+count = 7
+spacing = Vector2(56, 0)
+formation_id = "scrap_blk2"
+pattern = &"block"
+pattern_spread = 48.0
 
 [sub_resource type="Resource" id="Resource_fn7o1"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_66vmb")
+delay = 0.9
 position = Vector2(90, -50)
 count = 3
 spacing = Vector2(56, 0)
+formation_id = "scrap_c3"
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 36.0
 
 [sub_resource type="Resource" id="Resource_oagqv"]
 script = ExtResource("4_xotwt")
@@ -198,136 +208,79 @@ delay = 0.3
 position = Vector2(390, -50)
 count = 3
 spacing = Vector2(56, 0)
+formation_id = "scrap_c4"
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 36.0
 
 [sub_resource type="Resource" id="Resource_ln84c"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
 delay = 1.1
 position = Vector2(240, -55)
-count = 4
+count = 3
 spacing = Vector2(56, 0)
-pattern_spread = 68.0
-
-[sub_resource type="Resource" id="Resource_thlin"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.1
-position = Vector2(240, -50)
-count = 6
-spacing = Vector2(56, 0)
-formation_id = "s2_x1"
+formation_id = "scrap_x2"
 pattern = &"cross"
 pattern_spread = 46.0
+
+[sub_resource type="Resource" id="Resource_thlin"]
+script = ExtResource("3_pxta5")
+label = "Act 2 — Escalation"
+start_delay = 1.5
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_2lfkn"), SubResource("Resource_gbsre"), SubResource("Resource_fn7o1"), SubResource("Resource_oagqv"), SubResource("Resource_ln84c")])
+max_clear_time = 16.0
 
 [sub_resource type="Resource" id="Resource_33r7i"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_we6f7")
-delay = 1.1
 position = Vector2(240, -55)
-count = 7
+count = 8
 spacing = Vector2(56, 0)
-formation_id = "s2_sp1"
-pattern = &"spiral"
-pattern_spread = 56.0
+formation_id = "scrap_blk3"
+pattern = &"block"
+pattern_spread = 50.0
 
 [sub_resource type="Resource" id="Resource_iboj2"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
-delay = 1.1
-position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
-pattern = &"arc"
-pattern_spread = 58.0
-
-[sub_resource type="Resource" id="Resource_2laat"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_66vmb")
 delay = 1.0
-position = Vector2(240, -50)
-count = 3
-spacing = Vector2(56, 0)
-pattern = &"v"
-pattern_spread = 70.0
-
-[sub_resource type="Resource" id="Resource_fyv1w"]
-script = ExtResource("3_pxta5")
-label = "Act 2 — Escalation"
-start_delay = 1.5
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_fn7o1"), SubResource("Resource_oagqv"), SubResource("Resource_ln84c"), SubResource("Resource_thlin"), SubResource("Resource_33r7i"), SubResource("Resource_iboj2"), SubResource("Resource_2laat")])
-max_clear_time = 16.0
-
-[sub_resource type="Resource" id="Resource_mx577"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_kllg2")
-position = Vector2(240, -50)
+position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-pattern = &"wave"
-pattern_spread = 62.0
-
-[sub_resource type="Resource" id="Resource_wn3kv"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.1
-position = Vector2(240, -55)
-count = 7
-spacing = Vector2(56, 0)
-formation_id = "s2_v2"
-pattern = &"v"
+formation_id = "scrap_pin"
+pattern = &"pincer"
 pattern_spread = 48.0
 
-[sub_resource type="Resource" id="Resource_gk7tq"]
+[sub_resource type="Resource" id="Resource_2laat"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_66vmb")
 delay = 1.0
 position = Vector2(110, -50)
 count = 3
 spacing = Vector2(56, 0)
+formation_id = "scrap_c5"
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 36.0
 
-[sub_resource type="Resource" id="Resource_216jb"]
+[sub_resource type="Resource" id="Resource_fyv1w"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_66vmb")
 delay = 0.2
 position = Vector2(370, -50)
 count = 3
 spacing = Vector2(56, 0)
+formation_id = "scrap_c6"
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 36.0
 
-[sub_resource type="Resource" id="Resource_s3qsn"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_kllg2")
-delay = 1.1
-position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
-pattern = &"box"
-pattern_spread = 58.0
-
-[sub_resource type="Resource" id="Resource_dnjco"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.2
-position = Vector2(240, -50)
-count = 6
-spacing = Vector2(56, 0)
-formation_id = "s2_a2"
-pattern = &"arc"
-pattern_spread = 50.0
-
-[sub_resource type="Resource" id="Resource_mmumy"]
+[sub_resource type="Resource" id="Resource_mx577"]
 script = ExtResource("3_pxta5")
 label = "Act 2 — Pressure"
 start_delay = 1.5
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_mx577"), SubResource("Resource_wn3kv"), SubResource("Resource_gk7tq"), SubResource("Resource_216jb"), SubResource("Resource_s3qsn"), SubResource("Resource_dnjco")])
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_33r7i"), SubResource("Resource_iboj2"), SubResource("Resource_2laat"), SubResource("Resource_fyv1w")])
 max_clear_time = 16.0
 
-[sub_resource type="Resource" id="Resource_5ml47"]
+[sub_resource type="Resource" id="Resource_wn3kv"]
 script = ExtResource("1_x3nam")
 enemy_id = &"boss"
 display_name = "Belt Tyrant"
@@ -342,188 +295,128 @@ is_boss = true
 is_mid_boss = true
 boss_archetype = &"tyrant"
 
-[sub_resource type="Resource" id="Resource_7loto"]
+[sub_resource type="Resource" id="Resource_gk7tq"]
 script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_5ml47")
+enemy = SubResource("Resource_wn3kv")
 position = Vector2(240, -75)
 spacing = Vector2(56, 0)
 pattern_spread = 56.0
 
-[sub_resource type="Resource" id="Resource_52sd7"]
+[sub_resource type="Resource" id="Resource_216jb"]
 script = ExtResource("3_pxta5")
 label = "Act 3 — Mid-Boss"
 start_delay = 2.5
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_7loto")])
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_gk7tq")])
 max_clear_time = 0.0
 
-[sub_resource type="Resource" id="Resource_hqkhq"]
+[sub_resource type="Resource" id="Resource_s3qsn"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_we6f7")
 position = Vector2(240, -55)
 count = 6
 spacing = Vector2(56, 0)
-formation_id = "s2_bv"
-pattern = &"v"
+formation_id = "scrap_bv1"
+pattern = &"box"
 pattern_spread = 50.0
 
-[sub_resource type="Resource" id="Resource_5fb0k"]
+[sub_resource type="Resource" id="Resource_dnjco"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
 delay = 1.0
 position = Vector2(100, -50)
-count = 3
+count = 4
 spacing = Vector2(56, 0)
-pattern = &"column"
-pattern_spread = 40.0
+formation_id = "scrap_bb1"
+pattern = &"block"
+pattern_spread = 48.0
 
-[sub_resource type="Resource" id="Resource_h80h6"]
+[sub_resource type="Resource" id="Resource_mmumy"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
 delay = 0.2
 position = Vector2(380, -50)
-count = 3
-spacing = Vector2(56, 0)
-pattern = &"column"
-pattern_spread = 40.0
-
-[sub_resource type="Resource" id="Resource_ebrcb"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_66vmb")
-delay = 1.2
-position = Vector2(240, -55)
 count = 4
 spacing = Vector2(56, 0)
-pattern_spread = 70.0
-
-[sub_resource type="Resource" id="Resource_bple8"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.2
-position = Vector2(240, -50)
-count = 6
-spacing = Vector2(56, 0)
-formation_id = "s2_bd"
-pattern = &"diamond"
+formation_id = "scrap_bb2"
+pattern = &"block"
 pattern_spread = 48.0
 
-[sub_resource type="Resource" id="Resource_76wh4"]
+[sub_resource type="Resource" id="Resource_5ml47"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_66vmb")
-delay = 1.1
+delay = 1.2
 position = Vector2(240, -55)
-count = 3
+count = 5
 spacing = Vector2(56, 0)
-pattern = &"wave"
-pattern_spread = 66.0
+formation_id = "scrap_x3"
+pattern = &"cross"
+pattern_spread = 46.0
 
-[sub_resource type="Resource" id="Resource_lsmfn"]
+[sub_resource type="Resource" id="Resource_7loto"]
 script = ExtResource("3_pxta5")
 label = "Act 4 — Build"
 start_delay = 2.3
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_hqkhq"), SubResource("Resource_5fb0k"), SubResource("Resource_h80h6"), SubResource("Resource_ebrcb"), SubResource("Resource_bple8"), SubResource("Resource_76wh4")])
-max_clear_time = 16.0
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_s3qsn"), SubResource("Resource_dnjco"), SubResource("Resource_mmumy"), SubResource("Resource_5ml47")])
+max_clear_time = 16.5
 
-[sub_resource type="Resource" id="Resource_d8d41"]
+[sub_resource type="Resource" id="Resource_52sd7"]
 script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_66vmb")
-position = Vector2(90, -50)
-count = 4
+enemy = SubResource("Resource_we6f7")
+position = Vector2(240, -55)
+count = 8
 spacing = Vector2(56, 0)
-pattern = &"column"
-pattern_spread = 36.0
+formation_id = "scrap_fblk"
+pattern = &"block"
 
-[sub_resource type="Resource" id="Resource_5ji7y"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_66vmb")
-position = Vector2(390, -50)
-count = 4
-spacing = Vector2(56, 0)
-pattern = &"column"
-pattern_spread = 36.0
-
-[sub_resource type="Resource" id="Resource_o5trx"]
+[sub_resource type="Resource" id="Resource_hqkhq"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_kllg2")
 delay = 1.0
 position = Vector2(240, -55)
+count = 5
+spacing = Vector2(56, 0)
+formation_id = "scrap_fb"
+pattern = &"box"
+pattern_spread = 58.0
+
+[sub_resource type="Resource" id="Resource_5fb0k"]
+script = ExtResource("4_xotwt")
+enemy = SubResource("Resource_66vmb")
+delay = 1.0
+position = Vector2(100, -50)
 count = 4
 spacing = Vector2(56, 0)
-pattern = &"v"
-pattern_spread = 60.0
-
-[sub_resource type="Resource" id="Resource_5fegq"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 0.9
-position = Vector2(240, -50)
-count = 7
-spacing = Vector2(56, 0)
-formation_id = "s2_fa"
-pattern = &"arc"
+formation_id = "scrap_fp1"
+pattern = &"pincer"
 pattern_spread = 46.0
 
-[sub_resource type="Resource" id="Resource_42dnp"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_we6f7")
-delay = 1.1
-position = Vector2(240, -55)
-count = 10
-spacing = Vector2(56, 0)
-formation_id = "s2_fstar"
-pattern = &"star"
-
-[sub_resource type="Resource" id="Resource_nhd2b"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_kllg2")
-delay = 1.0
-position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
-pattern = &"box"
-pattern_spread = 62.0
-
-[sub_resource type="Resource" id="Resource_005ey"]
+[sub_resource type="Resource" id="Resource_h80h6"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_66vmb")
-delay = 1.1
-position = Vector2(240, -50)
+delay = 0.3
+position = Vector2(380, -50)
 count = 4
 spacing = Vector2(56, 0)
-pattern = &"wave"
-pattern_spread = 64.0
+formation_id = "scrap_fp2"
+pattern = &"pincer"
+pattern_spread = 46.0
 
-[sub_resource type="Resource" id="Resource_ds18u"]
+[sub_resource type="Resource" id="Resource_ebrcb"]
 script = ExtResource("4_xotwt")
 enemy = SubResource("Resource_we6f7")
-delay = 1.0
+delay = 1.1
 position = Vector2(240, -55)
 count = 6
 spacing = Vector2(56, 0)
-formation_id = "s2_fx"
+formation_id = "scrap_fx"
 pattern = &"cross"
 pattern_spread = 48.0
 
-[sub_resource type="Resource" id="Resource_0w8xf"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_kllg2")
-delay = 1.1
-position = Vector2(160, -50)
-spacing = Vector2(56, 0)
-pattern_spread = 56.0
-
-[sub_resource type="Resource" id="Resource_nhuyf"]
-script = ExtResource("4_xotwt")
-enemy = SubResource("Resource_kllg2")
-delay = 0.3
-position = Vector2(320, -50)
-spacing = Vector2(56, 0)
-pattern_spread = 56.0
-
-[sub_resource type="Resource" id="Resource_3ekrq"]
+[sub_resource type="Resource" id="Resource_bple8"]
 script = ExtResource("3_pxta5")
 label = "Act 5 — Climax"
 start_delay = 2.7
-entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_d8d41"), SubResource("Resource_5ji7y"), SubResource("Resource_o5trx"), SubResource("Resource_5fegq"), SubResource("Resource_42dnp"), SubResource("Resource_nhd2b"), SubResource("Resource_005ey"), SubResource("Resource_ds18u"), SubResource("Resource_0w8xf"), SubResource("Resource_nhuyf")])
+entries = Array[ExtResource("4_xotwt")]([SubResource("Resource_52sd7"), SubResource("Resource_hqkhq"), SubResource("Resource_5fb0k"), SubResource("Resource_h80h6"), SubResource("Resource_ebrcb")])
 max_clear_time = 20.0
 
 [resource]
@@ -534,7 +427,7 @@ subtitle = "The belt decides your lane."
 sector = 2
 stage = 4
 scroll_speed = 64.0
-waves = Array[ExtResource("3_pxta5")]([SubResource("Resource_287uw"), SubResource("Resource_gbsre"), SubResource("Resource_fyv1w"), SubResource("Resource_mmumy"), SubResource("Resource_52sd7"), SubResource("Resource_lsmfn"), SubResource("Resource_3ekrq")])
+waves = Array[ExtResource("3_pxta5")]([SubResource("Resource_nub2c"), SubResource("Resource_gvsjm"), SubResource("Resource_thlin"), SubResource("Resource_mx577"), SubResource("Resource_216jb"), SubResource("Resource_7loto"), SubResource("Resource_bple8")])
 win_on_waves_cleared = false
 boss = SubResource("Resource_odywo")
 boss_intro_delay = 2.4

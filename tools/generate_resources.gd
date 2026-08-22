@@ -515,38 +515,48 @@ func _mission_05(scout: EnemyStats, ace: EnemyStats, drone: EnemyStats, mid: Ene
 	return m
 
 
-# Stage 6 — Mirror Field: bouncing plates
+# Stage 6 — Mirror Field: bouncing plates — signature: prism orbit + mirror diamonds
 func _mission_06(scout: EnemyStats, prism: EnemyStats, ace: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_06", "Mirror Field", "Ricochets rewrite the lane map.", 58.0, Color(0.12, 0.28, 0.42), boss, &"mirrors", 1, 2.3, 2, &"mirror")
-	m.waves = _sector2_wave_kit(scout, prism, ace, mid)
+	prism.flight_pattern = &"orbit"
+	ace.flight_pattern = &"s_curve"
+	m.waves = _sector2_mirror_kit(scout, prism, ace, mid)
 	return m
 
 
-# Stage 7 — Ion Storm: lightning columns
+# Stage 7 — Ion Storm: lightning columns — signature: raider jitter + snipe hover
 func _mission_07(scout: EnemyStats, raider: EnemyStats, turret: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_07", "Ion Storm", "Read the strike lanes — or burn.", 60.0, Color(0.1, 0.22, 0.38), boss, &"ion", 2, 2.3, 2, &"storm")
-	m.waves = _sector2_wave_kit(scout, raider, turret, mid)
+	raider.flight_pattern = &"jitter"
+	turret.flight_pattern = &"hover_dart"
+	m.waves = _sector2_ion_kit(scout, raider, turret, mid)
 	return m
 
 
-# Stage 8 — Phantom Wake: echo volleys
+# Stage 8 — Phantom Wake: echo volleys — signature: weaver/phantom figure8 + weave
 func _mission_08(phantom: EnemyStats, stealth: EnemyStats, bio: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_08", "Phantom Wake", "They shoot where you were.", 62.0, Color(0.14, 0.16, 0.4), boss, &"phantoms", 3, 2.4, 2, &"wake")
-	m.waves = _sector2_wave_kit(phantom, stealth, bio, mid)
+	phantom.flight_pattern = &"figure8"
+	bio.flight_pattern = &"weave"
+	m.waves = _sector2_phantom_kit(phantom, stealth, bio, mid)
 	return m
 
 
-# Stage 9 — Scrap Gauntlet: conveyors
+# Stage 9 — Scrap Gauntlet: conveyors — signature: scrap block/box + heavy orbit
 func _mission_09(scrap: EnemyStats, cruiser: EnemyStats, drone: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_09", "Scrap Gauntlet", "The belt decides your lane.", 64.0, Color(0.28, 0.14, 0.1), boss, &"scrap", 4, 2.4, 2, &"scrap")
-	m.waves = _sector2_wave_kit(scrap, cruiser, drone, mid)
+	scrap.flight_pattern = &"drift"
+	cruiser.flight_pattern = &"orbit"
+	m.waves = _sector2_scrap_kit(scrap, cruiser, drone, mid)
 	return m
 
 
-# Stage 10 — Dawn Gate: solar flares
+# Stage 10 — Dawn Gate: solar flares — signature: guard spiral/charge + dawn star
 func _mission_10(guard: EnemyStats, ace: EnemyStats, raider: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_10", "Dawn Gate", "Climb the flare. Break the dawn.", 68.0, Color(0.35, 0.12, 0.08), boss, &"flare", 5, 2.6, 2, &"flare")
-	m.waves = _sector2_wave_kit(guard, ace, raider, mid, true)
+	guard.flight_pattern = &"spiral"
+	ace.flight_pattern = &"charge"
+	m.waves = _sector2_dawn_kit(guard, ace, raider, mid, true)
 	return m
 
 
@@ -606,6 +616,250 @@ func _sector2_wave_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemySt
 			_entry(a, 1.0, Vector2(240, -55), 6, &"cross", 48.0, "s2_fx"),
 			_entry(b, 1.1, Vector2(160, -50)),
 			_entry(b, 0.3, Vector2(320, -50)),
+		], true, climax_clear),
+	]
+
+
+func _sector2_mirror_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemyStats) -> Array[WaveDef]:
+	# Mirror: prism diamonds, reflective arcs, star bursts
+	return [
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(a, 0.0, Vector2(240, -50), 5, &"diamond", 52.0, "mir_d1"),
+			_entry(b, 1.2, Vector2(240, -55), 4, &"arc", 62.0, "mir_a1"),
+			_entry(a, 1.2, Vector2(240, -50), 5, &"circle", 54.0, "mir_c1"),
+			_entry(c, 1.0, Vector2(140, -55), 2, &"line", 40.0),
+			_entry(c, 0.3, Vector2(340, -55), 2, &"line", 40.0),
+		], true, 15.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(b, 0.0, Vector2(120, -55), 3, &"diamond", 44.0, "mir_d2"),
+			_entry(b, 0.3, Vector2(360, -55), 3, &"diamond", 44.0, "mir_d3"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"star", 50.0, "mir_star"),
+			_entry(c, 1.2, Vector2(240, -50), 4, &"arc", 58.0),
+			_entry(a, 1.0, Vector2(240, -55), 5, &"cross", 46.0, "mir_x1"),
+		], true, 15.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(b, 0.0, Vector2(240, -55), 5, &"arc", 60.0, "mir_a2"),
+			_entry(c, 0.9, Vector2(90, -50), 3, &"column", 38.0),
+			_entry(c, 0.3, Vector2(390, -50), 3, &"column", 38.0),
+			_entry(a, 1.1, Vector2(240, -55), 7, &"spiral", 56.0, "mir_sp1"),
+			_entry(b, 1.1, Vector2(240, -50), 4, &"diamond", 50.0, "mir_d4"),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(b, 0.0, Vector2(240, -50), 4, &"box", 58.0, "mir_box"),
+			_entry(a, 1.0, Vector2(240, -55), 7, &"v", 46.0, "mir_v1"),
+			_entry(c, 0.9, Vector2(110, -50), 3, &"column", 36.0),
+			_entry(c, 0.2, Vector2(370, -50), 3, &"column", 36.0),
+			_entry(b, 1.1, Vector2(240, -55), 3, &"wave", 64.0),
+		], true, 16.5),
+		_wave("Act 3 — Mid-Boss", 2.5, [_entry(mid, 0.0, Vector2(240, -75))], true, 0.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"diamond", 48.0, "mir_bd1"),
+			_entry(b, 1.0, Vector2(140, -50), 3, &"arc", 60.0),
+			_entry(b, 0.2, Vector2(340, -50), 3, &"arc", 60.0),
+			_entry(c, 1.2, Vector2(240, -55), 4, &"star", 52.0, "mir_bstar"),
+			_entry(a, 1.2, Vector2(240, -55), 5, &"circle", 56.0, "mir_c2"),
+		], true, 17.0),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(b, 0.0, Vector2(240, -55), 5, &"diamond", 52.0, "mir_f1"),
+			_entry(c, 1.0, Vector2(100, -50), 4, &"arc", 46.0),
+			_entry(c, 0.3, Vector2(380, -50), 4, &"arc", 46.0),
+			_entry(a, 1.1, Vector2(240, -55), 10, &"star", 50.0, "mir_fstar"),
+			_entry(b, 1.0, Vector2(240, -55), 4, &"cross", 48.0, "mir_fx"),
+			_entry(c, 1.1, Vector2(160, -50), 2, &"line", 40.0),
+			_entry(c, 0.3, Vector2(320, -50), 2, &"line", 40.0),
+		], true, 20.0),
+	]
+
+
+func _sector2_ion_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemyStats) -> Array[WaveDef]:
+	# Ion: sniper hover_dart + raider jitter, wall/column lanes
+	return [
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(b, 0.0, Vector2(240, -55), 3, &"wave", 62.0, "ion_w1"),
+			_entry(a, 1.1, Vector2(240, -50), 5, &"v", 54.0, "ion_v1"),
+			_entry(c, 1.2, Vector2(140, -55), 2, &"wall", 52.0),
+			_entry(c, 0.3, Vector2(340, -55), 2, &"wall", 52.0),
+			_entry(b, 1.2, Vector2(240, -55), 4, &"arc", 50.0, "ion_a1"),
+		], true, 14.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(c, 0.0, Vector2(100, -50), 3, &"column", 38.0, "ion_c1"),
+			_entry(c, 0.3, Vector2(380, -50), 3, &"column", 38.0, "ion_c2"),
+			_entry(b, 1.1, Vector2(240, -55), 5, &"diamond", 46.0, "ion_d1"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"line", 58.0),
+			_entry(b, 1.0, Vector2(240, -50), 4, &"wave", 64.0, "ion_w2"),
+		], true, 14.5),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(c, 0.0, Vector2(90, -50), 3, &"wall", 50.0, "ion_w3"),
+			_entry(c, 0.3, Vector2(390, -50), 3, &"wall", 50.0, "ion_w4"),
+			_entry(b, 1.0, Vector2(240, -55), 4, &"diamond", 48.0, "ion_d2"),
+			_entry(a, 1.0, Vector2(240, -55), 6, &"arc", 50.0, "ion_a2"),
+			_entry(b, 1.1, Vector2(240, -50), 5, &"cross", 46.0, "ion_x1"),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(c, 0.0, Vector2(240, -50), 4, &"line", 68.0, "ion_l1"),
+			_entry(b, 0.9, Vector2(240, -55), 5, &"wave", 62.0, "ion_w5"),
+			_entry(a, 1.1, Vector2(240, -55), 7, &"v", 48.0, "ion_v2"),
+			_entry(c, 1.0, Vector2(110, -50), 3, &"column", 36.0),
+			_entry(c, 0.2, Vector2(370, -50), 3, &"column", 36.0),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.5, [_entry(mid, 0.0, Vector2(240, -75))], true, 0.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(b, 0.0, Vector2(240, -55), 6, &"v", 48.0, "ion_bv"),
+			_entry(c, 1.0, Vector2(120, -50), 3, &"column", 36.0),
+			_entry(c, 0.2, Vector2(360, -50), 3, &"column", 36.0),
+			_entry(a, 1.2, Vector2(240, -55), 6, &"arc", 50.0, "ion_ba"),
+			_entry(b, 1.2, Vector2(240, -50), 4, &"wave", 64.0),
+		], true, 16.5),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(c, 0.0, Vector2(100, -50), 4, &"wall", 52.0, "ion_f1"),
+			_entry(c, 0.0, Vector2(380, -50), 4, &"wall", 52.0, "ion_f2"),
+			_entry(b, 1.0, Vector2(240, -55), 5, &"diamond", 48.0, "ion_fd"),
+			_entry(a, 1.0, Vector2(240, -55), 7, &"arc", 46.0, "ion_fa"),
+			_entry(b, 1.1, Vector2(240, -55), 4, &"box", 58.0, "ion_fb"),
+			_entry(c, 1.1, Vector2(160, -50), 2, &"line", 50.0),
+			_entry(c, 0.3, Vector2(320, -50), 2, &"line", 50.0),
+		], true, 20.0),
+	]
+
+
+func _sector2_phantom_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemyStats) -> Array[WaveDef]:
+	# Phantom: figure8/weave ghosts, scattered/wave
+	return [
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(a, 0.0, Vector2(240, -55), 5, &"wave", 54.0, "phan_w1"),
+			_entry(b, 1.2, Vector2(240, -50), 5, &"scattered", 58.0, "phan_s1"),
+			_entry(c, 1.1, Vector2(240, -55), 3, &"arc", 60.0, "phan_a1"),
+			_entry(a, 1.1, Vector2(240, -50), 5, &"cross", 46.0, "phan_x1"),
+		], true, 14.5),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"wave", 62.0, "phan_w2"),
+			_entry(b, 0.9, Vector2(120, -50), 4, &"scattered", 50.0, "phan_s2"),
+			_entry(b, 0.3, Vector2(360, -50), 4, &"scattered", 50.0, "phan_s3"),
+			_entry(c, 1.1, Vector2(240, -55), 4, &"scattered", 56.0, "phan_s4"),
+			_entry(a, 1.1, Vector2(240, -55), 5, &"diamond", 48.0, "phan_d1"),
+		], true, 15.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(a, 0.0, Vector2(240, -55), 7, &"scattered", 52.0, "phan_s5"),
+			_entry(b, 1.0, Vector2(240, -50), 5, &"wave", 54.0, "phan_w3"),
+			_entry(c, 0.9, Vector2(240, -55), 4, &"arc", 58.0, "phan_a2"),
+			_entry(a, 1.0, Vector2(240, -55), 6, &"cross", 46.0, "phan_x2"),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(a, 0.0, Vector2(240, -55), 7, &"wave", 48.0, "phan_w4"),
+			_entry(b, 1.0, Vector2(110, -50), 3, &"scattered", 52.0, "phan_s6"),
+			_entry(b, 0.2, Vector2(370, -50), 3, &"scattered", 52.0, "phan_s7"),
+			_entry(c, 1.1, Vector2(240, -55), 4, &"inv_v", 52.0, "phan_iv"),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.5, [_entry(mid, 0.0, Vector2(240, -75))], true, 0.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"wave", 54.0, "phan_bv"),
+			_entry(b, 1.0, Vector2(100, -50), 4, &"scattered", 48.0, "phan_bs1"),
+			_entry(b, 0.2, Vector2(380, -50), 4, &"scattered", 48.0, "phan_bs2"),
+			_entry(c, 1.2, Vector2(240, -55), 5, &"arc", 60.0, "phan_ba"),
+		], true, 16.5),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(a, 0.0, Vector2(240, -55), 8, &"wave", 58.0, "phan_f1"),
+			_entry(b, 1.0, Vector2(120, -50), 5, &"scattered", 52.0, "phan_fs1"),
+			_entry(b, 0.3, Vector2(360, -50), 5, &"scattered", 52.0, "phan_fs2"),
+			_entry(c, 1.1, Vector2(240, -55), 4, &"diamond", 48.0, "phan_fd"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"cross", 48.0, "phan_fx"),
+		], true, 20.0),
+	]
+
+
+func _sector2_scrap_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemyStats) -> Array[WaveDef]:
+	# Scrap: block/box/cross, heavy drift
+	return [
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(a, 0.0, Vector2(240, -50), 6, &"box", 52.0, "scrap_b1"),
+			_entry(b, 1.2, Vector2(240, -55), 3, &"line", 68.0, "scrap_l1"),
+			_entry(c, 1.1, Vector2(140, -50), 3, &"pincer", 48.0, "scrap_p1"),
+			_entry(c, 0.3, Vector2(340, -50), 3, &"pincer", 48.0, "scrap_p2"),
+		], true, 14.0),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"block", 52.0, "scrap_blk1"),
+			_entry(b, 1.1, Vector2(100, -50), 3, &"column", 38.0, "scrap_c1"),
+			_entry(b, 0.3, Vector2(380, -50), 3, &"column", 38.0, "scrap_c2"),
+			_entry(c, 1.1, Vector2(240, -55), 5, &"cross", 46.0, "scrap_x1"),
+			_entry(a, 1.1, Vector2(240, -50), 4, &"box", 54.0, "scrap_b2"),
+		], true, 15.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(b, 0.0, Vector2(240, -55), 4, &"box", 58.0, "scrap_b3"),
+			_entry(a, 1.0, Vector2(240, -55), 7, &"block", 48.0, "scrap_blk2"),
+			_entry(c, 0.9, Vector2(90, -50), 3, &"column", 36.0, "scrap_c3"),
+			_entry(c, 0.3, Vector2(390, -50), 3, &"column", 36.0, "scrap_c4"),
+			_entry(b, 1.1, Vector2(240, -55), 3, &"cross", 46.0, "scrap_x2"),
+		], true, 16.0),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(a, 0.0, Vector2(240, -55), 8, &"block", 50.0, "scrap_blk3"),
+			_entry(b, 1.0, Vector2(240, -55), 4, &"pincer", 48.0, "scrap_pin"),
+			_entry(c, 1.0, Vector2(110, -50), 3, &"column", 36.0, "scrap_c5"),
+			_entry(c, 0.2, Vector2(370, -50), 3, &"column", 36.0, "scrap_c6"),
+		], true, 16.0),
+		_wave("Act 3 — Mid-Boss", 2.5, [_entry(mid, 0.0, Vector2(240, -75))], true, 0.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"box", 50.0, "scrap_bv1"),
+			_entry(b, 1.0, Vector2(100, -50), 4, &"block", 48.0, "scrap_bb1"),
+			_entry(b, 0.2, Vector2(380, -50), 4, &"block", 48.0, "scrap_bb2"),
+			_entry(c, 1.2, Vector2(240, -55), 5, &"cross", 46.0, "scrap_x3"),
+		], true, 16.5),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(a, 0.0, Vector2(240, -55), 8, &"block", 52.0, "scrap_fblk"),
+			_entry(b, 1.0, Vector2(240, -55), 5, &"box", 58.0, "scrap_fb"),
+			_entry(c, 1.0, Vector2(100, -50), 4, &"pincer", 46.0, "scrap_fp1"),
+			_entry(c, 0.3, Vector2(380, -50), 4, &"pincer", 46.0, "scrap_fp2"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"cross", 48.0, "scrap_fx"),
+		], true, 20.0),
+	]
+
+
+func _sector2_dawn_kit(a: EnemyStats, b: EnemyStats, c: EnemyStats, mid: EnemyStats, finale: bool = false) -> Array[WaveDef]:
+	var climax_clear := 22.0 if finale else 20.0
+	return [
+		_wave("Act 1 — Opener", 1.0, [
+			_entry(a, 0.0, Vector2(240, -50), 5, &"star", 52.0, "dawn_s1"),
+			_entry(b, 1.1, Vector2(140, -55), 3, &"arc", 58.0, "dawn_a1"),
+			_entry(b, 0.3, Vector2(340, -55), 3, &"arc", 58.0, "dawn_a2"),
+			_entry(c, 1.2, Vector2(240, -55), 4, &"spiral", 56.0, "dawn_sp1"),
+			_entry(a, 1.1, Vector2(240, -50), 4, &"cross", 46.0, "dawn_x1"),
+		], true, 14.5),
+		_wave("Act 1 — Sweep", 1.4, [
+			_entry(b, 0.0, Vector2(100, -50), 3, &"arc", 44.0, "dawn_a3"),
+			_entry(b, 0.3, Vector2(380, -50), 3, &"arc", 44.0, "dawn_a4"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"arc", 50.0, "dawn_a5"),
+			_entry(c, 1.1, Vector2(240, -55), 5, &"star", 50.0, "dawn_s2"),
+			_entry(a, 1.1, Vector2(240, -55), 5, &"diamond", 48.0, "dawn_d1"),
+		], true, 15.0),
+		_wave("Act 2 — Escalation", 1.5, [
+			_entry(a, 0.0, Vector2(240, -55), 7, &"star", 50.0, "dawn_s3"),
+			_entry(b, 0.9, Vector2(90, -50), 4, &"arc", 40.0, "dawn_a6"),
+			_entry(b, 0.3, Vector2(390, -50), 4, &"arc", 40.0, "dawn_a7"),
+			_entry(c, 1.1, Vector2(240, -55), 5, &"spiral", 54.0, "dawn_sp2"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"cross", 46.0, "dawn_x2"),
+		], true, 16.5),
+		_wave("Act 2 — Pressure", 1.5, [
+			_entry(a, 0.0, Vector2(240, -55), 7, &"arc", 48.0, "dawn_a8"),
+			_entry(b, 1.0, Vector2(240, -55), 5, &"star", 52.0, "dawn_s4"),
+			_entry(c, 1.0, Vector2(110, -50), 3, &"spiral", 50.0, "dawn_sp3"),
+			_entry(c, 0.2, Vector2(370, -50), 3, &"spiral", 50.0, "dawn_sp4"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"cross", 46.0, "dawn_x3"),
+		], true, 16.5),
+		_wave("Act 3 — Mid-Boss", 2.5, [_entry(mid, 0.0, Vector2(240, -75))], true, 0.0),
+		_wave("Act 4 — Build", 2.3, [
+			_entry(a, 0.0, Vector2(240, -55), 6, &"star", 50.0, "dawn_bd1"),
+			_entry(b, 1.0, Vector2(120, -50), 4, &"arc", 44.0, "dawn_ba1"),
+			_entry(b, 0.2, Vector2(360, -50), 4, &"arc", 44.0, "dawn_ba2"),
+			_entry(c, 1.2, Vector2(240, -55), 5, &"spiral", 56.0, "dawn_bsp1"),
+			_entry(a, 1.2, Vector2(240, -55), 5, &"cross", 46.0, "dawn_bx1"),
+		], true, 17.0),
+		_wave("Act 5 — Climax", 2.7, [
+			_entry(a, 0.0, Vector2(240, -55), 10, &"star", 50.0, "dawn_fstar"),
+			_entry(b, 1.0, Vector2(140, -50), 4, &"arc", 46.0, "dawn_fa1"),
+			_entry(b, 0.3, Vector2(340, -50), 4, &"arc", 46.0, "dawn_fa2"),
+			_entry(c, 1.1, Vector2(240, -55), 5, &"spiral", 52.0, "dawn_fsp"),
+			_entry(a, 1.1, Vector2(240, -55), 6, &"cross", 48.0, "dawn_fx"),
+			_entry(b, 1.1, Vector2(160, -50), 3, &"arc", 44.0, "dawn_fa3"),
+			_entry(b, 0.3, Vector2(320, -50), 3, &"arc", 44.0, "dawn_fa4"),
 		], true, climax_clear),
 	]
 

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a8a94"/>
+      <stop offset="0.5" stop-color="#f4f4f8"/>
+      <stop offset="1" stop-color="#90909a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- halo ring -->
+  <ellipse cx="26" cy="26" rx="20.5" ry="11.5" fill="none" stroke="#17171e" stroke-width="1.5"/>
+  <ellipse cx="26" cy="26" rx="20.5" ry="11.5" fill="none" stroke="#c9c9d2" stroke-width="3.2"/>
+  <ellipse cx="26" cy="26" rx="20.5" ry="11.5" fill="none" stroke="#17171e" stroke-width="1"/>
+  <!-- halo pylons connecting ring to core -->
+  <rect x="10.5" y="25.2" width="7" height="1.6" rx="0.8" fill="#a5a5af" stroke="#17171e" stroke-width="1.2"/>
+  <rect x="34.5" y="25.2" width="7" height="1.6" rx="0.8" fill="#a5a5af" stroke="#17171e" stroke-width="1.2"/>
+  <!-- antennae -->
+  <line x1="20.5" y1="14" x2="16" y2="4.5" stroke="#17171e" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="31.5" y1="14" x2="36" y2="4.5" stroke="#17171e" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="16" cy="4.5" r="1.8" fill="#c9c9d2" stroke="#17171e" stroke-width="1.2"/>
+  <circle cx="36" cy="4.5" r="1.8" fill="#c9c9d2" stroke="#17171e" stroke-width="1.2"/>
+  <!-- central soft rounded core -->
+  <path d="M26 11 C 17.5 11 14 15.8 14 23.5 L14 32.2 C14 37.8 17.2 42.2 26 42.2 C34.8 42.2 38 37.8 38 32.2 L38 23.5 C38 15.8 34.5 11 26 11 Z" fill="url(#hull)" stroke="#17171e" stroke-width="1.5"/>
+  <!-- central highlight -->
+  <path d="M26 11 C 22 11 19 13.2 18 17 L26 20 L34 17 C33 13.2 30 11 26 11 Z" fill="#d9d9e0"/>
+  <!-- soft shading panel -->
+  <path d="M18.5 24 L33.5 24 L32.2 32 L19.8 32 Z" fill="#b5b5bf" stroke="#17171e" stroke-width="1"/>
+  <!-- side soft pods under halo -->
+  <ellipse cx="17.5" cy="32" rx="4.2" ry="5" fill="#a5a5af" stroke="#17171e" stroke-width="1.2"/>
+  <ellipse cx="34.5" cy="32" rx="4.2" ry="5" fill="#a5a5af" stroke="#17171e" stroke-width="1.2"/>
+  <!-- shield projector dish bottom -->
+  <path d="M20 42.2 L23 48 L29 48 L32 42.2 Z" fill="#8e8e98" stroke="#17171e" stroke-width="1.5"/>
+  <ellipse cx="26" cy="48" rx="5.5" ry="1.8" fill="#6a6a74" stroke="#17171e" stroke-width="1.2"/>
+  <!-- detail lines on core -->
+  <line x1="20" y1="26.5" x2="32" y2="26.5" stroke="#5c5c66" stroke-width="1"/>
+  <line x1="20.5" y1="29.5" x2="31.5" y2="29.5" stroke="#5c5c66" stroke-width="1"/>
+  <!-- engine glow -->
+  <ellipse cx="26" cy="50.5" rx="7.5" ry="2.6" fill="url(#glow)"/>
+  <circle cx="26" cy="50.2" r="2" fill="#fffbe8"/>
+</svg>

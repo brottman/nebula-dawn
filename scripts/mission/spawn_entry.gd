@@ -16,6 +16,9 @@ extends Resource
 @export var pattern: StringName = &"line"
 ## Distance between members in named patterns (pixels).
 @export var pattern_spread: float = 52.0
+## Optional per-entry flight override (e.g. &"pendulum", &"charge", &"s_curve").
+## If set, overrides EnemyStats.flight_pattern for this entry.
+@export var flight_pattern: StringName = &""
 
 
 func offsets() -> Array[Vector2]:
