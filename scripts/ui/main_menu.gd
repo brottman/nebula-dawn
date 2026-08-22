@@ -2,6 +2,7 @@ extends Control
 ## Title screen.
 
 const Ships := preload("res://scripts/hangar/ship_catalog.gd")
+const APP_VERSION := "v0.14.3"
 
 @onready var campaign_btn: Button = $Center/VBox/CampaignButton
 @onready var hangar_btn: Button = $Center/VBox/HangarButton
@@ -9,6 +10,7 @@ const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 @onready var quit_btn: Button = $Center/VBox/QuitButton
 @onready var credits_label: Label = $Center/VBox/Credits
 @onready var title: Label = $Center/VBox/Title
+@onready var version_label: Label = $Version
 
 
 func _ready() -> void:
@@ -20,6 +22,8 @@ func _ready() -> void:
 		Ships.format_credits(GameState.credits),
 		GameState.equipped_ship_name(),
 	]
+	if version_label:
+		version_label.text = APP_VERSION
 	campaign_btn.grab_focus()
 	AudioBus.play_menu_music()
 	AudioBus.apply_volumes()
