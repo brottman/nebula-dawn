@@ -46,7 +46,8 @@ var _jitter_target: Vector2 = Vector2.ZERO
 var _s_curve_phase: float = 0.0
 var _vel: Vector2 = Vector2.ZERO
 var _desired_vel: Vector2 = Vector2.ZERO
-var _turn_rate: float = 5.5
+var _turn_rate: float = 12.0
+var _prev_pos: Vector2 = Vector2.ZERO
 ## Focused Laser Lv3 melt DoT (damage applied once per tick).
 var _melt_ticks_left: int = 0
 var _melt_dps: float = 0.0
@@ -149,7 +150,7 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	_spiral_angle = _flight_seed
 	_vel = Vector2.ZERO
 	_desired_vel = Vector2.ZERO
-	_turn_rate = 5.5
+	_turn_rate = 12.0
 	_zigzag_timer = randf_range(0.4, 1.0)
 	_zigzag_target = (1.0 if _strafe_dir > 0 else -1.0) * randf_range(80.0, 130.0)
 	_hover_timer = randf_range(0.8, 1.6)
@@ -170,6 +171,7 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	_jitter_timer = 0.4
 	_jitter_target = Vector2.ZERO
 	_s_curve_phase = randf_range(0.0, TAU)
+	_prev_pos = global_position
 	if formation_id != "":
 		var tracker := get_tree().get_first_node_in_group("formation_tracker")
 		if tracker and tracker.has_method("register"):
@@ -334,15 +336,17 @@ func _steer(delta: float, desired: Vector2) -> Vector2:
 		_vel = desired.normalized() * minf(desired.length(), 120.0)
 	var rate := _turn_rate
 	if pattern == Pattern.LOOP or pattern == Pattern.SWEEP:
-		rate = 2.2
+		rate = 9.0
 	elif pattern == Pattern.ZIGZAG or pattern == Pattern.HOVER_DART:
-		rate = 3.0
+		rate = 10.0
 	elif pattern == Pattern.ARC or pattern == Pattern.WEAVE:
-		rate = 4.0
+		rate = 11.0
 	elif pattern == Pattern.FIGURE8 or pattern == Pattern.ORBIT:
-		rate = 2.8
+		rate = 9.5
 	elif pattern == Pattern.CHARGE or pattern == Pattern.JITTER:
-		rate = 6.0
+		rate = 14.0
+	else:
+		rate = 12.0
 	var cur_ang := _vel.angle() if _vel.length_squared() > 1.0 else desired.angle()
 	var des_ang := desired.angle()
 	var ang_diff := wrapf(des_ang - cur_ang, -PI, PI)
@@ -495,9 +499,28 @@ func _move(delta: float) -> void:
 			BossPatterns.move(self, delta)
 	if pattern == Pattern.DRIFT and stats and stats.is_hazard:
 		rotation += delta * 0.8
-	elif pattern != Pattern.BOSS:
+		_prev_pos = global_position
+	elif pattern == Pattern.BOSS:
+		var boss_vel := (global_position - _prev_pos) / maxf(delta, 0.001)
+		_prev_pos = global_position
+		if boss_vel.length_squared() > 9.0:
+			var heading := boss_vel.angle() + PI * 0.5
+			rotation = lerp_angle(rotation, heading, clampf(delta * 5.0, 0.0, 1.0))
+		var vx := boss_vel.x
+		var bank_target := clampf(vx * 0.0025, -0.35, 0.35)
+		if _holder:
+			_holder.skew = lerp(_holder.skew, bank_target * 0.38, clampf(delta * 7.0, 0.0, 1.0))
+			var squash_x := 1.0 - absf(bank_target) * 0.18
+			var stretch_y := 1.0 + absf(bank_target) * 0.05
+			_holder.scale.x = lerp(_holder.scale.x, squash_x, clampf(delta * 7.0, 0.0, 1.0))
+			_holder.scale.y = lerp(_holder.scale.y, stretch_y, clampf(delta * 7.0, 0.0, 1.0))
+		if _poly and _poly.visible:
+			_poly.skew = lerp(_poly.skew, bank_target * 0.38, clampf(delta * 7.0, 0.0, 1.0))
+			_poly.scale.x = lerp(_poly.scale.x, 1.0 - absf(bank_target) * 0.18, clampf(delta * 7.0, 0.0, 1.0))
+	else:
+		_prev_pos = global_position
 		var heading := _vel.angle() + PI * 0.5 if _vel.length_squared() > 4.0 else rotation
-		rotation = lerp_angle(rotation, heading, clampf(delta * _turn_rate, 0.0, 1.0))
+		rotation = lerp_angle(rotation, heading, clampf(delta * _turn_rate * 1.6, 0.0, 1.0))
 		var vx := _vel.x
 		var bank_target := clampf(vx * 0.0040, -0.62, 0.62)
 		if _holder:
@@ -824,8 +847,13 @@ func _die() -> void:
 		call_deferred("_split_asteroid")
 	if stats and stats.is_mid_boss:
 		call_deferred("_spawn_major_reward")
-	elif not (stats and stats.is_hazard) and randf() < (0.05 if not (stats and stats.is_boss) else 1.0):
-		call_deferred("_spawn_pickup")
+	else:
+		var is_asteroid := stats != null and String(stats.enemy_id) == "asteroid"
+		var drop_chance := 1.0 if (stats and stats.is_boss) else 0.05
+		if is_asteroid:
+			drop_chance = 0.22 if asteroid_tier == 2 else (0.14 if asteroid_tier == 1 else 0.08)
+		if (is_asteroid or not (stats and stats.is_hazard)) and randf() < drop_chance:
+			call_deferred("_spawn_pickup")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	# Kill-flash: white pop + scale-out before the body disappears.

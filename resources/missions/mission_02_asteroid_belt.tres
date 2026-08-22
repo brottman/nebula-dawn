@@ -27,7 +27,7 @@ display_name = "Asteroid"
 max_hp = 3.0
 move_speed = 70.0
 score_value = 60
-color = Color(0.55, 0.5, 0.48, 1)
+color = Color(0.82, 0.80, 0.77, 1)
 size = Vector2(56, 56)
 is_hazard = true
 

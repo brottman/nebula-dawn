@@ -3,7 +3,7 @@ extends Node
 ## Hull, lives, shields, bombs, death/respawn, Overdrive, and zone status.
 ## Public ship API still lives on the player; this node owns survival logic.
 
-const CHIPS_PER_LEVEL := 1
+const CHIPS_PER_LEVEL := 5
 const MAX_SHIELD_CHARGES := 2
 const MAX_BOMB_STOCK := 3
 const START_LIVES := 3
@@ -128,6 +128,7 @@ func take_damage(amount: int) -> void:
 		return
 	ship.hp = maxi(0, ship.hp - amount)
 	ship.weapons.lose_drone()
+	ship.weapons.reset_weapon()
 	ship.invuln_time = 1.35
 	ship._flash_timer = 0.2
 	EventBus.player_hull_hit.emit()
