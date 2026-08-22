@@ -207,11 +207,11 @@ func _test_run_credits() -> void:
 	if gs.credits != bank + 70:
 		_fail("win should add to bank")
 	gs.reset_hangar()
-	gs.start_boss_rush()
+	gs.start_campaign_mission(1)
 	gs.session_score = 800
 	gs.record_mission_result(false)
 	if gs.last_credits_earned != 80 or gs.credits != 80:
-		_fail("boss rush should award credits")
+		_fail("campaign should award credits")
 	print("OK  hangar run credits")
 
 
@@ -219,12 +219,11 @@ func _test_old_save_seed() -> void:
 	gs.reset_hangar()
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", 2)
-	cfg.set_value("boss_rush", "high_score", 5000)
 	cfg.set_value("scores", "m0", 10000)
 	cfg.set_value("scores", "m1", 250)
 	cfg.save(SAVE_PATH)
 	gs.load_progress()
-	var expected := Ships.credits_from_score(10000) + Ships.credits_from_score(250) + Ships.credits_from_score(5000)
+	var expected := Ships.credits_from_score(10000) + Ships.credits_from_score(250)
 	if gs.credits != expected:
 		_fail("old save seed credits %d != %d" % [gs.credits, expected])
 	if not gs.is_ship_owned(Ships.STARTER_ID):

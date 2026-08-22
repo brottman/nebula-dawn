@@ -4,7 +4,7 @@
       "Shell(command:*)",
       "Shell(./tools/ci.sh:*)",
       "Shell(git:*)",
-      "Shell(GODOT=\"$(command -v godot)\"; for t in smoke_test smoke_boss_rush test_player; do echo \"=== $t ===\"; \"$GODOT\" --headless --path . --script \"res://tools/$t.gd\" 2>&1 | grep -E \"SCRIPT ERROR|ERROR|OK|PASS|FAIL|leaked\" | head -20; done)",
+      "Shell(GODOT=\"$(command -v godot)\"; for t in smoke_test test_player; do echo \"=== $t ===\"; \"$GODOT\" --headless --path . --script \"res://tools/$t.gd\" 2>&1 | grep -E \"SCRIPT ERROR|ERROR|OK|PASS|FAIL|leaked\" | head -20; done)",
       "Shell(git stash && GODOT=\"$(command -v godot)\"; \"$GODOT\" --headless --path . --script res://tools/test_player.gd 2>&1 | grep -E \"ERROR|OK|FAIL|PASS\" | head -10; git stash pop)",
       "Shell(which godot godot4 2>/dev/null; ls -la NebulaDawn-release.apk 2>/dev/null)",
       "Shell(godot:*)",

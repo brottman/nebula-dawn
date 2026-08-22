@@ -1,5 +1,5 @@
 extends Control
-## Shared game world for campaign missions and Boss Rush.
+## Shared game world for campaign missions.
 ## Playfield renders in a SubViewport below the top HUD bar so chrome
 ## does not cover the Camera2D action zone.
 
@@ -38,7 +38,6 @@ func _ready() -> void:
 	spawner.setup(pool, entities)
 	runner.setup(spawner, player)
 	runner.mission_complete.connect(_on_mission_complete)
-	runner.next_boss_requested.connect(_on_boss_rush_next)
 	EventBus.screen_shake.connect(_on_shake)
 	EventBus.hitstop_requested.connect(_on_hitstop)
 	EventBus.pause_requested.connect(_on_pause_requested)
@@ -92,27 +91,15 @@ func _safe_area_insets() -> Vector4:
 
 
 func _start_mode() -> void:
-	match GameState.mode:
-		GameState.Mode.BOSS_RUSH:
-			var rush_data := GameState.get_boss_rush_data()
-			if rush_data == null:
-				push_error("Missing boss rush data")
-				return
-			_apply_mission_ambience(rush_data)
-			await _play_intro_card("BOSS RUSH", "RAID %d / %d" % [GameState.boss_rush_index + 1, GameState.boss_rush_count()],
-				rush_data.boss.display_name if rush_data.boss else "Next target")
-			stage_director.begin(rush_data)
-			runner.begin_boss_rush(rush_data)
-		_:
-			var path := GameState.get_mission_path()
-			var data: MissionData = load(path) if path != "" else null
-			if data == null:
-				push_error("Missing mission data: %s" % path)
-				return
-			_apply_mission_ambience(data)
-			await _play_intro_card(GameState.stage_code(), data.title.to_upper(), data.subtitle)
-			stage_director.begin(data)
-			runner.begin_campaign(data)
+	var path := GameState.get_mission_path()
+	var data: MissionData = load(path) if path != "" else null
+	if data == null:
+		push_error("Missing mission data: %s" % path)
+		return
+	_apply_mission_ambience(data)
+	await _play_intro_card(GameState.stage_code(), data.title.to_upper(), data.subtitle)
+	stage_director.begin(data)
+	runner.begin_campaign(data)
 
 
 func _apply_mission_ambience(data: MissionData) -> void:
@@ -134,33 +121,6 @@ func _play_intro_card(code: String, title: String, subtitle: String) -> void:
 	await intro_card.play(code, title, subtitle)
 	get_tree().paused = false
 	_intro_active = false
-
-
-## Boss Rush intermission: clean the field, repair the ship, swap arenas.
-func _on_boss_rush_next(data: MissionData) -> void:
-	if _ending:
-		return
-	if player and player.has_method("restore_full"):
-		player.restore_full()
-	if pool and pool.has_method("clear_enemy_in_radius"):
-		var vp := Vector2(playfield.size)
-		pool.clear_enemy_in_radius(vp * 0.5, maxf(vp.x, vp.y))
-	_apply_mission_ambience(data)
-	stage_director.begin(data)
-	AudioBus.play_game_music()
-	await _play_intro_card(
-		"BOSS RUSH", "RAID %d / %d" % [GameState.boss_rush_index + 1, GameState.boss_rush_count()],
-		data.boss.display_name if data.boss else "Next target")
-	if _ending:
-		return
-	# Boss defeat arrives from a physics callback — defer the next spawn out of the flush.
-	call_deferred("_continue_boss_rush", data)
-
-
-func _continue_boss_rush(data: MissionData) -> void:
-	if _ending or not is_inside_tree():
-		return
-	runner.continue_boss_rush(data)
 
 
 func _on_hitstop(seconds: float) -> void:

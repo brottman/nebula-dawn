@@ -5,10 +5,8 @@ const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 
 @onready var campaign_btn: Button = $Center/VBox/CampaignButton
 @onready var hangar_btn: Button = $Center/VBox/HangarButton
-@onready var boss_rush_btn: Button = $Center/VBox/BossRushButton
 @onready var settings_btn: Button = $Center/VBox/SettingsButton
 @onready var quit_btn: Button = $Center/VBox/QuitButton
-@onready var high_score: Label = $Center/VBox/HighScore
 @onready var credits_label: Label = $Center/VBox/Credits
 @onready var title: Label = $Center/VBox/Title
 
@@ -16,14 +14,8 @@ const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 func _ready() -> void:
 	campaign_btn.pressed.connect(_on_campaign)
 	hangar_btn.pressed.connect(_on_hangar)
-	boss_rush_btn.pressed.connect(_on_boss_rush)
 	settings_btn.pressed.connect(_on_settings)
 	quit_btn.pressed.connect(_on_quit)
-	var boss_rush_locked := not GameState.is_sector_unlocked(GameState.SECTOR_2)
-	boss_rush_btn.disabled = boss_rush_locked
-	if boss_rush_locked:
-		boss_rush_btn.text = "Boss Rush  (clear Sector 2)"
-	high_score.text = "RAID BEST  %06d" % GameState.boss_rush_high_score
 	credits_label.text = "CREDITS  %s    ·    %s" % [
 		Ships.format_credits(GameState.credits),
 		GameState.equipped_ship_name(),
@@ -53,14 +45,6 @@ func _on_hangar() -> void:
 	AudioBus.play_ui()
 	GameState.hangar_return_scene = "res://scenes/ui/main_menu.tscn"
 	get_tree().change_scene_to_file("res://scenes/ui/hangar.tscn")
-
-
-func _on_boss_rush() -> void:
-	if not GameState.is_sector_unlocked(GameState.SECTOR_2):
-		return
-	AudioBus.play_ui()
-	GameState.start_boss_rush()
-	get_tree().change_scene_to_file("res://scenes/game/game_world.tscn")
 
 
 func _on_settings() -> void:

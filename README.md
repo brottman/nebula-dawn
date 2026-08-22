@@ -76,10 +76,6 @@ Unlocked after Flagship Core. Denser EX-style power floor (Lv2 + Bomb/Shield on 
 | **2-4** | Scrap Gauntlet | Horizontal scrap conveyors shove the ship |
 | **2-5** | Dawn Gate | Solar flares scorch the lower field; residual gravity wells |
 
-### Boss Rush
-
-Unlocks after Sector 2. All ten stage bosses back-to-back with no waves — fixed Homing Lv2 loadout, full hull repair between targets, and a brief raid title card for each arena. Best raid score is persisted.
-
 ### Hangar
 
 Meta-progression is **credits and strike craft**, not a player XP / account level. In-run weapon power is still gold **Power** pickups (**Lv1–3**). Open **Hangar** from the main menu, campaign select, or mission results.
@@ -96,7 +92,7 @@ Every finished run (win or loss) banks `score / 10` credits. The results screen 
 
 Upgrades are **per hull** (`Hull` / `Thrusters` / `Cannons` / `Core`), ranks 0–5. Costs: 400 → 900 → 1,600 → 2,600 → 4,000. Effects: **+1 HP**, **+5% speed**, **+8% damage**, **+4% fire rate**. Power pickups still drop in-run; hangar ranks stay on that hull.
 
-Saves live in `user://nebula_dawn.cfg`. Older files without a `[hangar]` section seed credits from best campaign scores plus the Boss Rush high score, then write the hangar block.
+Saves live in `user://nebula_dawn.cfg`. Older files without a `[hangar]` section seed credits from best campaign scores, then write the hangar block.
 
 ---
 
@@ -281,7 +277,6 @@ godot --headless --path . --script res://tools/validate_project.gd
 godot --headless --path . --script res://tools/test_hangar.gd
 godot --headless --path . --script res://tools/test_player.gd
 godot --headless --path . --script res://tools/smoke_test.gd
-godot --headless --path . --script res://tools/smoke_boss_rush.gd
 ```
 
 `--import` does not refresh `.godot/global_script_class_cache.cfg`. Use `--editor --quit-after 1` so `--script` tools see `WeaponSystem` / `LifeSystem` / `StageGimmick`. Unimported SVGs are checked with `FileAccess.file_exists`, not `ResourceLoader.exists`.

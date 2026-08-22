@@ -265,34 +265,15 @@ func reset_weapon() -> void:
 	emit_changed()
 
 
-func set_boss_rush_loadout() -> void:
-	ship.weapon = HOMING
-	ship.weapon_level = 3
-	ship.chip_progress = 0
-	_unlock(HOMING)
-	note_peak_loadout()
-	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
-	emit_changed()
-
-
 func restore_on_respawn(floor_lv: int) -> void:
 	## Campaign respawns restart from the base weapon at the mission power
-	## floor — death costs you your color weapon. Boss Rush keeps its fixed
-	## loadout, so it restores the peak instead.
+	## floor — death costs you your color weapon.
 	ship.chip_progress = 0
 	_unlocked.clear()
-	var keep_peak: bool = GameState.mode == GameState.Mode.BOSS_RUSH
-	if keep_peak and ship._life_peak_weapon != BLASTER:
-		ship.weapon = ship._life_peak_weapon
-		ship.weapon_level = floor_lv
-		_unlock(ship.weapon)
-		if ship.weapon_level >= MAX_WEAPON_LEVEL:
-			ship.chip_progress = CHIPS_PER_LEVEL
-	else:
-		ship.weapon = BLASTER
-		ship.weapon_level = clampi(floor_lv, 1, MAX_WEAPON_LEVEL)
-		if ship.weapon_level >= MAX_WEAPON_LEVEL:
-			ship.chip_progress = CHIPS_PER_LEVEL
+	ship.weapon = BLASTER
+	ship.weapon_level = clampi(floor_lv, 1, MAX_WEAPON_LEVEL)
+	if ship.weapon_level >= MAX_WEAPON_LEVEL:
+		ship.chip_progress = CHIPS_PER_LEVEL
 
 
 func apply_power_orb(amount: float) -> void:

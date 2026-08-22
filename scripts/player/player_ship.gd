@@ -88,8 +88,6 @@ func _ready() -> void:
 	if _sprite and _sprite.texture:
 		_poly.visible = false
 	_build_graze_zone()
-	if GameState.mode == GameState.Mode.BOSS_RUSH:
-		set_boss_rush_loadout()
 	EventBus.player_hp_changed.emit(hp, max_hp)
 	EventBus.player_lives_changed.emit(lives)
 	EventBus.bomb_stock_changed.emit(bomb_stock)
@@ -290,10 +288,6 @@ func _resolve_barrier_overlap() -> void:
 		else:
 			var dir := 1.0 if global_position.x < r.get_center().x else -1.0
 			global_position.x = r.position.x + r.size.x * (0.0 if dir < 0.0 else 1.0) + dir * half.x
-
-
-func set_boss_rush_loadout() -> void:
-	weapons.set_boss_rush_loadout()
 
 
 func restore_full() -> void:

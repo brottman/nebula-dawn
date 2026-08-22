@@ -45,6 +45,5 @@ run_godot validate_project --headless --path . --script res://tools/validate_pro
 run_godot test_hangar --headless --path . --script res://tools/test_hangar.gd
 run_godot test_player --headless --path . --script res://tools/test_player.gd
 run_godot smoke_test --headless --path . --script res://tools/smoke_test.gd
-run_godot smoke_boss_rush --headless --path . --script res://tools/smoke_boss_rush.gd
 
 echo "CI OK"

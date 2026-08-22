@@ -118,7 +118,7 @@ Victory outro (center → hover → zoom off) sells the “sortie complete” be
 
 ## Audio identity
 
-Each stage has a looping track (see README). Menu and Boss Rush use dedicated themes so campaign stages keep a distinct musical memory. 2-2 / 2-3 / 2-4 reuse Sector 1 originals until unique source MP3s exist — do not generate placeholder loops.
+Each stage has a looping track (see README). Menu uses a dedicated theme so campaign stages keep a distinct musical memory. 2-2 / 2-3 / 2-4 reuse Sector 1 originals until unique source MP3s exist — do not generate placeholder loops.
 
 ## Visual identity
 

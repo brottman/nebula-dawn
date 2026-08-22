@@ -8,8 +8,7 @@ Technical overview of Nebula Dawn’s runtime systems.
 MainMenu
   ├─ Campaign → CampaignSelect → GameWorld (campaign mission)
   ├─ Hangar                  # buy / equip / upgrade hulls
-  ├─ Settings (standalone scene)
-  └─ Boss Rush → GameWorld (raid arenas)
+  └─ Settings (standalone scene)
 
 Hangar is also reachable from CampaignSelect and MissionResults.
 Each entry sets GameState.hangar_return_scene, then change_scene to hangar.tscn.
@@ -39,7 +38,7 @@ GameWorld
 6. After waves: optional Act 5 boss (`MissionData.boss`).
 7. `MissionRunner` records result → `GameWorld` plays victory outro (if won) → results scene.
 
-Unlocks: clearing stage *N* unlocks *N+1* (`highest_unlocked_mission`). Campaign, Boss Rush, settings, and hangar all persist in `user://nebula_dawn.cfg`.
+Unlocks: clearing stage *N* unlocks *N+1* (`highest_unlocked_mission`). Campaign, settings, and hangar all persist in `user://nebula_dawn.cfg`.
 
 ## Wave spawning
 
@@ -128,7 +127,7 @@ Same `user://nebula_dawn.cfg` as campaign progress:
 - `[hangar]` — `credits`, `selected`, `owned` (comma-separated hull ids)
 - `[upgrades]` — per hull id → `"hull,thrust,cannon,core"` ranks
 
-`GameState.load_progress()` calls `_load_hangar`. Saves **without** a `[hangar]` section seed credits from `best_scores` plus `boss_rush_high_score` (`ShipCatalog.credits_from_score` = `score / 10`), then `save_progress()`. `_ensure_hangar()` always keeps Striker owned and a valid selected hull.
+`GameState.load_progress()` calls `_load_hangar`. Saves **without** a `[hangar]` section seed credits from `best_scores` (`ShipCatalog.credits_from_score` = `score / 10`), then `save_progress()`. `_ensure_hangar()` always keeps Striker owned and a valid selected hull.
 
 `buy_ship` / `select_ship` / `buy_upgrade` write immediately. `reset_hangar()` is for tests only.
 
@@ -165,7 +164,7 @@ Pause (Esc / Start / on-screen button) emits `EventBus.pause_requested`. `GameWo
 
 | Scene | Purpose |
 |-------|---------|
-| `main_menu.tscn` | Campaign / Hangar / Boss Rush / Settings / Quit; shows bank + equipped hull |
+| `main_menu.tscn` | Campaign / Hangar / Settings / Quit; shows bank + equipped hull |
 | `hangar.tscn` | Buy / equip hulls; rank Hull / Thrusters / Cannons / Core |
 | `campaign_select.tscn` | Unlockable 1-1 … 2-5 list; Hangar + equipped name / credits |
 | `hud.tscn` | Lives, HP, weapon badge + Power bar, score, boss bar, overdrive, toasts, Bomb / WEP / Pause |
@@ -187,7 +186,6 @@ Headless scripts under `tools/`:
 - `test_hangar.gd` — catalog, buy/upgrade, run credits, old-save seed, player loadout (stashes `user://nebula_dawn.cfg` to `user://nebula_dawn.cfg.hangar_test.bak`; if the stash fails it must not delete the live save)
 - `test_player.gd` — ship facade + WeaponSystem / LifeSystem (`reset_hangar()` first)
 - `smoke_test.gd` — boots 1-1 and 2-1 briefly
-- `smoke_boss_rush.gd` — first raid boss must spawn and fire
 
 GitHub Actions (`.github/workflows/ci.yml`) runs the same set. Locally: `nix shell nixpkgs#godot --command ./tools/ci.sh`. `tools/ci.sh` treats a `SCRIPT ERROR` in Godot output as failure — `--script` often still exits 0 on compile errors.
 

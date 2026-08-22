@@ -25,7 +25,7 @@ const SECTOR_2 := 2
 const SECTOR_1_COUNT := 5
 const RANK_ORDER := {"S": 4, "A": 3, "B": 2, "C": 1}
 
-enum Mode { CAMPAIGN, BOSS_RUSH }
+enum Mode { CAMPAIGN }
 
 ## Combo chain: every kill/graze extends the window; a bigger chain pays more.
 const COMBO_WINDOW := 2.5
@@ -42,9 +42,6 @@ var session_score: int = 0
 var best_ranks: Array[String] = []
 ## Best score per mission index (campaign wins only).
 var best_scores: Array[int] = []
-## Best Boss Rush score.
-var boss_rush_high_score: int = 0
-var boss_rush_index: int = 0
 ## Live combo chain state.
 var run_combo: int = 0
 var run_combo_timer: float = 0.0
@@ -130,7 +127,6 @@ func load_progress() -> void:
 		_ensure_hangar()
 		return
 	highest_unlocked_mission = int(cfg.get_value("campaign", "unlocked", 0))
-	boss_rush_high_score = int(cfg.get_value("boss_rush", "high_score", 0))
 	music_volume = float(cfg.get_value("settings", "music_volume", music_volume))
 	sfx_volume = float(cfg.get_value("settings", "sfx_volume", sfx_volume))
 	touch_sensitivity = float(cfg.get_value("settings", "touch_sensitivity", touch_sensitivity))
@@ -152,7 +148,6 @@ func save_progress() -> void:
 	_ensure_hangar()
 	var cfg := ConfigFile.new()
 	cfg.set_value("campaign", "unlocked", highest_unlocked_mission)
-	cfg.set_value("boss_rush", "high_score", boss_rush_high_score)
 	cfg.set_value("settings", "music_volume", music_volume)
 	cfg.set_value("settings", "sfx_volume", sfx_volume)
 	cfg.set_value("settings", "touch_sensitivity", touch_sensitivity)
@@ -198,7 +193,6 @@ func _load_hangar(cfg: ConfigFile) -> bool:
 		reset_hangar()
 		for score in best_scores:
 			credits += Ships.credits_from_score(int(score))
-		credits += Ships.credits_from_score(boss_rush_high_score)
 		return true
 	credits = maxi(0, int(cfg.get_value("hangar", "credits", 0)))
 	selected_ship_id = String(cfg.get_value("hangar", "selected", Ships.STARTER_ID))
@@ -325,29 +319,6 @@ func start_campaign_mission(index: int) -> void:
 	_reset_run_stats()
 
 
-func start_boss_rush() -> void:
-	mode = Mode.BOSS_RUSH
-	boss_rush_index = 0
-	current_mission_index = 0
-	session_score = 0
-	last_score = 0
-	last_won = false
-	last_rank = ""
-	last_rank_bonus = 0
-	last_chain_bonus = 0
-	last_credits_earned = 0
-	_reset_run_stats()
-
-
-func boss_rush_count() -> int:
-	return MISSION_PATHS.size()
-
-
-func get_boss_rush_data(index: int = -1) -> MissionData:
-	var i := boss_rush_index if index < 0 else index
-	return get_mission_data(i)
-
-
 func _reset_run_stats() -> void:
 	run_active = true
 	run_elapsed = 0.0
@@ -368,8 +339,6 @@ func get_power_floor(mission_index: int = -1) -> int:
 	## Minimum weapon tier on respawn. Stages are 1-based in design docs;
 	## mission_index is 0-based (0–4 = Sector 1, 5–9 = Sector 2 / EX).
 	var i := current_mission_index if mission_index < 0 else mission_index
-	if mode == Mode.BOSS_RUSH:
-		return 2
 	if i < 0:
 		return 1
 	if i <= 2:
@@ -382,7 +351,7 @@ func get_power_floor(mission_index: int = -1) -> int:
 
 func is_ex_stage(mission_index: int = -1) -> bool:
 	var i := current_mission_index if mission_index < 0 else mission_index
-	return mode == Mode.CAMPAIGN and i >= SECTOR_1_COUNT
+	return i >= SECTOR_1_COUNT
 
 
 func get_mission_path(index: int = -1) -> String:
@@ -408,7 +377,7 @@ func record_mission_result(won: bool) -> void:
 	if chain_bonus > 0:
 		session_score += chain_bonus
 		last_chain_bonus = chain_bonus
-	if won and mode == Mode.CAMPAIGN:
+	if won:
 		var rank_info := compute_clear_rank()
 		last_rank = String(rank_info.get("rank", "C"))
 		last_rank_bonus = int(rank_info.get("bonus", 0))
@@ -423,8 +392,6 @@ func record_mission_result(won: bool) -> void:
 			highest_unlocked_mission = maxi(highest_unlocked_mission, current_mission_index)
 	last_score = session_score
 	_award_run_credits()
-	if mode == Mode.BOSS_RUSH and session_score > boss_rush_high_score:
-		boss_rush_high_score = session_score
 	save_progress()
 
 
@@ -514,7 +481,7 @@ func compute_clear_rank() -> Dictionary:
 
 
 func has_next_mission() -> bool:
-	return mode == Mode.CAMPAIGN and last_won and current_mission_index + 1 < MISSION_PATHS.size()
+	return last_won and current_mission_index + 1 < MISSION_PATHS.size()
 
 
 func next_mission_index() -> int:

@@ -72,27 +72,6 @@ func _fill_header() -> void:
 	]
 	_fill_rank()
 
-	if GameState.mode == GameState.Mode.BOSS_RUSH:
-		var raid_note := ""
-		if GameState.last_won:
-			title.text = "RAID COMPLETE"
-			raid_note = "All %d bosses destroyed" % GameState.boss_rush_count()
-		else:
-			title.text = "RAID ENDED"
-			raid_note = "%d / %d bosses destroyed" % [GameState.run_bosses_defeated, GameState.boss_rush_count()]
-		mission_name.text = "BOSS RUSH"
-		subtitle.text = "Ten bosses, no mercy"
-		var lines: Array[String] = [raid_note]
-		if GameState.boss_rush_high_score > 0:
-			if GameState.last_score >= GameState.boss_rush_high_score and GameState.last_score > 0:
-				lines.append("New best raid score!")
-			else:
-				lines.append("Best raid score  %06d" % GameState.boss_rush_high_score)
-		if GameState.last_chain_bonus > 0:
-			lines.append("Chain bonus  +%d" % GameState.last_chain_bonus)
-		detail.text = "\n".join(lines)
-		return
-
 	var data: MissionData = GameState.get_mission_data()
 	var code := GameState.stage_code()
 	if data:
@@ -123,7 +102,7 @@ func _fill_rank() -> void:
 	if rank_label == null:
 		return
 	var rank := GameState.last_rank
-	if rank == "" or not GameState.last_won or GameState.mode != GameState.Mode.CAMPAIGN:
+	if rank == "" or not GameState.last_won:
 		rank_label.visible = false
 		if rank_detail:
 			rank_detail.visible = false
@@ -146,12 +125,6 @@ func _fill_rank() -> void:
 
 
 func _configure_buttons() -> void:
-	if GameState.mode == GameState.Mode.BOSS_RUSH:
-		next_btn.visible = false
-		again_btn.text = "Retry Raid"
-		campaign_btn.text = "Main Menu"
-		return
-
 	campaign_btn.text = "Sector Select"
 	again_btn.text = "Retry Mission"
 
@@ -186,20 +159,13 @@ func _on_next() -> void:
 
 func _on_again() -> void:
 	AudioBus.play_ui()
-	match GameState.mode:
-		GameState.Mode.BOSS_RUSH:
-			GameState.start_boss_rush()
-		_:
-			GameState.start_campaign_mission(GameState.current_mission_index)
+	GameState.start_campaign_mission(GameState.current_mission_index)
 	get_tree().change_scene_to_file("res://scenes/game/game_world.tscn")
 
 
 func _on_campaign() -> void:
 	AudioBus.play_ui()
-	if GameState.mode == GameState.Mode.BOSS_RUSH:
-		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
-	else:
-		get_tree().change_scene_to_file("res://scenes/ui/campaign_select.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/campaign_select.tscn")
 
 
 func _on_hangar() -> void:
