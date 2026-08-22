@@ -205,15 +205,19 @@ func _on_weapon_tier(slot: String, level: int, chips: int, chips_needed: int, ex
 	var title: String = SLOT_TITLE.get(key, key)
 	weapon_badge.text = "[%s] %s" % [tag, title]
 	weapon_badge.add_theme_color_override("font_color", color)
-	var at_max := level >= chips_needed
+	const MAX_LV := 5
+	var at_max := level >= MAX_LV
 	weapon_level.text = "MAX" if at_max else "LV %d" % level
 	weapon_level.add_theme_color_override("font_color", CHIP_MAX if at_max else color)
 	var fill_color: Color = CHIP_MAX if key == "BLASTER" else color
 	var needed := maxi(chips_needed, 1)
-	var filled := needed if at_max else clampi(chips, 0, needed)
+	# Bar and numeric label show overall tier (LV) so the bar never
+	# snaps to 0/5 at high levels — per-level chip progress was
+	# perceived as losing power. Chips are still tracked internally.
+	var bar_filled := needed if at_max else clampi(level, 0, needed)
 	for i in _chips.size():
-		_chips[i].color = CHIP_MAX if at_max else (fill_color if i < filled else CHIP_EMPTY)
-	chip_count.text = "MAX" if at_max else "%d/%d" % [filled, needed]
+		_chips[i].color = CHIP_MAX if at_max else (fill_color if i < bar_filled else CHIP_EMPTY)
+	chip_count.text = "MAX" if at_max else "%d/%d" % [clampi(level, 0, needed), needed]
 	if extras.strip_edges() == "":
 		extras_label.visible = false
 		extras_label.text = ""
