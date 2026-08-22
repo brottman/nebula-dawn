@@ -14,8 +14,6 @@ func tick(_delta: float) -> void:
 	if pulse <= 0.0 and get_tree().get_nodes_in_group("boss").is_empty():
 		pulse = rng.randf_range(6.5, 10.0)
 		_spawn_barrier_pair()
-		if rng.randf() < 0.7:
-			_spawn_terminal()
 
 
 func on_boss_spawned(_boss: Node) -> void:

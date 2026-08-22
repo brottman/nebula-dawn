@@ -2,7 +2,7 @@ extends Area2D
 ## Electrical bridge spanning a barrier gap — shoot the gap to break the connection.
 ## Barrier segments themselves remain solid; only this bridge is destroyable.
 
-var hp: float = 6.0
+var hp: float = 4.0
 var scroll_speed: float = 50.0
 var _alive: bool = true
 var _barriers: Array[Node] = []
@@ -15,6 +15,7 @@ var _barriers: Array[Node] = []
 
 func _ready() -> void:
 	add_to_group("enemies")
+	add_to_group("barriers")
 	add_to_group("barrier_conductors")
 	collision_layer = 4
 	collision_mask = 2
@@ -47,8 +48,20 @@ func setup(from: Vector2, to: Vector2, scroll: float, left_barrier: Node, right_
 		_glow.color = Color(0.45, 0.75, 1.0, 0.28)
 	if _collision and _collision.shape is RectangleShape2D:
 		(_collision.shape as RectangleShape2D).size = Vector2(maxf(width, 12.0), height)
-	if _solid and _solid.shape is RectangleShape2D:
-		(_solid.shape as RectangleShape2D).size = Vector2(maxf(width, 12.0), height)
+	var solid_shape := _solid
+	if solid_shape == null:
+		solid_shape = get_node_or_null("Solid/CollisionShape2D") as CollisionShape2D
+	if solid_shape and solid_shape.shape is RectangleShape2D:
+		(solid_shape.shape as RectangleShape2D).size = Vector2(maxf(width, 12.0), height)
+
+
+func get_solid_rect() -> Rect2:
+	if _solid == null:
+		_solid = get_node_or_null("Solid/CollisionShape2D") as CollisionShape2D
+	if _solid == null or _solid.shape is not RectangleShape2D:
+		return Rect2()
+	var r := (_solid.shape as RectangleShape2D).size
+	return Rect2(global_position - r * 0.5, r)
 
 
 func _physics_process(delta: float) -> void:
