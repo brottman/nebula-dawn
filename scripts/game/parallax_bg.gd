@@ -148,6 +148,11 @@ class _GroundBase extends Node2D:
 	const CROSS_W := 34.0
 	const ROWS := 2
 	const LANES: Array[float] = [0.16, 0.5, 0.84]
+	## Serpentine highways: fixed in world space so the curve scrolls with the
+	## ground instead of wobbling in place.
+	const ROAD_AMP := 20.0
+	const ROAD_FREQ := 0.0105
+	const LANE_PHASES: Array[float] = [0.0, 2.1, 4.2]
 
 	const STYLE_KEYS: Array[StringName] = [
 		&"city", &"mines", &"biolum", &"factory", &"fleet",
@@ -341,48 +346,79 @@ class _GroundBase extends Node2D:
 						Vector2(x + 8.0, y + 8.0) + Vector2(cos(a), sin(a)) * cell * 0.7,
 						Color(0, 0, 0, 0.18), 1.0)
 
+	func _lane_curve_x(base: float, y: float, phase: float) -> float:
+		## x of a highway's centreline at screen y. Uses world Y (scroll - y) so the
+		## bend is anchored to the ground and travels down with it.
+		return base + sin((scroll - y) * ROAD_FREQ + phase) * ROAD_AMP
+
+	func _fill_ribbon(left: PackedVector2Array, right: PackedVector2Array, col: Color) -> void:
+		var poly := PackedVector2Array()
+		poly.append_array(left)
+		for i in range(right.size() - 1, -1, -1):
+			poly.append(right[i])
+		draw_colored_polygon(poly, col)
+
+	func _draw_road_ribbon(base: float, phase: float, vp: Vector2, pal: Dictionary) -> void:
+		var step := 14.0
+		var left := PackedVector2Array()
+		var right := PackedVector2Array()
+		var y := -step
+		while y <= vp.y + step:
+			var cx := _lane_curve_x(base, y, phase)
+			left.append(Vector2(cx - ROAD_W * 0.5, y))
+			right.append(Vector2(cx + ROAD_W * 0.5, y))
+			y += step
+		# shoulder / curb
+		var sl := PackedVector2Array()
+		var sr := PackedVector2Array()
+		for i in left.size():
+			sl.append(left[i] + Vector2(-5.0, 0.0))
+			sr.append(right[i] + Vector2(5.0, 0.0))
+		_fill_ribbon(sl, sr, pal["ground"].darkened(0.22))
+		_fill_ribbon(left, right, pal["road"])
+		draw_polyline(left, Color(1, 1, 1, 0.06), 1.5)
+		draw_polyline(right, Color(1, 1, 1, 0.06), 1.5)
+		var accent: Color = pal["accent"]
+		# centre dashes following the bend
+		var dash := 62.0
+		var off := fmod(scroll, dash)
+		var dy := -dash + off
+		while dy < vp.y + dash:
+			var x1 := _lane_curve_x(base, dy, phase)
+			var x2 := _lane_curve_x(base, dy + 26.0, phase)
+			draw_line(Vector2(x1 - 1.5, dy), Vector2(x2 - 1.5, dy + 26.0),
+				Color(accent.r, accent.g, accent.b, 0.42), 3.0)
+			dy += dash
+		# street lamps just outside the curb
+		var lamp := 150.0
+		var loff := fmod(scroll, lamp)
+		var ly := -lamp + loff
+		while ly < vp.y + lamp:
+			var cx := _lane_curve_x(base, ly, phase)
+			var cx2 := _lane_curve_x(base, ly + lamp * 0.5, phase)
+			draw_circle(Vector2(cx - ROAD_W * 0.5 - 7.0, ly), 2.2, Color(1.0, 0.9, 0.6, 0.85))
+			draw_circle(Vector2(cx - ROAD_W * 0.5 - 7.0, ly), 16.0, Color(1.0, 0.85, 0.5, 0.05))
+			draw_circle(Vector2(cx2 + ROAD_W * 0.5 + 7.0, ly + lamp * 0.5), 2.2, Color(1.0, 0.9, 0.6, 0.85))
+			draw_circle(Vector2(cx2 + ROAD_W * 0.5 + 7.0, ly + lamp * 0.5), 16.0, Color(1.0, 0.85, 0.5, 0.05))
+			ly += lamp
+		if String(pal.get("detail", &"none")) == "runway":
+			var coff := fmod(scroll, 26.0)
+			var cy := -26.0 + coff
+			while cy < vp.y + 26.0:
+				var cx := _lane_curve_x(base, cy, phase)
+				draw_rect(Rect2(cx - 1.0, cy, 2.0, 12.0), Color(1, 1, 1, 0.10))
+				cy += 26.0
+
 	func _draw_vertical_roads(vp: Vector2, pal: Dictionary) -> void:
-		for lane in LANES:
-			var cx := vp.x * lane
-			var x0 := cx - ROAD_W * 0.5
-			# shoulder / curb
-			draw_rect(Rect2(x0 - 4.0, 0, ROAD_W + 8.0, vp.y), pal["ground"].darkened(0.22))
-			draw_rect(Rect2(x0, 0, ROAD_W, vp.y), pal["road"])
-			# lane edge lines
-			draw_rect(Rect2(x0 + 3.0, 0, 1.5, vp.y), Color(1, 1, 1, 0.06))
-			draw_rect(Rect2(x0 + ROAD_W - 4.5, 0, 1.5, vp.y), Color(1, 1, 1, 0.06))
-			# dashes
-			var dash := 62.0
-			var off := fmod(scroll, dash)
-			var y := -dash + off
-			while y < vp.y + dash:
-				draw_rect(Rect2(cx - 1.5, y, 3.0, 26.0), Color(pal["accent"].r, pal["accent"].g, pal["accent"].b, 0.42))
-				y += dash
-			# street lamps
-			var lamp := 150.0
-			var loff := fmod(scroll, lamp)
-			var ly := -lamp + loff
-			while ly < vp.y + lamp:
-				draw_circle(Vector2(x0 - 7.0, ly), 2.2, Color(1.0, 0.9, 0.6, 0.85))
-				draw_circle(Vector2(x0 - 7.0, ly), 16.0, Color(1.0, 0.85, 0.5, 0.05))
-				draw_circle(Vector2(x0 + ROAD_W + 7.0, ly + lamp * 0.5), 2.2, Color(1.0, 0.9, 0.6, 0.85))
-				draw_circle(Vector2(x0 + ROAD_W + 7.0, ly + lamp * 0.5), 16.0, Color(1.0, 0.85, 0.5, 0.05))
-				ly += lamp
-			# detail flavour
-			var detail: StringName = pal.get("detail", &"none")
-			if detail == &"runway":
-				var coff := fmod(scroll, 26.0)
-				var cy := -26.0 + coff
-				while cy < vp.y + 26.0:
-					draw_rect(Rect2(cx - 1.0, cy, 2.0, 12.0), Color(1, 1, 1, 0.10))
-					cy += 26.0
+		for i in LANES.size():
+			_draw_road_ribbon(vp.x * LANES[i], LANE_PHASES[i % LANE_PHASES.size()], vp, pal)
 
 	func _draw_block(idx: int, vp: Vector2, pal: Dictionary) -> void:
 		var by := scroll - float(idx) * BLOCK_H
 		if by > vp.y + BLOCK_H or by + BLOCK_H < -40.0:
 			return
 		var seed := idx * 7919
-		_draw_cross_road(by, vp, pal)
+		_draw_cross_road(seed, by, vp, pal)
 		_draw_style_decor(seed, by, vp, pal)
 		var avail := BLOCK_H - CROSS_W
 		var lot_ax := vp.x * (LANES[0] + LANES[1]) * 0.5
@@ -440,22 +476,52 @@ class _GroundBase extends Node2D:
 		# runway number
 		draw_rect(Rect2(cx - w * 0.16, y0 + h * 0.42, w * 0.32, 20.0), Color(1, 1, 1, 0.10))
 
-	func _draw_cross_road(by: float, vp: Vector2, pal: Dictionary) -> void:
-		draw_rect(Rect2(0, by, vp.x, CROSS_W), pal["road"])
-		draw_rect(Rect2(0, by, vp.x, 2.0), Color(1, 1, 1, 0.05))
-		draw_rect(Rect2(0, by + CROSS_W - 2.0, vp.x, 2.0), Color(1, 1, 1, 0.05))
+	func _cross_curve_y(by: float, seed: int, x: float) -> float:
+		## Cross-streets bow gently in world space (fixed phase per block).
+		return by + sin(x * 0.0072 + _h(seed, 71) * TAU) * 9.0
+
+	func _draw_cross_road(seed: int, by: float, vp: Vector2, pal: Dictionary) -> void:
+		var step := 16.0
+		var top := PackedVector2Array()
+		var bot := PackedVector2Array()
+		var st := PackedVector2Array()
+		var sb := PackedVector2Array()
+		var x := -step
+		while x <= vp.x + step:
+			var cy := _cross_curve_y(by, seed, x)
+			top.append(Vector2(x, cy))
+			bot.append(Vector2(x, cy + CROSS_W))
+			st.append(Vector2(x, cy - 5.0))
+			sb.append(Vector2(x, cy + CROSS_W + 5.0))
+			x += step
+		_fill_ribbon(st, sb, pal["ground"].darkened(0.22))
+		_fill_ribbon(top, bot, pal["road"])
+		draw_polyline(top, Color(1, 1, 1, 0.05), 1.5)
+		draw_polyline(bot, Color(1, 1, 1, 0.05), 1.5)
 		# centre dashes
 		var dash := 54.0
-		var x := fmod(scroll * 0.5, dash)
-		while x < vp.x + dash:
-			draw_rect(Rect2(x, by + CROSS_W * 0.5 - 1.5, 24.0, 3.0), Color(pal["accent"].r, pal["accent"].g, pal["accent"].b, 0.32))
-			x += dash
-		# crosswalk zebra at each vertical road
-		for lane in LANES:
-			var cx := vp.x * lane
-			for i in 4:
-				var sx := cx - ROAD_W * 0.5 + 4.0 + float(i) * (ROAD_W - 8.0) / 4.0
-				draw_rect(Rect2(sx, by + 4.0, (ROAD_W - 8.0) / 4.0 - 3.0, CROSS_W - 8.0), Color(1, 1, 1, 0.07))
+		var dx := fmod(scroll * 0.5, dash)
+		while dx < vp.x + dash:
+			var cy := _cross_curve_y(by, seed, dx) + CROSS_W * 0.5
+			draw_rect(Rect2(dx, cy - 1.5, 24.0, 3.0), Color(pal["accent"].r, pal["accent"].g, pal["accent"].b, 0.32))
+			dx += dash
+		# crosswalk zebra + curved slip arcs at each vertical road
+		var rc: Color = pal["road"].lightened(0.03)
+		var curb: Color = pal["ground"].darkened(0.22)
+		for i in LANES.size():
+			var cx := _lane_curve_x(vp.x * LANES[i], by + CROSS_W * 0.5, LANE_PHASES[i % LANE_PHASES.size()])
+			var iy := _cross_curve_y(by, seed, cx)
+			for k in 4:
+				var sx := cx - ROAD_W * 0.5 + 4.0 + float(k) * (ROAD_W - 8.0) / 4.0
+				draw_rect(Rect2(sx, iy + 4.0, (ROAD_W - 8.0) / 4.0 - 3.0, CROSS_W - 8.0), Color(1, 1, 1, 0.07))
+			if _h(seed, i * 7 + 51) < 0.4:
+				continue
+			var c := Vector2(cx, iy + CROSS_W * 0.5)
+			var r := 30.0
+			draw_arc(c, r + 6.0, PI, PI * 1.5, 14, curb, 2.0)
+			draw_arc(c, r + 6.0, 0.0, PI * 0.5, 14, curb, 2.0)
+			draw_arc(c, r, PI, PI * 1.5, 14, rc, 12.0)
+			draw_arc(c, r, 0.0, PI * 0.5, 14, rc, 12.0)
 
 	func _draw_cell(seed: int, cid: int, cx: float, cy: float, row_h: float, vp: Vector2, pal: Dictionary) -> void:
 		var kinds: Array = pal["kinds"]
