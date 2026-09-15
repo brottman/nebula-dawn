@@ -148,11 +148,6 @@ class _GroundBase extends Node2D:
 	const CROSS_W := 34.0
 	const ROWS := 2
 	const LANES: Array[float] = [0.16, 0.5, 0.84]
-	## Serpentine highways: fixed in world space so the curve scrolls with the
-	## ground instead of wobbling in place.
-	const ROAD_AMP := 20.0
-	const ROAD_FREQ := 0.0105
-	const LANE_PHASES: Array[float] = [0.0, 2.1, 4.2]
 
 	const STYLE_KEYS: Array[StringName] = [
 		&"city", &"mines", &"biolum", &"factory", &"fleet",
@@ -261,11 +256,11 @@ class _GroundBase extends Node2D:
 		tint = t
 		_rng = rng
 		_vehicles.clear()
-		for i in 9:
+		for i in 12:
 			var lane: int = i % LANES.size()
 			_vehicles.append({
-				"x": LANES[lane], "sy": rng.randf() * 720.0,
-				"rel": rng.randf_range(-80.0, 100.0), "dir": 1.0 if lane != 1 else -1.0,
+				"sy": rng.randf() * 720.0,
+				"rel": rng.randf_range(-90.0, 110.0), "dir": 1.0 if lane != 1 else -1.0,
 				"kind": ["tank", "apc", "truck", "jeep"][rng.randi() % 4],
 				"seed": rng.randi(), "lane": lane, "w": rng.randf_range(24.0, 34.0),
 			})
@@ -346,10 +341,24 @@ class _GroundBase extends Node2D:
 						Vector2(x + 8.0, y + 8.0) + Vector2(cos(a), sin(a)) * cell * 0.7,
 						Color(0, 0, 0, 0.18), 1.0)
 
-	func _lane_curve_x(base: float, y: float, phase: float) -> float:
-		## x of a highway's centreline at screen y. Uses world Y (scroll - y) so the
-		## bend is anchored to the ground and travels down with it.
-		return base + sin((scroll - y) * ROAD_FREQ + phase) * ROAD_AMP
+	func _vnoise(w: float, seed: int) -> float:
+		## Smooth 1D value noise in -1..1. Hash-based, so it never repeats.
+		var i := int(floorf(w))
+		var f := w - float(i)
+		var a := _h(seed, i)
+		var b := _h(seed, i + 1)
+		var t := f * f * (3.0 - 2.0 * f)
+		return lerpf(a, b, t) * 2.0 - 1.0
+
+	func _road_center_x(base: float, lane: int, y: float) -> float:
+		## x of a highway's centreline at screen y. World Y (scroll - y) drives a
+		## multi-octave noise, so every highway wanders differently and never
+		## repeats the way a fixed sine would.
+		var w := (scroll - y) * 0.0022
+		var o := _vnoise(w, 1100 + lane * 37) * 18.0
+		o += _vnoise(w * 2.3, 2200 + lane * 53) * 8.0
+		o += _vnoise(w * 5.7, 3300 + lane * 71) * 3.0
+		return base + o
 
 	func _fill_ribbon(left: PackedVector2Array, right: PackedVector2Array, col: Color) -> void:
 		var poly := PackedVector2Array()
@@ -358,13 +367,13 @@ class _GroundBase extends Node2D:
 			poly.append(right[i])
 		draw_colored_polygon(poly, col)
 
-	func _draw_road_ribbon(base: float, phase: float, vp: Vector2, pal: Dictionary) -> void:
+	func _draw_road_ribbon(base: float, lane: int, vp: Vector2, pal: Dictionary) -> void:
 		var step := 14.0
 		var left := PackedVector2Array()
 		var right := PackedVector2Array()
 		var y := -step
 		while y <= vp.y + step:
-			var cx := _lane_curve_x(base, y, phase)
+			var cx := _road_center_x(base, lane, y)
 			left.append(Vector2(cx - ROAD_W * 0.5, y))
 			right.append(Vector2(cx + ROAD_W * 0.5, y))
 			y += step
@@ -384,8 +393,8 @@ class _GroundBase extends Node2D:
 		var off := fmod(scroll, dash)
 		var dy := -dash + off
 		while dy < vp.y + dash:
-			var x1 := _lane_curve_x(base, dy, phase)
-			var x2 := _lane_curve_x(base, dy + 26.0, phase)
+			var x1 := _road_center_x(base, lane, dy)
+			var x2 := _road_center_x(base, lane, dy + 26.0)
 			draw_line(Vector2(x1 - 1.5, dy), Vector2(x2 - 1.5, dy + 26.0),
 				Color(accent.r, accent.g, accent.b, 0.42), 3.0)
 			dy += dash
@@ -394,8 +403,8 @@ class _GroundBase extends Node2D:
 		var loff := fmod(scroll, lamp)
 		var ly := -lamp + loff
 		while ly < vp.y + lamp:
-			var cx := _lane_curve_x(base, ly, phase)
-			var cx2 := _lane_curve_x(base, ly + lamp * 0.5, phase)
+			var cx := _road_center_x(base, lane, ly)
+			var cx2 := _road_center_x(base, lane, ly + lamp * 0.5)
 			draw_circle(Vector2(cx - ROAD_W * 0.5 - 7.0, ly), 2.2, Color(1.0, 0.9, 0.6, 0.85))
 			draw_circle(Vector2(cx - ROAD_W * 0.5 - 7.0, ly), 16.0, Color(1.0, 0.85, 0.5, 0.05))
 			draw_circle(Vector2(cx2 + ROAD_W * 0.5 + 7.0, ly + lamp * 0.5), 2.2, Color(1.0, 0.9, 0.6, 0.85))
@@ -405,20 +414,22 @@ class _GroundBase extends Node2D:
 			var coff := fmod(scroll, 26.0)
 			var cy := -26.0 + coff
 			while cy < vp.y + 26.0:
-				var cx := _lane_curve_x(base, cy, phase)
+				var cx := _road_center_x(base, lane, cy)
 				draw_rect(Rect2(cx - 1.0, cy, 2.0, 12.0), Color(1, 1, 1, 0.10))
 				cy += 26.0
 
 	func _draw_vertical_roads(vp: Vector2, pal: Dictionary) -> void:
 		for i in LANES.size():
-			_draw_road_ribbon(vp.x * LANES[i], LANE_PHASES[i % LANE_PHASES.size()], vp, pal)
+			_draw_road_ribbon(vp.x * LANES[i], i, vp, pal)
 
 	func _draw_block(idx: int, vp: Vector2, pal: Dictionary) -> void:
 		var by := scroll - float(idx) * BLOCK_H
 		if by > vp.y + BLOCK_H or by + BLOCK_H < -40.0:
 			return
 		var seed := idx * 7919
-		_draw_cross_road(seed, by, vp, pal)
+		# Not every block has a cross-street, so spacing varies instead of repeating.
+		if _h(seed, 3) > 0.22:
+			_draw_cross_road(seed, by, vp, pal)
 		_draw_style_decor(seed, by, vp, pal)
 		var avail := BLOCK_H - CROSS_W
 		var lot_ax := vp.x * (LANES[0] + LANES[1]) * 0.5
@@ -477,8 +488,10 @@ class _GroundBase extends Node2D:
 		draw_rect(Rect2(cx - w * 0.16, y0 + h * 0.42, w * 0.32, 20.0), Color(1, 1, 1, 0.10))
 
 	func _cross_curve_y(by: float, seed: int, x: float) -> float:
-		## Cross-streets bow gently in world space (fixed phase per block).
-		return by + sin(x * 0.0072 + _h(seed, 71) * TAU) * 9.0
+		## Cross-streets bow in world space; amplitude and phase vary per block so
+		## they don't all look identical.
+		var amp := 4.0 + _h(seed, 72) * 11.0
+		return by + sin(x * (0.0058 + _h(seed, 73) * 0.004) + _h(seed, 71) * TAU) * amp
 
 	func _draw_cross_road(seed: int, by: float, vp: Vector2, pal: Dictionary) -> void:
 		var step := 16.0
@@ -509,7 +522,7 @@ class _GroundBase extends Node2D:
 		var rc: Color = pal["road"].lightened(0.03)
 		var curb: Color = pal["ground"].darkened(0.22)
 		for i in LANES.size():
-			var cx := _lane_curve_x(vp.x * LANES[i], by + CROSS_W * 0.5, LANE_PHASES[i % LANE_PHASES.size()])
+			var cx := _road_center_x(vp.x * LANES[i], i, by + CROSS_W * 0.5)
 			var iy := _cross_curve_y(by, seed, cx)
 			for k in 4:
 				var sx := cx - ROAD_W * 0.5 + 4.0 + float(k) * (ROAD_W - 8.0) / 4.0
@@ -526,8 +539,8 @@ class _GroundBase extends Node2D:
 	func _draw_cell(seed: int, cid: int, cx: float, cy: float, row_h: float, vp: Vector2, pal: Dictionary) -> void:
 		var kinds: Array = pal["kinds"]
 		var kind: StringName = kinds[int(_h(seed, cid * 11 + 1) * float(kinds.size())) % kinds.size()]
-		var lot_w := vp.x * (LANES[1] - LANES[0]) - ROAD_W - 14.0
-		var w := lot_w * _lerp_h(seed, cid * 11 + 5, 0.5, 0.94)
+		var lot_w := vp.x * (LANES[1] - LANES[0]) - ROAD_W - 40.0
+		var w := lot_w * _lerp_h(seed, cid * 11 + 5, 0.45, 0.70)
 		var d := maxf(46.0, row_h * _lerp_h(seed, cid * 11 + 6, 0.42, 0.82))
 		var x := cx + _lerp_h(seed, cid * 11 + 8, -10.0, 10.0)
 		var y := cy + _lerp_h(seed, cid * 11 + 9, -8.0, 8.0)
@@ -562,7 +575,7 @@ class _GroundBase extends Node2D:
 			var vy := y + phd - 7.0
 			for i in 3:
 				var vk: String = ["tank", "apc", "truck", "jeep"][int(_h(seed, cid * 11 + 410 + i) * 4.0) % 4]
-				_draw_vehicle(vk, x - w * 0.30 + float(i) * 15.0, vy, 13.0, 1.0, seed + cid + i, pal)
+				_draw_vehicle(vk, x - w * 0.30 + float(i) * 15.0, vy, 13.0, seed + cid + i, pal, 0.0)
 		if _h(seed, cid * 11 + 10) > 0.6:
 			_draw_parking(x - phw, y + phd + 5.0, phw * 2.0, 24.0, seed + cid)
 
@@ -702,56 +715,71 @@ class _GroundBase extends Node2D:
 	func _draw_vehicles(vp: Vector2, pal: Dictionary) -> void:
 		for raw in _vehicles:
 			var v: Dictionary = raw
-			var x := vp.x * float(v["x"])
-			if bool(v["dir"] > 0.0):
-				x += ROAD_W * 0.22
-			else:
-				x -= ROAD_W * 0.22
-			_draw_vehicle(String(v["kind"]), x, float(v["sy"]), float(v["w"]), float(v["dir"]), int(v["seed"]), pal)
+			var lane := int(v["lane"])
+			var sy := float(v["sy"])
+			var dir := float(v["dir"])
+			var base := vp.x * LANES[lane]
+			var off := ROAD_W * 0.22 * dir
+			var x := _road_center_x(base, lane, sy) + off
+			# heading follows the highway tangent so vehicles turn with the road
+			var ahead := sy + 6.0 * dir
+			var x2 := _road_center_x(base, lane, ahead) + off
+			var ang := atan2(-(x2 - x), ahead - sy)
+			_draw_vehicle(String(v["kind"]), x, sy, float(v["w"]), int(v["seed"]), pal, ang)
 
-	# --- vehicles -----------------------------------------------------------
-	func _draw_vehicle(kind: String, x: float, y: float, w: float, dir: float, seed: int, pal: Dictionary) -> void:
+	# --- vehicles (drawn in local space, forward = +Y, then rotated to heading) --
+	func _draw_vehicle(kind: String, x: float, y: float, w: float, seed: int, pal: Dictionary, ang: float) -> void:
+		draw_set_transform(Vector2(x, y), ang, Vector2.ONE)
 		var body: Color = pal["roof"].darkened(0.16)
 		var dark: Color = pal["roof"].darkened(0.45)
 		var accent: Color = pal["accent"]
 		match kind:
 			"tank":
 				var tr := w * 0.28
-				draw_rect(Rect2(x - tr * 2.0, y - tr * 2.6, tr * 1.0, tr * 5.2), dark)
-				draw_rect(Rect2(x + tr * 1.0, y - tr * 2.6, tr * 1.0, tr * 5.2), dark)
-				draw_rect(Rect2(x - tr * 1.3, y - tr * 2.1, tr * 2.6, tr * 4.2), body)
-				draw_circle(Vector2(x, y), tr * 0.95, body.lightened(0.08))
-				draw_circle(Vector2(x, y), tr * 0.6, dark)
-				draw_line(Vector2(x, y), Vector2(x, y + dir * w * 1.15), dark.lightened(0.12), w * 0.10)
+				draw_rect(Rect2(-tr * 2.0, -tr * 2.6, tr * 1.0, tr * 5.2), dark)
+				draw_rect(Rect2(tr * 1.0, -tr * 2.6, tr * 1.0, tr * 5.2), dark)
+				draw_rect(Rect2(-tr * 1.3, -tr * 2.1, tr * 2.6, tr * 4.2), body)
+				draw_circle(Vector2.ZERO, tr * 0.95, body.lightened(0.08))
+				draw_circle(Vector2.ZERO, tr * 0.6, dark)
+				draw_line(Vector2.ZERO, Vector2(0.0, w * 1.2), dark.lightened(0.12), w * 0.10)
 			"apc":
-				draw_rect(Rect2(x - w * 0.42, y - w * 0.62, w * 0.84, w * 1.24), body)
-				draw_rect(Rect2(x - w * 0.30, y - w * 0.42, w * 0.6, w * 0.5), dark)
-				draw_circle(Vector2(x - w * 0.34, y - w * 0.3), w * 0.12, dark)
-				draw_circle(Vector2(x + w * 0.34, y - w * 0.3), w * 0.12, dark)
-				draw_circle(Vector2(x - w * 0.34, y + w * 0.3), w * 0.12, dark)
-				draw_circle(Vector2(x + w * 0.34, y + w * 0.3), w * 0.12, dark)
-				_vehicle_lights(x, y, w, dir, accent)
+				draw_rect(Rect2(-w * 0.42, -w * 0.62, w * 0.84, w * 1.24), body)
+				draw_rect(Rect2(-w * 0.30, -w * 0.34, w * 0.6, w * 0.52), dark)
+				draw_circle(Vector2(-w * 0.34, -w * 0.3), w * 0.12, dark)
+				draw_circle(Vector2(w * 0.34, -w * 0.3), w * 0.12, dark)
+				draw_circle(Vector2(-w * 0.34, w * 0.3), w * 0.12, dark)
+				draw_circle(Vector2(w * 0.34, w * 0.3), w * 0.12, dark)
+				_vehicle_lights(w, accent)
 			"truck":
-				draw_rect(Rect2(x - w * 0.34, y - w * 0.6, w * 0.68, w * 0.42), body)
-				draw_rect(Rect2(x - w * 0.30, y - w * 0.14, w * 0.6, w * 0.7), body.darkened(0.12))
-				draw_circle(Vector2(x - w * 0.3, y + w * 0.5), w * 0.12, dark)
-				draw_circle(Vector2(x + w * 0.3, y + w * 0.5), w * 0.12, dark)
-				_vehicle_lights(x, y, w, dir, accent)
+				# trailer behind, cab + windshield at the front (+Y)
+				draw_rect(Rect2(-w * 0.30, -w * 0.62, w * 0.6, w * 0.78), body.darkened(0.12))
+				draw_rect(Rect2(-w * 0.34, w * 0.16, w * 0.68, w * 0.46), body)
+				draw_rect(Rect2(-w * 0.26, w * 0.46, w * 0.52, w * 0.14), dark)
+				draw_circle(Vector2(-w * 0.3, -w * 0.42), w * 0.12, dark)
+				draw_circle(Vector2(w * 0.3, -w * 0.42), w * 0.12, dark)
+				draw_circle(Vector2(-w * 0.3, w * 0.32), w * 0.12, dark)
+				draw_circle(Vector2(w * 0.3, w * 0.32), w * 0.12, dark)
+				_vehicle_lights(w, accent)
 			_:
-				draw_rect(Rect2(x - w * 0.32, y - w * 0.5, w * 0.64, w), body)
-				draw_rect(Rect2(x - w * 0.22, y - w * 0.3, w * 0.44, w * 0.36), dark)
-				draw_circle(Vector2(x - w * 0.3, y - w * 0.28), w * 0.1, dark)
-				draw_circle(Vector2(x + w * 0.3, y - w * 0.28), w * 0.1, dark)
-				_vehicle_lights(x, y, w, dir, accent)
-		draw_circle(Vector2(x, y - dir * w * 0.9), 1.4, Color(1.0, 0.55, 0.3, 0.85))
+				draw_rect(Rect2(-w * 0.32, -w * 0.52, w * 0.64, w * 1.04), body)
+				draw_rect(Rect2(-w * 0.22, -w * 0.06, w * 0.44, w * 0.34), dark)
+				draw_circle(Vector2(-w * 0.3, -w * 0.3), w * 0.1, dark)
+				draw_circle(Vector2(w * 0.3, -w * 0.3), w * 0.1, dark)
+				draw_circle(Vector2(-w * 0.3, w * 0.3), w * 0.1, dark)
+				draw_circle(Vector2(w * 0.3, w * 0.3), w * 0.1, dark)
+				_vehicle_lights(w, accent)
+		# tail lights
+		draw_circle(Vector2(-w * 0.2, -w * 0.6), 1.2, Color(1.0, 0.35, 0.2, 0.8))
+		draw_circle(Vector2(w * 0.2, -w * 0.6), 1.2, Color(1.0, 0.35, 0.2, 0.8))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-	func _vehicle_lights(x: float, y: float, w: float, dir: float, accent: Color) -> void:
-		var hy := y - dir * w * 0.62
-		draw_circle(Vector2(x - w * 0.3, hy), 1.5, Color(1.0, 0.95, 0.7, 0.9))
-		draw_circle(Vector2(x + w * 0.3, hy), 1.5, Color(1.0, 0.95, 0.7, 0.9))
+	func _vehicle_lights(w: float, accent: Color) -> void:
+		var hy := w * 0.62
+		draw_circle(Vector2(-w * 0.3, hy), 1.5, Color(1.0, 0.95, 0.7, 0.9))
+		draw_circle(Vector2(w * 0.3, hy), 1.5, Color(1.0, 0.95, 0.7, 0.9))
 		draw_colored_polygon(PackedVector2Array([
-			Vector2(x - w * 0.45, hy), Vector2(x + w * 0.45, hy),
-			Vector2(x + w * 0.8, hy - dir * w * 2.2), Vector2(x - w * 0.8, hy - dir * w * 2.2),
+			Vector2(-w * 0.45, hy), Vector2(w * 0.45, hy),
+			Vector2(w * 0.8, hy + w * 2.2), Vector2(-w * 0.8, hy + w * 2.2),
 		]), Color(accent.r, accent.g, accent.b, 0.06))
 
 	func _draw_parking(x: float, y: float, w: float, h: float, seed: int) -> void:
