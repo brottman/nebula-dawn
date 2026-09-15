@@ -5,7 +5,6 @@ extends Node
 
 const Ships := preload("res://scripts/hangar/ship_catalog.gd")
 const MAX_WEAPON_LEVEL := 5
-const CHIPS_PER_LEVEL := 5
 const MAX_DRONES := 3
 
 const BLASTER := 0
@@ -168,33 +167,25 @@ func _hint_switch_if_ready(had: int) -> void:
 
 
 func power_up() -> void:
-	_add_chips(1)
+	_add_power(1)
 
 
-func _add_chips(count: int) -> void:
+func _add_power(count: int) -> void:
+	## One Power pickup = one unit; five units = MAX (weapon_level 1..5).
 	if count <= 0:
 		return
 	if ship.weapon_level >= MAX_WEAPON_LEVEL:
-		ship.chip_progress = CHIPS_PER_LEVEL
 		GameState.add_score(150 * count)
 		EventBus.gimmick_toast.emit("POWER MAX")
 		emit_changed()
 		return
-	for _i in count:
-		ship.chip_progress += 1
-		if ship.chip_progress >= CHIPS_PER_LEVEL:
-			ship.chip_progress = 0
-			ship.weapon_level = mini(MAX_WEAPON_LEVEL, ship.weapon_level + 1)
-			note_peak_loadout()
-			GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
-			if ship.weapon_level >= MAX_WEAPON_LEVEL:
-				ship.chip_progress = CHIPS_PER_LEVEL
-				EventBus.gimmick_toast.emit("POWER  MAX")
-				break
-			EventBus.gimmick_toast.emit("POWER  Lv%d" % ship.weapon_level)
-		else:
-			EventBus.gimmick_toast.emit("POWER  %d/%d" % [ship.chip_progress, CHIPS_PER_LEVEL])
+	ship.weapon_level = mini(MAX_WEAPON_LEVEL, ship.weapon_level + count)
 	note_peak_loadout()
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
+	if ship.weapon_level >= MAX_WEAPON_LEVEL:
+		EventBus.gimmick_toast.emit("POWER  MAX")
+	else:
+		EventBus.gimmick_toast.emit("POWER  %d/%d" % [ship.weapon_level, MAX_WEAPON_LEVEL])
 	emit_changed()
 
 
@@ -202,11 +193,7 @@ func note_peak_loadout() -> void:
 	if ship.weapon == BLASTER:
 		return
 	ship._life_peak_weapon = ship.weapon
-	if ship.weapon_level > ship._life_peak_level:
-		ship._life_peak_level = ship.weapon_level
-		ship._life_peak_chips = ship.chip_progress
-	elif ship.weapon_level == ship._life_peak_level:
-		ship._life_peak_chips = maxi(ship._life_peak_chips, ship.chip_progress)
+	ship._life_peak_level = maxi(int(ship._life_peak_level), int(ship.weapon_level))
 
 
 func add_drone() -> void:
@@ -256,39 +243,40 @@ func extinguish_laser() -> void:
 
 func reset_weapon() -> void:
 	_unlocked.clear()
-	if ship.weapon == BLASTER and ship.weapon_level == 1 and ship.chip_progress == 0:
+	if ship.weapon == BLASTER and ship.weapon_level == 1:
 		emit_changed()
 		return
 	ship.weapon = BLASTER
 	ship.weapon_level = 1
-	ship.chip_progress = 0
 	emit_changed()
 
 
 func restore_on_respawn(floor_lv: int) -> void:
 	## Campaign respawns restart from the base weapon at the mission power
 	## floor — death costs you your color weapon.
-	ship.chip_progress = 0
 	_unlocked.clear()
 	ship.weapon = BLASTER
 	ship.weapon_level = clampi(floor_lv, 1, MAX_WEAPON_LEVEL)
-	if ship.weapon_level >= MAX_WEAPON_LEVEL:
-		ship.chip_progress = CHIPS_PER_LEVEL
 
 
 func apply_power_orb(amount: float) -> void:
+	## Volcano orbs restore power units toward this life's peak.
 	if amount <= 0.0:
 		return
-	var chips: int = maxi(1, int(round(amount)))
-	var peak_total: int = (int(ship._life_peak_level) - 1) * CHIPS_PER_LEVEL + int(ship._life_peak_chips)
-	var cur_chips: int = int(ship.chip_progress) if int(ship.weapon_level) < MAX_WEAPON_LEVEL else CHIPS_PER_LEVEL
-	var cur_total: int = (int(ship.weapon_level) - 1) * CHIPS_PER_LEVEL + cur_chips
-	var room: int = maxi(0, peak_total - cur_total)
-	if room <= 0:
+	var units := maxi(1, int(round(amount)))
+	var peak := maxi(int(ship._life_peak_level), int(ship.weapon_level))
+	if int(ship.weapon_level) >= peak:
 		GameState.add_score(80)
 		emit_changed()
 		return
-	_add_chips(mini(chips, room))
+	ship.weapon_level = mini(peak, int(ship.weapon_level) + units)
+	note_peak_loadout()
+	GameState.run_max_weapon_level = maxi(GameState.run_max_weapon_level, ship.weapon_level)
+	if ship.weapon_level >= MAX_WEAPON_LEVEL:
+		EventBus.gimmick_toast.emit("POWER  MAX")
+	else:
+		EventBus.gimmick_toast.emit("POWER  %d/%d" % [ship.weapon_level, MAX_WEAPON_LEVEL])
+	emit_changed()
 
 
 func emit_changed() -> void:
@@ -305,11 +293,9 @@ func emit_changed() -> void:
 		extras_parts.append("WEP×%d" % _unlocked.size())
 	parts.append_array(extras_parts)
 	EventBus.weapon_changed.emit("  ".join(parts))
-	var chips: int = ship.chip_progress
-	var needed := CHIPS_PER_LEVEL
-	if ship.weapon_level >= MAX_WEAPON_LEVEL:
-		chips = CHIPS_PER_LEVEL
-	EventBus.weapon_tier_changed.emit(slot, ship.weapon_level, chips, needed, "  ".join(extras_parts))
+	# Bar shows power units (1..5), matching the pickup toast exactly.
+	var units: int = clampi(int(ship.weapon_level), 0, MAX_WEAPON_LEVEL)
+	EventBus.weapon_tier_changed.emit(slot, units, units, MAX_WEAPON_LEVEL, "  ".join(extras_parts))
 
 
 func _shoot() -> void:

@@ -3,7 +3,6 @@ extends Node
 ## Hull, lives, shields, bombs, death/respawn, Overdrive, and zone status.
 ## Public ship API still lives on the player; this node owns survival logic.
 
-const CHIPS_PER_LEVEL := 5
 const MAX_SHIELD_CHARGES := 2
 const MAX_BOMB_STOCK := 3
 const START_LIVES := 3
@@ -110,13 +109,11 @@ func take_damage(amount: int) -> void:
 		AudioBus.play_player_hurt()
 		EventBus.screen_shake.emit(4.0, 0.12)
 		EventBus.gimmick_toast.emit("SHIELD BREAK" if ship.shield_charges <= 0 else "SHIELD  ×%d" % ship.shield_charges)
-		ship.weapons.lose_drone()
 		return
 	if ship.hp - amount <= 0:
 		if ship.bomb_stock > 0:
 			ship.hp = 0
 			EventBus.player_hp_changed.emit(ship.hp, ship.max_hp)
-			ship.weapons.lose_drone()
 			ship._death_bomb_time = DEATH_BOMB_WINDOW
 			ship.invuln_time = DEATH_BOMB_WINDOW
 			EventBus.gimmick_toast.emit("DEATH BOMB!")
@@ -126,10 +123,9 @@ func take_damage(amount: int) -> void:
 		EventBus.player_hp_changed.emit(ship.hp, ship.max_hp)
 		confirm_death()
 		return
+	# A hull hit only costs a heart — weapon, power and drones are unaffected.
 	ship.hp = maxi(0, ship.hp - amount)
-	ship.weapons.lose_drone()
-	ship.weapons.reset_weapon()
-	ship.invuln_time = 1.35
+	ship.invuln_time = float(ship.hurt_invuln)
 	ship._flash_timer = 0.2
 	EventBus.player_hull_hit.emit()
 	AudioBus.play_player_hurt()
@@ -288,23 +284,18 @@ func spawn_volcano_drop_now() -> void:
 	if scene == null:
 		return
 	var floor_lv: int = GameState.get_power_floor()
-	var peak_chips: int = (int(ship._life_peak_level) - 1) * CHIPS_PER_LEVEL + int(ship._life_peak_chips)
-	var floor_chips: int = (floor_lv - 1) * CHIPS_PER_LEVEL
-	var lost: int = maxi(0, peak_chips - floor_chips)
-	var restore_pool: int = maxi(2, int(round(float(lost) * randf_range(0.50, 0.75))))
+	var peak_lv: int = maxi(int(ship._life_peak_level), floor_lv)
 	var count: int = randi_range(3, 4)
-	var base: int = int(restore_pool / count)
-	var rem: int = restore_pool % count
 	for i in count:
 		var p: Node = scene.instantiate()
 		host.add_child(p)
 		var ang := -PI * 0.5 + lerpf(-0.85, 0.85, float(i) / float(maxi(count - 1, 1)))
 		var burst := Vector2(cos(ang), sin(ang)) * randf_range(36.0, 68.0)
 		p.global_position = ship.global_position + burst
-		var chips_here := float(base + (1 if i < rem else 0))
 		if p.has_method("set_volcano"):
 			p.set_volcano(true)
 		if p.has_method("setup"):
 			p.setup("power_orb")
-		p.orb_restore = maxf(1.0, chips_here)
+		# Each orb restores one power unit toward this life's peak.
+		p.orb_restore = 1.0 if peak_lv > floor_lv else 0.0
 		p.fall_speed = 38.0

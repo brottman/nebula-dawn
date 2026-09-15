@@ -68,7 +68,7 @@ Top-center weapon module:
 [■][■][■][□][□]           3/5 POWER
 ```
 
-Badge color = weapon family. Segments show Power banked toward the next tier (instant “I need 2 more”).
+Badge color = weapon family. Segments show the shared **Power** level (1–5); 5/5 = MAX. Every ship carries the same **3 hearts** — damage only costs a heart.
 
 ## Color weapons + universal power
 
@@ -80,11 +80,15 @@ Weapon type and power level are independent:
 | **Blue** | Laser | Solid piercing column | Wider column + armor pierce | Mega column + melt ticks |
 | **Green** | Homing | 2 slow rockets | 4 fast micro-missiles | 6 rapid + splash |
 
-**Gold Power** pickups fill 5 segments toward the next shared tier (Lv1 → Lv2 → Lv3 / MAX), including while you are on Blaster. Color pickups unlock that family for the life; **Q / Tab / X / WEP** cycles among unlocked colors (shared tier stays). Same-color pickups — or a color you already unlocked — also bank Power. Hull hits drop you to Blaster and clear the rack.
+**Gold Power** pickups each fill **one of 5 power units** — 5/5 = MAX (Lv1 → Lv5). Power is shared across colors, including while you are on Blaster. Color pickups unlock that family for the life; **Q / Tab / X / WEP** cycles among unlocked colors (shared power stays). Same-color pickups — or a color you already unlocked — also add a Power unit. Hull hits cost **one heart only**; they never touch your weapon, power or drones.
+
+### Health
+
+Every ship has **3 hearts**. A hull hit removes one heart; at zero hearts the ship is lost. The Hull hangar upgrade lengthens post-hit invulnerability rather than adding hearts.
 
 ### Recovery on death
 
-- **Volcano Drop:** 3–4 large Power Orbs scatter on ship loss; collect during respawn invuln to rebuild ~50–75% of peak power.
+- **Volcano Drop:** 3–4 large Power Orbs scatter on ship loss; each orb restores **one power unit** toward this life's peak. Collect during respawn invuln to rebuild your level.
 - **Power Floor:** Stages 1–3 → respawn Lv1; 4–5 → Lv2; EX 6–10 → Lv2 + Bomb or Shield charge.
 - **Death-Bomb:** ~0.25s panic window on lethal damage — spend a stocked bomb to cancel death and clear the screen.
 

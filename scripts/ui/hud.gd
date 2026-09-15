@@ -6,10 +6,9 @@ extends CanvasLayer
 
 const CHIP_EMPTY := Color(0.18, 0.22, 0.32, 1.0)
 const CHIP_MAX := Color(1.0, 0.82, 0.35, 1.0)
-const HEALTH_FILLED := Color(0.45, 0.95, 0.65, 1.0)
-const HEALTH_MID := Color(1.0, 0.82, 0.35, 1.0)
-const HEALTH_LOW := Color(1.0, 0.35, 0.35, 1.0)
-const HEALTH_EMPTY := Color(0.14, 0.18, 0.28, 1.0)
+const HEART_FULL := Color(1.0, 0.28, 0.34, 1.0)
+const HEART_LOW := Color(1.0, 0.55, 0.20, 1.0)
+const HEART_EMPTY := Color(0.24, 0.26, 0.34, 1.0)
 const SLOT_COLOR := {
 	"BLASTER": Color(0.78, 0.84, 0.95, 1.0),
 	"SPREAD": Color(1.0, 0.4, 0.34, 1.0),
@@ -50,7 +49,7 @@ const SLOT_TITLE := {
 
 var _bombs: int = 0
 var _chips: Array[ColorRect] = []
-var _health_segs: Array[ColorRect] = []
+var _hearts: Array[TextureRect] = []
 
 
 func _ready() -> void:
@@ -58,8 +57,8 @@ func _ready() -> void:
 		if child is ColorRect:
 			_chips.append(child)
 	for child in health_row.get_children():
-		if child is ColorRect:
-			_health_segs.append(child)
+		if child is TextureRect:
+			_hearts.append(child)
 	boss_bar.visible = false
 	boss_label.visible = false
 	pickup_toast.visible = false
@@ -170,24 +169,12 @@ func _on_bombs(bombs: int) -> void:
 
 
 func _on_hp(current: int, maximum: int) -> void:
-	var total := maxi(_health_segs.size(), 1)
-	var filled := clampi(current, 0, total)
-	for i in _health_segs.size():
-		var seg: ColorRect = _health_segs[i]
-		if i >= maximum:
-			seg.visible = false
-			continue
-		seg.visible = true
-		if i < filled:
-			var ratio := float(filled) / float(maximum) if maximum > 0 else 0.0
-			if ratio <= 0.2:
-				seg.color = HEALTH_LOW
-			elif ratio <= 0.4:
-				seg.color = HEALTH_MID
-			else:
-				seg.color = HEALTH_FILLED
-		else:
-			seg.color = HEALTH_EMPTY
+	var filled := clampi(current, 0, _hearts.size())
+	var full_color := HEART_FULL if filled > 1 else HEART_LOW
+	for i in _hearts.size():
+		var heart: TextureRect = _hearts[i]
+		heart.visible = i < maximum
+		heart.modulate = full_color if i < filled else HEART_EMPTY
 
 
 func _on_lives(lives: int) -> void:

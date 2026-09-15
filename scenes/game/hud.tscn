@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://hud001"]
+[gd_scene load_steps=8 format=3 uid="uid://hud001"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui_heart.svg" id="2_heart"]
 
 [sub_resource type="StyleBoxFlat" id="HealthBarBg"]
 bg_color = Color(0.02, 0.04, 0.08, 0.7)
@@ -149,35 +150,29 @@ mouse_filter = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Seg0" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
-custom_minimum_size = Vector2(18, 12)
+[node name="Heart0" type="TextureRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(17, 16)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.45, 0.95, 0.65, 1)
+texture = ExtResource("2_heart")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Seg1" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
-custom_minimum_size = Vector2(18, 12)
+[node name="Heart1" type="TextureRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(17, 16)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.45, 0.95, 0.65, 1)
+texture = ExtResource("2_heart")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Seg2" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
-custom_minimum_size = Vector2(18, 12)
+[node name="Heart2" type="TextureRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
+custom_minimum_size = Vector2(17, 16)
 layout_mode = 2
 mouse_filter = 2
-color = Color(0.45, 0.95, 0.65, 1)
-
-[node name="Seg3" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
-custom_minimum_size = Vector2(18, 12)
-layout_mode = 2
-mouse_filter = 2
-color = Color(0.45, 0.95, 0.65, 1)
-
-[node name="Seg4" type="ColorRect" parent="Root/TopBar/Margin/Row/Left/HealthRow"]
-custom_minimum_size = Vector2(18, 12)
-layout_mode = 2
-mouse_filter = 2
-color = Color(0.45, 0.95, 0.65, 1)
+texture = ExtResource("2_heart")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Center" type="VBoxContainer" parent="Root/TopBar/Margin/Row"]
 layout_mode = 2

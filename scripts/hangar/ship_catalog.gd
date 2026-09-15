@@ -15,14 +15,17 @@ const UPGRADE_LABELS := {
 	"core": "Core",
 }
 const UPGRADE_HINTS := {
-	"hull": "+1 HP per rank",
+	"hull": "+0.15s hit invulnerability per rank",
 	"thrust": "+5% speed per rank",
 	"cannon": "+8% damage per rank",
 	"core": "+4% fire rate per rank",
 }
 
-const MAX_HP_CAP := 5
-const HULL_HP_PER_RANK := 1
+## Every ship has the same 3 hearts; the Hull upgrade buys longer i-frames
+## after a hit instead of extra hearts.
+const PLAYER_MAX_HP := 3
+const BASE_HURT_INVULN := 1.35
+const HURT_INVULN_PER_RANK := 0.15
 const THRUST_PER_RANK := 0.05
 const CANNON_PER_RANK := 0.08
 const CORE_PER_RANK := 0.04
@@ -120,7 +123,8 @@ static func resolve(ship_id: String, ranks: Dictionary = {}) -> Dictionary:
 		"cost": int(def["cost"]),
 		"sprite": String(def["sprite"]),
 		"tint": def["tint"],
-		"max_hp": mini(MAX_HP_CAP, int(def["max_hp"]) + hull * HULL_HP_PER_RANK),
+		"max_hp": PLAYER_MAX_HP,
+		"hurt_invuln": BASE_HURT_INVULN + float(hull) * HURT_INVULN_PER_RANK,
 		"move_speed": float(def["move_speed"]) * (1.0 + THRUST_PER_RANK * float(thrust)),
 		"fire_cooldown": maxf(MIN_FIRE_COOLDOWN, cooldown),
 		"bullet_damage": float(def["bullet_damage"]) * (1.0 + CANNON_PER_RANK * float(cannon)),
@@ -141,8 +145,8 @@ static func stats_text(spec: Dictionary) -> String:
 	if shields > 0:
 		extras.append("Shield ×%d" % shields)
 	var extra := "   ·   " + "  ".join(extras) if not extras.is_empty() else ""
-	return "HP %d    SPD %d    DMG %.2f    ROF %.2fs\nLives ×%d%s" % [
-		int(spec.get("max_hp", 5)),
+	return "HEARTS ×%d    SPD %d    DMG %.2f    ROF %.2fs\nLives ×%d%s" % [
+		int(spec.get("max_hp", PLAYER_MAX_HP)),
 		int(round(float(spec.get("move_speed", 310.0)))),
 		float(spec.get("bullet_damage", 1.0)),
 		float(spec.get("fire_cooldown", BASE_FIRE_COOLDOWN)),

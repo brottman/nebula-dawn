@@ -38,21 +38,27 @@ func _run() -> void:
 		push_error("spread pickup did not select Spread")
 		quit(1)
 		return
-	for _i in 5:
-		player.call("apply_pickup", "pchip")
+	# One Power pickup = one unit; five units = MAX.
+	player.call("apply_pickup", "pchip")
 	if int(player.weapon_level) != 2:
-		push_error("5 Power pickups should reach Lv2, got %s" % player.weapon_level)
+		push_error("one Power pickup should reach Lv2, got %s" % player.weapon_level)
+		quit(1)
+		return
+	for _i in 3:
+		player.call("apply_pickup", "pchip")
+	if int(player.weapon_level) != 5:
+		push_error("four Power pickups should reach Lv5 (MAX), got %s" % player.weapon_level)
 		quit(1)
 		return
 
+	var hp_before_hit := int(player.hp)
 	player.call("take_damage", 1)
-	if int(player.weapon) != 0:
-		push_error("hull hit should reset to Blaster")
+	if int(player.hp) != hp_before_hit - 1:
+		push_error("hull hit should cost exactly one heart (%d -> %d)" % [hp_before_hit, player.hp])
 		quit(1)
 		return
-	player.call("apply_pickup", "pchip")
-	if int(player.chip_progress) != 1:
-		push_error("Power chip on Blaster should fill the bar, got %s" % player.chip_progress)
+	if int(player.weapon) != 1 or int(player.weapon_level) != 5:
+		push_error("hull hit must not change weapon/power (w=%s lv=%s)" % [player.weapon, player.weapon_level])
 		quit(1)
 		return
 
@@ -119,14 +125,14 @@ func _run() -> void:
 		push_error("cycle from Spread should return to Laser, got %s" % player.weapon)
 		quit(1)
 		return
-	var chips_before := int(player.chip_progress)
+	var lv_before := int(player.weapon_level)
 	player.call("apply_pickup", "spread")
 	if int(player.weapon) != 1:
 		push_error("owned Spread pickup should switch back to Spread")
 		quit(1)
 		return
-	if int(player.chip_progress) != chips_before + 1:
-		push_error("owned color pickup should bank Power, got %s" % player.chip_progress)
+	if int(player.weapon_level) != mini(5, lv_before + 1):
+		push_error("owned color pickup should bank one Power unit, got %s" % player.weapon_level)
 		quit(1)
 		return
 	player.get("weapons").call("reset_weapon")
@@ -135,7 +141,7 @@ func _run() -> void:
 		quit(1)
 		return
 	if bool(player.call("cycle_weapon")):
-		push_error("cycle_weapon should fail after hull-reset")
+		push_error("cycle_weapon should fail after reset_weapon")
 		quit(1)
 		return
 

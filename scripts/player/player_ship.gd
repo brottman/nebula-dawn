@@ -12,23 +12,23 @@ const GRAZE_RADIUS := 30.0
 enum Weapon { BLASTER, VULCAN, LASER, HOMING }
 
 @export var move_speed: float = 310.0
-@export var max_hp: int = 5
+@export var max_hp: int = 3
 @export var fire_cooldown: float = 0.16
 @export var bullet_speed: float = 560.0
 @export var bullet_damage: float = 1.0
 
-var hp: int = 5
+var hp: int = 3
 var invuln_time: float = 0.0
+## Post-hit invulnerability window (Hull upgrade stretches this).
+var hurt_invuln: float = 1.35
 var shield_charges: int = 0
 var bomb_stock: int = 0
 var lives: int = 3
 var rapid_time: float = 0.0
 var weapon: int = Weapon.BLASTER
 var weapon_level: int = 1
-var chip_progress: int = 0
 var _life_peak_weapon: int = Weapon.BLASTER
 var _life_peak_level: int = 1
-var _life_peak_chips: int = 0
 var _death_bomb_time: float = 0.0
 var _respawning: bool = false
 var drone_count: int = 0
@@ -96,7 +96,8 @@ func _ready() -> void:
 
 func apply_hangar_loadout() -> void:
 	var spec: Dictionary = GameState.get_active_loadout()
-	max_hp = int(spec.get("max_hp", 5))
+	max_hp = int(spec.get("max_hp", 3))
+	hurt_invuln = float(spec.get("hurt_invuln", 1.35))
 	move_speed = float(spec.get("move_speed", 310.0))
 	fire_cooldown = float(spec.get("fire_cooldown", 0.16))
 	bullet_speed = float(spec.get("bullet_speed", 560.0))
@@ -434,7 +435,7 @@ func apply_pickup(kind: String) -> void:
 		"power", "pchip", "p-chip", "gold":
 			weapons.power_up()
 		"power_orb", "orb":
-			weapons.apply_power_orb(2.0)
+			weapons.apply_power_orb(1.0)
 		"option", "bit", "drone":
 			weapons.add_drone()
 		"shield", "barrier":
