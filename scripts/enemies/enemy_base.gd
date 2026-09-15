@@ -306,14 +306,14 @@ func _sprite_path_for(s: EnemyStats) -> String:
 	if s.is_boss:
 		var arch := String(s.boss_archetype)
 		if s.is_mid_boss:
-			if MID_SPRITE_PATHS.has(arch) and FileAccess.file_exists(MID_SPRITE_PATHS[arch]):
+			if MID_SPRITE_PATHS.has(arch) and ResourceLoader.exists(MID_SPRITE_PATHS[arch]):
 				return MID_SPRITE_PATHS[arch]
 			return SPRITE_PATHS["mid_boss"]
-		if BOSS_SPRITE_PATHS.has(arch) and FileAccess.file_exists(BOSS_SPRITE_PATHS[arch]):
+		if BOSS_SPRITE_PATHS.has(arch) and ResourceLoader.exists(BOSS_SPRITE_PATHS[arch]):
 			return BOSS_SPRITE_PATHS[arch]
 		return SPRITE_PATHS["boss"]
 	var key := String(s.enemy_id)
-	if SPRITE_PATHS.has(key) and FileAccess.file_exists(SPRITE_PATHS[key]):
+	if SPRITE_PATHS.has(key) and ResourceLoader.exists(SPRITE_PATHS[key]):
 		return SPRITE_PATHS[key]
 	return SPRITE_PATHS["scout"]
 

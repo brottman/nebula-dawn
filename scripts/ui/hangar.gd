@@ -92,7 +92,7 @@ func _refresh_detail() -> void:
 	else:
 		portrait.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	var path := String(spec.get("sprite", "res://assets/sprites/player_ship.svg"))
-	if FileAccess.file_exists(path):
+	if ResourceLoader.exists(path):
 		portrait.texture = load(path) as Texture2D
 	if GameState.is_ship_owned(_preview_id):
 		if _preview_id == GameState.selected_ship_id:
