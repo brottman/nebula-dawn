@@ -24,6 +24,7 @@ boss_archetype = &"fabrication"
 script = ExtResource("1_a8bvl")
 enemy_id = &"drone"
 display_name = "Repair Drone"
+max_hp = 1.0
 move_speed = 136.4
 score_value = 160
 fire_interval = 2.8
@@ -36,10 +37,10 @@ size = Vector2(44, 44)
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 position = Vector2(240, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"v"
-pattern_spread = 70.0
+pattern_spread = 52.5
 
 [sub_resource type="Resource" id="Resource_gxu35"]
 script = ExtResource("1_a8bvl")
@@ -54,15 +55,14 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.2
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
-pattern_spread = 56.0
+count = 7
+pattern_spread = 40.0
 
 [sub_resource type="Resource" id="Resource_nykvp"]
 script = ExtResource("1_a8bvl")
 enemy_id = &"strafer"
 display_name = "Heavy Turret"
-max_hp = 4.0
+max_hp = 3.0
 move_speed = 49.6
 score_value = 240
 fire_interval = 2.4
@@ -76,28 +76,28 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 delay = 1.3
 position = Vector2(240, -55)
-count = 3
-spacing = Vector2(56, 0)
-pattern_spread = 110.0
+count = 4
+spacing = Vector2(42, 0)
+pattern_spread = 82.5
 
 [sub_resource type="Resource" id="Resource_vnlig"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.2
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"arc"
-pattern_spread = 58.0
+pattern_spread = 38.666666666666664
 
 [sub_resource type="Resource" id="Resource_wrkn4"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.3
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"wave"
+pattern_spread = 37.142857142857146
 
 [sub_resource type="Resource" id="Resource_5tfa8"]
 script = ExtResource("3_gb51w")
@@ -110,47 +110,46 @@ max_clear_time = 14.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 position = Vector2(240, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"v"
-pattern_spread = 70.0
+pattern_spread = 52.5
 
 [sub_resource type="Resource" id="Resource_jly5w"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.2
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
-pattern_spread = 56.0
+count = 7
+pattern_spread = 40.0
 
 [sub_resource type="Resource" id="Resource_e3k5p"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 delay = 1.3
 position = Vector2(240, -55)
-count = 3
-spacing = Vector2(56, 0)
-pattern_spread = 110.0
+count = 4
+spacing = Vector2(42, 0)
+pattern_spread = 82.5
 
 [sub_resource type="Resource" id="Resource_qfuaa"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.2
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"arc"
-pattern_spread = 58.0
+pattern_spread = 38.666666666666664
 
 [sub_resource type="Resource" id="Resource_3au5e"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.3
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"wave"
+pattern_spread = 37.142857142857146
 
 [sub_resource type="Resource" id="Resource_ndhxo"]
 script = ExtResource("3_gb51w")
@@ -179,39 +178,39 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"diamond"
+pattern_spread = 34.666666666666664
 
 [sub_resource type="Resource" id="Resource_fexku"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.2
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"box"
-pattern_spread = 48.0
+pattern_spread = 34.285714285714285
 
 [sub_resource type="Resource" id="Resource_urjph"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.2
 position = Vector2(100, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_f2jno"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.3
 position = Vector2(380, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_g4gr5"]
 script = ExtResource("3_gb51w")
@@ -240,39 +239,39 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"diamond"
+pattern_spread = 34.666666666666664
 
 [sub_resource type="Resource" id="Resource_akg46"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.2
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"box"
-pattern_spread = 48.0
+pattern_spread = 34.285714285714285
 
 [sub_resource type="Resource" id="Resource_20uph"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.2
 position = Vector2(380, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_djavh"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.3
 position = Vector2(100, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_pa5xy"]
 script = ExtResource("3_gb51w")
@@ -285,58 +284,58 @@ max_clear_time = 14.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 position = Vector2(240, -55)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"arc"
-pattern_spread = 90.0
+pattern_spread = 67.5
 
 [sub_resource type="Resource" id="Resource_mxffi"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"diamond"
+pattern_spread = 34.666666666666664
 
 [sub_resource type="Resource" id="Resource_wkkrj"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.0
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"box"
-pattern_spread = 48.0
+pattern_spread = 34.285714285714285
 
 [sub_resource type="Resource" id="Resource_a6n8t"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 delay = 1.2
 position = Vector2(240, -50)
-count = 2
-spacing = Vector2(56, 0)
-pattern_spread = 140.0
+count = 3
+spacing = Vector2(37.333336, 0)
+pattern_spread = 93.33333333333333
 
 [sub_resource type="Resource" id="Resource_o1r6g"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.0
 position = Vector2(100, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_gw53i"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.3
 position = Vector2(380, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_unxua"]
 script = ExtResource("3_gb51w")
@@ -349,58 +348,58 @@ max_clear_time = 16.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 position = Vector2(240, -55)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"arc"
-pattern_spread = 90.0
+pattern_spread = 67.5
 
 [sub_resource type="Resource" id="Resource_cdif0"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"diamond"
+pattern_spread = 34.666666666666664
 
 [sub_resource type="Resource" id="Resource_5gemo"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.0
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"box"
-pattern_spread = 48.0
+pattern_spread = 34.285714285714285
 
 [sub_resource type="Resource" id="Resource_15hxo"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 delay = 1.2
 position = Vector2(240, -50)
-count = 2
-spacing = Vector2(56, 0)
-pattern_spread = 140.0
+count = 3
+spacing = Vector2(37.333336, 0)
+pattern_spread = 93.33333333333333
 
 [sub_resource type="Resource" id="Resource_wbu2b"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.0
 position = Vector2(380, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_s08yq"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.3
 position = Vector2(100, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 28.5
 
 [sub_resource type="Resource" id="Resource_u3j76"]
 script = ExtResource("3_gb51w")
@@ -437,40 +436,39 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(240, -50)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"v"
-pattern_spread = 50.0
+pattern_spread = 35.714285714285715
 
 [sub_resource type="Resource" id="Resource_bsaac"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.1
 position = Vector2(240, -55)
-count = 6
-spacing = Vector2(56, 0)
+count = 8
+spacing = Vector2(42, 0)
 pattern = &"wave"
-pattern_spread = 48.0
+pattern_spread = 36.0
 
 [sub_resource type="Resource" id="Resource_8fjkk"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(90, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 40.0
+pattern_spread = 30.0
 
 [sub_resource type="Resource" id="Resource_spy5s"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.2
 position = Vector2(390, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 40.0
+pattern_spread = 30.0
 
 [sub_resource type="Resource" id="Resource_syhrd"]
 script = ExtResource("3_gb51w")
@@ -507,40 +505,39 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(240, -50)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"v"
-pattern_spread = 50.0
+pattern_spread = 35.714285714285715
 
 [sub_resource type="Resource" id="Resource_f7r8g"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.1
 position = Vector2(240, -55)
-count = 6
-spacing = Vector2(56, 0)
+count = 8
+spacing = Vector2(42, 0)
 pattern = &"wave"
-pattern_spread = 48.0
+pattern_spread = 36.0
 
 [sub_resource type="Resource" id="Resource_a38ca"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.1
 position = Vector2(390, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 40.0
+pattern_spread = 30.0
 
 [sub_resource type="Resource" id="Resource_tstjc"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.2
 position = Vector2(90, -50)
-count = 3
-spacing = Vector2(56, 0)
+count = 4
+spacing = Vector2(42, 0)
 pattern = &"column"
-pattern_spread = 40.0
+pattern_spread = 30.0
 
 [sub_resource type="Resource" id="Resource_eapnr"]
 script = ExtResource("3_gb51w")
@@ -582,29 +579,28 @@ max_clear_time = 0.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 position = Vector2(240, -55)
-count = 3
-spacing = Vector2(56, 0)
-pattern_spread = 120.0
+count = 4
+spacing = Vector2(42, 0)
+pattern_spread = 90.0
 
 [sub_resource type="Resource" id="Resource_11xkf"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.0
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"arc"
-pattern_spread = 56.0
+pattern_spread = 37.33333333333333
 
 [sub_resource type="Resource" id="Resource_worv0"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.1
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"inv_v"
-pattern_spread = 54.0
+pattern_spread = 38.57142857142857
 
 [sub_resource type="Resource" id="Resource_vns6l"]
 script = ExtResource("4_ufb2g")
@@ -627,9 +623,10 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.2
 position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"cross"
+pattern_spread = 34.666666666666664
 
 [sub_resource type="Resource" id="Resource_i557o"]
 script = ExtResource("3_gb51w")
@@ -642,29 +639,28 @@ max_clear_time = 16.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 position = Vector2(240, -55)
-count = 3
-spacing = Vector2(56, 0)
-pattern_spread = 120.0
+count = 4
+spacing = Vector2(42, 0)
+pattern_spread = 90.0
 
 [sub_resource type="Resource" id="Resource_2g7f0"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.0
 position = Vector2(240, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"arc"
-pattern_spread = 56.0
+pattern_spread = 37.33333333333333
 
 [sub_resource type="Resource" id="Resource_xwhgt"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.1
 position = Vector2(240, -55)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"inv_v"
-pattern_spread = 54.0
+pattern_spread = 38.57142857142857
 
 [sub_resource type="Resource" id="Resource_7e8np"]
 script = ExtResource("4_ufb2g")
@@ -687,9 +683,10 @@ script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 1.2
 position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"cross"
+pattern_spread = 34.666666666666664
 
 [sub_resource type="Resource" id="Resource_t2w10"]
 script = ExtResource("3_gb51w")
@@ -702,68 +699,68 @@ max_clear_time = 16.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"cross"
-pattern_spread = 70.0
+pattern_spread = 46.666666666666664
 
 [sub_resource type="Resource" id="Resource_4nyfj"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.9
 position = Vector2(240, -50)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"v"
-pattern_spread = 50.0
+pattern_spread = 35.714285714285715
 
 [sub_resource type="Resource" id="Resource_2h5np"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.0
 position = Vector2(240, -55)
-count = 7
-spacing = Vector2(56, 0)
+count = 10
+spacing = Vector2(39.2, 0)
 pattern = &"wave"
-pattern_spread = 46.0
+pattern_spread = 32.199999999999996
 
 [sub_resource type="Resource" id="Resource_tu1s5"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 delay = 1.1
 position = Vector2(240, -50)
-count = 3
-spacing = Vector2(56, 0)
-pattern_spread = 120.0
+count = 4
+spacing = Vector2(42, 0)
+pattern_spread = 90.0
 
 [sub_resource type="Resource" id="Resource_7vik8"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.9
 position = Vector2(90, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 25.333333333333332
 
 [sub_resource type="Resource" id="Resource_d1d2m"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.2
 position = Vector2(390, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 25.333333333333332
 
 [sub_resource type="Resource" id="Resource_8lgge"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.1
 position = Vector2(240, -55)
-count = 6
-spacing = Vector2(56, 0)
+count = 8
+spacing = Vector2(42, 0)
 pattern = &"inv_v"
+pattern_spread = 39.0
 
 [sub_resource type="Resource" id="Resource_r0eni"]
 script = ExtResource("4_ufb2g")
@@ -792,68 +789,68 @@ max_clear_time = 20.0
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 position = Vector2(240, -55)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"cross"
-pattern_spread = 70.0
+pattern_spread = 46.666666666666664
 
 [sub_resource type="Resource" id="Resource_lyni8"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.9
 position = Vector2(240, -50)
-count = 5
-spacing = Vector2(56, 0)
+count = 7
 pattern = &"v"
-pattern_spread = 50.0
+pattern_spread = 35.714285714285715
 
 [sub_resource type="Resource" id="Resource_hrx8g"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.0
 position = Vector2(240, -55)
-count = 7
-spacing = Vector2(56, 0)
+count = 10
+spacing = Vector2(39.2, 0)
 pattern = &"wave"
-pattern_spread = 46.0
+pattern_spread = 32.199999999999996
 
 [sub_resource type="Resource" id="Resource_3s8n1"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_nykvp")
 delay = 1.1
 position = Vector2(240, -50)
-count = 3
-spacing = Vector2(56, 0)
-pattern_spread = 120.0
+count = 4
+spacing = Vector2(42, 0)
+pattern_spread = 90.0
 
 [sub_resource type="Resource" id="Resource_k8r08"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.9
 position = Vector2(390, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 25.333333333333332
 
 [sub_resource type="Resource" id="Resource_2as8v"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_ys75u")
 delay = 0.2
 position = Vector2(90, -50)
-count = 4
-spacing = Vector2(56, 0)
+count = 6
+spacing = Vector2(37.333336, 0)
 pattern = &"column"
-pattern_spread = 38.0
+pattern_spread = 25.333333333333332
 
 [sub_resource type="Resource" id="Resource_qnbj5"]
 script = ExtResource("4_ufb2g")
 enemy = SubResource("Resource_gxu35")
 delay = 1.1
 position = Vector2(240, -55)
-count = 6
-spacing = Vector2(56, 0)
+count = 8
+spacing = Vector2(42, 0)
 pattern = &"inv_v"
+pattern_spread = 39.0
 
 [sub_resource type="Resource" id="Resource_he780"]
 script = ExtResource("4_ufb2g")

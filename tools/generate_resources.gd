@@ -133,7 +133,9 @@ func _ensure_dirs() -> void:
 
 
 func _enemy_scaled(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2, factor: float = 1.55) -> EnemyStats:
-	var e := _enemy(id, display, hp, speed * factor, score, fire, color, size)
+	# Fodder only (bosses use _boss). Trim HP so the extra bodies stay clearable.
+	var tuned_hp := maxf(1.0, roundf(hp * FODDER_HP_MULT))
+	var e := _enemy(id, display, tuned_hp, speed * factor, score, fire, color, size)
 	return e
 
 func _enemy(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2) -> EnemyStats:
@@ -179,10 +181,19 @@ func _entry(
 	s.enemy = enemy
 	s.delay = delay
 	s.position = pos
-	s.count = count
+	# More bodies per formation, packed into the same footprint (spread and
+	# spacing scale inversely) so waves get busier without overflowing.
+	# Bosses and mid-bosses keep their authored counts.
+	var scaled := count
+	if enemy != null and not (enemy.is_boss or enemy.is_mid_boss):
+		scaled = maxi(1, int(round(float(count) * ENEMY_COUNT_MULT)))
+	s.count = scaled
+	var k := 1.0
+	if count > 1 and scaled > 1:
+		k = float(count) / float(scaled)
 	s.pattern = pat
-	s.pattern_spread = spread
-	s.spacing = spacing
+	s.pattern_spread = spread * k
+	s.spacing = spacing * k
 	s.formation_id = formation
 	return s
 
@@ -198,6 +209,12 @@ func _wave(label: String, start: float, entries: Array[SpawnEntry], clear := tru
 
 
 const PLAYFIELD_WIDTH := 480.0
+
+## Balance knobs: more enemies per wave, but fodder dies faster so waves clear in
+## about the same time. Formation spread is scaled inversely so a 7-ship V keeps
+## the same on-screen footprint as the old 5-ship V.
+const ENEMY_COUNT_MULT := 1.4
+const FODDER_HP_MULT := 0.7
 
 
 func _long_stage(m: MissionData) -> MissionData:

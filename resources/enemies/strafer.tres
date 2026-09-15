@@ -6,6 +6,7 @@
 script = ExtResource("1_6cai4")
 enemy_id = &"strafer"
 display_name = "Defense Drone"
+max_hp = 1.0
 move_speed = 147.25
 score_value = 150
 fire_interval = 2.6
