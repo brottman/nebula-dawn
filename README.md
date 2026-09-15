@@ -257,7 +257,9 @@ Key data types:
 - `SpawnEntry` — enemy, delay, position, count, spacing, optional `formation_id`, `pattern` + `pattern_spread`
 
 Spawn formations are geometric layouts in `SpawnEntry.pattern_offsets()`: `line`, `column`, `v`, `inv_v`, `diamond`, `arc`, `box`, `cross`, `wave`, `circle`, `star`, `spiral`, `chevron`. Fodder bullet styles (`EnemyStats.fire_pattern`): `straight`, `aimed`, `side`, `burst`, `spread`, `ring`, `tri`, `cross`.
+- Flight passes (`EnemyStats.flight_pattern` / `SpawnEntry.flight_pattern`): side-entry maneuvers `loop` (big circle through centre), `sweep` (fast horizontal pass), `arc` (wide arc to the far side) plus `hover_dart`, `dive`, `chase`, `charge`, `strafe`. All members of an entry share one path seed + slot offsets, so formations fly as rigid units.
 - `EnemyStats` — HP, speed, fire rate, flags (`is_hazard`, `is_boss`, `is_mid_boss`), `boss_archetype`
+- Dev probe: `godot --headless --path . --script res://tools/probe_enemy_flight.gd` reports entry timing, on-screen window, and formation rigidity for each pass.
 
 Boss behavior lives in `scripts/enemies/boss_patterns.gd`, keyed by `EnemyStats.boss_archetype`. Stage bosses: `orbital`, `megalith`, `leviathan`, `fabrication`, `omega`, `kaleidoscope`, `tempest`, `choir`, `junkyard`, `dawn`. Mid-bosses: `transport`, `drill`, `stalker`, `overseer`, `ace`, `prism`, `coil`, `echo`, `tyrant`, `herald`. Adding a boss = one archetype value in `generate_resources.gd` + one pattern branch + optional sprite in `enemy_base.gd` — never string-match `display_name`. Sector 2 bosses and mids (plus 1-1 Heavy Transport) have unique SVGs; Sector 1 stage bosses reuse the generic hull.
 

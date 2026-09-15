@@ -112,7 +112,7 @@ Formation chain bonuses stay common (Power / Bit) — they are aggression reward
 | Climax | Peak stage chaos | Hybrid ~20s |
 | Stage boss | Exam on this stage’s lesson | Defeat boss |
 
-Each campaign stage now runs about **7 scripted waves** before the boss (was 4), so a clear typically lands in the multi-minute range rather than a short sprint.
+Each campaign stage now runs about **13 scripted waves** before the boss — every hybrid combat act plays twice (the second pass mirrored across the playfield) while mid-boss beats stay single — so a clear runs roughly twice as long as the original 7-wave pass.
 
 Victory outro (center → hover → zoom off) sells the “sortie complete” beat before stats.
 

@@ -18,23 +18,23 @@ func _init() -> void:
 	var cruiser := _enemy_scaled(&"strafer", "Armored Cruiser", 4.0, 72.0, 280, 2.8, Color(0.85, 0.45, 0.3), Vector2(58, 42))
 	cruiser.projectile_speed = 185.0
 	cruiser.fire_pattern = &"arc"
-	cruiser.flight_pattern = &"loop"
+	cruiser.flight_pattern = &"arc"
 	var asteroid := _enemy(&"asteroid", "Asteroid", 3.0, 70.0, 60, 0.0, Color(0.62, 0.52, 0.42), Vector2(64, 64))
 	asteroid.is_hazard = true
 	asteroid.contact_damage = 1
 	var bio := _enemy_scaled(&"drone", "Bio-Ship", 3.0, 78.0, 220, 2.9, Color(0.55, 1.0, 0.75), Vector2(48, 48))
 	bio.projectile_speed = 165.0
 	bio.fire_pattern = &"helix"
-	bio.flight_pattern = &"loop"
+	bio.flight_pattern = &"sweep"
 	var stealth := _enemy_scaled(&"scout", "Stealth Craft", 1.0, 150.0, 180, 0.0, Color(0.45, 0.35, 0.7), Vector2(38, 38))
-	stealth.flight_pattern = &"sweep"
+	stealth.flight_pattern = &"arc"
 	var repair := _enemy_scaled(&"drone", "Repair Drone", 2.0, 88.0, 160, 2.8, Color(0.4, 0.95, 0.7), Vector2(44, 44))
 	repair.fire_pattern = &"arc"
 	repair.flight_pattern = &"loop"
 	var turret := _enemy_scaled(&"strafer", "Heavy Turret", 4.0, 32.0, 240, 2.4, Color(1.0, 0.4, 0.5), Vector2(52, 44))
 	turret.projectile_speed = 220.0
 	turret.fire_pattern = &"spiral"
-	turret.flight_pattern = &"sweep"
+	turret.flight_pattern = &"hover_dart"
 	var ace := _enemy_scaled(&"strafer", "Ace Fighter", 3.0, 135.0, 300, 2.2, Color(1.0, 0.85, 0.4), Vector2(44, 40))
 	ace.projectile_speed = 230.0
 	ace.fire_pattern = &"arc"
@@ -42,17 +42,17 @@ func _init() -> void:
 	var mirror_drone := _enemy_scaled(&"drone", "Prism Drone", 3.0, 80.0, 240, 2.6, Color(0.55, 0.85, 1.0), Vector2(48, 46))
 	mirror_drone.projectile_speed = 200.0
 	mirror_drone.fire_pattern = &"spiral"
-	mirror_drone.flight_pattern = &"loop"
+	mirror_drone.flight_pattern = &"arc"
 	var ion_raider := _enemy_scaled(&"strafer", "Ion Raider", 3.0, 110.0, 260, 2.3, Color(0.4, 0.9, 1.0), Vector2(46, 40))
 	ion_raider.projectile_speed = 240.0
 	ion_raider.fire_pattern = &"helix"
-	ion_raider.flight_pattern = &"sweep"
+	ion_raider.flight_pattern = &"arc"
 	var phantom := _enemy_scaled(&"scout", "Phantom Wisp", 2.0, 145.0, 200, 2.5, Color(0.35, 0.55, 0.95), Vector2(36, 36))
 	phantom.fire_pattern = &"weave"
-	phantom.flight_pattern = &"sweep"
+	phantom.flight_pattern = &"loop"
 	var scrap_bot := _enemy_scaled(&"drone", "Scrap Bot", 4.0, 70.0, 220, 2.7, Color(0.9, 0.55, 0.3), Vector2(50, 48))
 	scrap_bot.fire_pattern = &"arc"
-	scrap_bot.flight_pattern = &"sweep"
+	scrap_bot.flight_pattern = &"arc"
 	var dawn_guard := _enemy_scaled(&"strafer", "Dawn Guard", 4.0, 100.0, 320, 2.1, Color(1.0, 0.7, 0.35), Vector2(48, 42))
 	dawn_guard.projectile_speed = 245.0
 	dawn_guard.fire_pattern = &"spiral"
@@ -112,16 +112,16 @@ func _init() -> void:
 	_save(boss5, "res://resources/enemies/boss_elite.tres")
 	_save(mid1, "res://resources/enemies/mid_boss.tres")
 
-	_save(_mission_01(scout, strafer, mid1, boss1), "res://resources/missions/mission_01_planetary_ascent.tres")
-	_save(_mission_02(scout, strafer, asteroid, drone, cruiser, mid2, boss2), "res://resources/missions/mission_02_asteroid_belt.tres")
-	_save(_mission_03(scout, stealth, bio, mid3, boss3), "res://resources/missions/mission_03_nebula_anomaly.tres")
-	_save(_mission_04(scout, repair, turret, mid4, boss4), "res://resources/missions/mission_04_cybernetic_hive.tres")
-	_save(_mission_05(scout, ace, drone, mid5, boss5), "res://resources/missions/mission_05_flagship_core.tres")
-	_save(_mission_06(scout, mirror_drone, ace, mid6, boss6), "res://resources/missions/mission_06_mirror_field.tres")
-	_save(_mission_07(scout, ion_raider, turret, mid7, boss7), "res://resources/missions/mission_07_ion_storm.tres")
-	_save(_mission_08(phantom, stealth, bio, mid8, boss8), "res://resources/missions/mission_08_phantom_wake.tres")
-	_save(_mission_09(scrap_bot, cruiser, drone, mid9, boss9), "res://resources/missions/mission_09_scrap_gauntlet.tres")
-	_save(_mission_10(dawn_guard, ace, ion_raider, mid10, boss10), "res://resources/missions/mission_10_dawn_gate.tres")
+	_save(_long_stage(_mission_01(scout, strafer, mid1, boss1)), "res://resources/missions/mission_01_planetary_ascent.tres")
+	_save(_long_stage(_mission_02(scout, strafer, asteroid, drone, cruiser, mid2, boss2)), "res://resources/missions/mission_02_asteroid_belt.tres")
+	_save(_long_stage(_mission_03(scout, stealth, bio, mid3, boss3)), "res://resources/missions/mission_03_nebula_anomaly.tres")
+	_save(_long_stage(_mission_04(scout, repair, turret, mid4, boss4)), "res://resources/missions/mission_04_cybernetic_hive.tres")
+	_save(_long_stage(_mission_05(scout, ace, drone, mid5, boss5)), "res://resources/missions/mission_05_flagship_core.tres")
+	_save(_long_stage(_mission_06(scout, mirror_drone, ace, mid6, boss6)), "res://resources/missions/mission_06_mirror_field.tres")
+	_save(_long_stage(_mission_07(scout, ion_raider, turret, mid7, boss7)), "res://resources/missions/mission_07_ion_storm.tres")
+	_save(_long_stage(_mission_08(phantom, stealth, bio, mid8, boss8)), "res://resources/missions/mission_08_phantom_wake.tres")
+	_save(_long_stage(_mission_09(scrap_bot, cruiser, drone, mid9, boss9)), "res://resources/missions/mission_09_scrap_gauntlet.tres")
+	_save(_long_stage(_mission_10(dawn_guard, ace, ion_raider, mid10, boss10)), "res://resources/missions/mission_10_dawn_gate.tres")
 
 	print("Nebula Dawn: 10-stage campaign (Sector 1+2) generated.")
 	quit()
@@ -195,6 +195,46 @@ func _wave(label: String, start: float, entries: Array[SpawnEntry], clear := tru
 	w.clear_required = clear
 	w.max_clear_time = max_clear
 	return w
+
+
+const PLAYFIELD_WIDTH := 480.0
+
+
+func _long_stage(m: MissionData) -> MissionData:
+	## Stage-length pass: replay every hybrid combat wave once more, mirrored
+	## across the playfield, so a clear runs ~2x longer than the authored pass.
+	## Must-clear beats (mid-boss, max_clear_time == 0) stay single.
+	m.waves = _extend_waves(m.waves)
+	return m
+
+
+func _extend_waves(waves: Array[WaveDef]) -> Array[WaveDef]:
+	var out: Array[WaveDef] = []
+	for w in waves:
+		out.append(w)
+		if w.max_clear_time > 0.0:
+			out.append(_mirror_wave(w))
+	return out
+
+
+func _mirror_wave(w: WaveDef) -> WaveDef:
+	var copy := WaveDef.new()
+	copy.label = w.label + " II"
+	copy.start_delay = w.start_delay
+	copy.clear_required = w.clear_required
+	copy.max_clear_time = w.max_clear_time
+	for e in w.entries:
+		copy.entries.append(_mirror_entry(e))
+	return copy
+
+
+func _mirror_entry(entry: SpawnEntry) -> SpawnEntry:
+	var copy := entry.duplicate() as SpawnEntry
+	copy.position = Vector2(PLAYFIELD_WIDTH - entry.position.x, entry.position.y)
+	# Keep chain-reaction groups distinct from the first pass.
+	if copy.formation_id != "":
+		copy.formation_id += "_b"
+	return copy
 
 
 func _mission_base(id: StringName, title: String, subtitle: String, scroll: float, tint: Color, boss: EnemyStats, gimmick: StringName, stage: int, intro: float = 1.8, sector: int = 1, terrain: StringName = &"city") -> MissionData:
@@ -515,47 +555,37 @@ func _mission_05(scout: EnemyStats, ace: EnemyStats, drone: EnemyStats, mid: Ene
 	return m
 
 
-# Stage 6 — Mirror Field: bouncing plates — signature: prism orbit + mirror diamonds
+# Stage 6 — Mirror Field: bouncing plates — signature: prism arcs + mirrored sweeps
 func _mission_06(scout: EnemyStats, prism: EnemyStats, ace: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_06", "Mirror Field", "Ricochets rewrite the lane map.", 58.0, Color(0.12, 0.28, 0.42), boss, &"mirrors", 1, 2.3, 2, &"mirror")
-	prism.flight_pattern = &"orbit"
-	ace.flight_pattern = &"s_curve"
 	m.waves = _sector2_mirror_kit(scout, prism, ace, mid)
 	return m
 
 
-# Stage 7 — Ion Storm: lightning columns — signature: raider jitter + snipe hover
+# Stage 7 — Ion Storm: lightning columns — signature: raider sweeps + snipe hover
 func _mission_07(scout: EnemyStats, raider: EnemyStats, turret: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_07", "Ion Storm", "Read the strike lanes — or burn.", 60.0, Color(0.1, 0.22, 0.38), boss, &"ion", 2, 2.3, 2, &"storm")
-	raider.flight_pattern = &"jitter"
-	turret.flight_pattern = &"hover_dart"
 	m.waves = _sector2_ion_kit(scout, raider, turret, mid)
 	return m
 
 
-# Stage 8 — Phantom Wake: echo volleys — signature: weaver/phantom figure8 + weave
+# Stage 8 — Phantom Wake: echo volleys — signature: phantom sweeps + bio passes
 func _mission_08(phantom: EnemyStats, stealth: EnemyStats, bio: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_08", "Phantom Wake", "They shoot where you were.", 62.0, Color(0.14, 0.16, 0.4), boss, &"phantoms", 3, 2.4, 2, &"wake")
-	phantom.flight_pattern = &"figure8"
-	bio.flight_pattern = &"weave"
 	m.waves = _sector2_phantom_kit(phantom, stealth, bio, mid)
 	return m
 
 
-# Stage 9 — Scrap Gauntlet: conveyors — signature: scrap block/box + heavy orbit
+# Stage 9 — Scrap Gauntlet: conveyors — signature: scrap arcs + heavy loops
 func _mission_09(scrap: EnemyStats, cruiser: EnemyStats, drone: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_09", "Scrap Gauntlet", "The belt decides your lane.", 64.0, Color(0.28, 0.14, 0.1), boss, &"scrap", 4, 2.4, 2, &"scrap")
-	scrap.flight_pattern = &"drift"
-	cruiser.flight_pattern = &"orbit"
 	m.waves = _sector2_scrap_kit(scrap, cruiser, drone, mid)
 	return m
 
 
-# Stage 10 — Dawn Gate: solar flares — signature: guard spiral/charge + dawn star
+# Stage 10 — Dawn Gate: solar flares — signature: guard loops + ace sweeps
 func _mission_10(guard: EnemyStats, ace: EnemyStats, raider: EnemyStats, mid: EnemyStats, boss: EnemyStats) -> MissionData:
 	var m := _mission_base(&"mission_10", "Dawn Gate", "Climb the flare. Break the dawn.", 68.0, Color(0.35, 0.12, 0.08), boss, &"flare", 5, 2.6, 2, &"flare")
-	guard.flight_pattern = &"spiral"
-	ace.flight_pattern = &"charge"
 	m.waves = _sector2_dawn_kit(guard, ace, raider, mid, true)
 	return m
 

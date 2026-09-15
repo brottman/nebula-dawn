@@ -28,6 +28,18 @@ var _hover_timer: float = 0.0
 var _hover_phase: int = 0
 var _arc_phase: float = 0.0
 var _flight_seed: float = 0.0
+## Formation-relative pass movement: every member follows the same anchor path
+## plus its slot offset, so a formation flies as one rigid, legible unit.
+var _slot: Vector2 = Vector2.ZERO
+var _anchor: Vector2 = Vector2.ZERO
+var _anchor_prev: Vector2 = Vector2.ZERO
+var _pass_seed: float = 0.0
+var _pass_dir: float = 1.0 ## +1 = entering from the left / travelling right
+var _pass_radius: float = 120.0
+var _pass_base_y: float = 300.0
+var _arc_t: float = 0.0
+var _slot_extent: float = 0.0
+var _pass_ready: bool = false
 var _loop_state: int = 0
 var _loop_t: float = 0.0
 var _loop_center: Vector2 = Vector2.ZERO
@@ -96,16 +108,21 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 
-func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: String = "", flight_override: StringName = &"") -> void:
+func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: String = "", flight_override: StringName = &"", slot: Vector2 = Vector2.ZERO, pass_seed: float = 0.0, slot_extent: float = 0.0) -> void:
 	stats = s
 	projectile_pool = pool
 	scroll_speed = world_scroll
 	formation_id = form_id
+	_slot = slot
+	_pass_seed = pass_seed
+	_slot_extent = slot_extent
 	hp = s.max_hp
 	if s.is_hazard and String(s.enemy_id) == "asteroid":
 		asteroid_tier = 2 if s.size.x >= 48.0 else (1 if s.size.x >= 30.0 else 0)
 	_apply_visuals()
 	_origin_x = global_position.x
+	_anchor = global_position - _slot
+	_anchor_prev = _anchor
 	_fire_timer = s.fire_interval * 0.5
 	if s.is_boss:
 		pattern = Pattern.BOSS
@@ -145,32 +162,38 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 		add_to_group("enemies")
 		collision_layer = 4
 		collision_mask = 1 | 2
-	_strafe_dir = 1.0 if randf() > 0.5 else -1.0
-	_flight_seed = randf() * TAU
+	# Deterministic per-entry randomness: every member of an entry draws the same
+	# values, so formations stay coherent instead of scattering into a blob.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(roundf(pass_seed * 104729.0)) + (hash(form_id) if form_id != "" else 0)
+	_strafe_dir = 1.0 if rng.randf() > 0.5 else -1.0
+	_flight_seed = rng.randf() * TAU
 	_spiral_angle = _flight_seed
 	_vel = Vector2.ZERO
 	_desired_vel = Vector2.ZERO
 	_turn_rate = 12.0
-	_zigzag_timer = randf_range(0.4, 1.0)
-	_zigzag_target = (1.0 if _strafe_dir > 0 else -1.0) * randf_range(80.0, 130.0)
-	_hover_timer = randf_range(0.8, 1.6)
-	_arc_phase = randf_range(0.0, TAU)
+	_zigzag_timer = rng.randf_range(0.4, 1.0)
+	_zigzag_target = (1.0 if _strafe_dir > 0 else -1.0) * rng.randf_range(80.0, 130.0)
+	_hover_timer = rng.randf_range(0.8, 1.6)
+	_arc_phase = rng.randf_range(0.0, TAU)
 	_loop_state = 0
 	_loop_t = 0.0
-	_loop_radius = randf_range(78.0, 118.0)
+	_loop_radius = rng.randf_range(78.0, 118.0)
 	_loop_dir = _strafe_dir
 	_loop_center = Vector2.ZERO
 	_loop_base_angle = 0.0
-	_loop_exit = Vector2(_strafe_dir * randf_range(0.35, 0.75), 1.0).normalized()
+	_loop_exit = Vector2(_strafe_dir * rng.randf_range(0.35, 0.75), 1.0).normalized()
 	_sweep_t = 0.0
 	_orbit_angle = _flight_seed
-	_orbit_anchor = global_position + Vector2(0, 70)
-	_charge_timer = randf_range(1.0, 2.2)
+	_orbit_anchor = _anchor + Vector2(0, 70)
+	_charge_timer = rng.randf_range(1.0, 2.2)
 	_charge_state = 0
 	_charge_dir = Vector2.DOWN
 	_jitter_timer = 0.4
 	_jitter_target = Vector2.ZERO
-	_s_curve_phase = randf_range(0.0, TAU)
+	_s_curve_phase = rng.randf_range(0.0, TAU)
+	_pass_dir = 1.0 if sin(pass_seed) >= 0.0 else -1.0
+	_arc_t = 0.0
 	_prev_pos = global_position
 	if formation_id != "":
 		var tracker := get_tree().get_first_node_in_group("formation_tracker")
@@ -362,9 +385,15 @@ func _steer(delta: float, desired: Vector2) -> Vector2:
 
 func _move(delta: float) -> void:
 	var speed := stats.move_speed if stats else 120.0
+	# Path passes cache an anchor; make sure it reflects the live position even if
+	# something set the position after setup() (tests, scripted spawns).
+	if _is_side_entry() and not _pass_ready:
+		_pass_ready = true
+		_anchor = global_position - _slot
+		_anchor_prev = _anchor
 	match pattern:
 		Pattern.DIVE:
-			var dive_desired := Vector2(sin(_t * 2.6 + _origin_x * 0.02) * 70.0, speed + scroll_speed)
+			var dive_desired := Vector2(sin(_t * 2.6 + _flight_seed) * 70.0, speed + scroll_speed)
 			global_position += _steer(delta, dive_desired)
 		Pattern.STRAFE:
 			var strafe_desired := Vector2(_strafe_dir * speed, speed * 0.35 + scroll_speed)
@@ -405,10 +434,7 @@ func _move(delta: float) -> void:
 			var zig_desired := Vector2(steer_x, speed * 0.8 + scroll_speed)
 			global_position += _steer(delta, zig_desired)
 		Pattern.ARC:
-			_arc_phase += delta * 0.55
-			var arc_r := 85.0 + 25.0 * sin(_t * 0.7 + _flight_seed)
-			var arc_desired := Vector2(cos(_arc_phase) * arc_r * 1.1, speed * 0.75 + scroll_speed)
-			global_position += _steer(delta, arc_desired)
+			_arc_move(delta, speed)
 		Pattern.HOVER_DART:
 			_hover_timer -= delta
 			if _hover_phase == 0:
@@ -537,70 +563,124 @@ func _move(delta: float) -> void:
 			_poly.scale.x = lerp(_poly.scale.x, 1.0 - absf(bank_target) * 0.18, clampf(delta * 7.0, 0.0, 1.0))
 
 
+func _is_side_entry() -> bool:
+	return pattern == Pattern.LOOP or pattern == Pattern.SWEEP or pattern == Pattern.ARC
+
+
+func _sync_anchor(delta: float) -> void:
+	## Applies the anchor path to the rigid formation. Velocity drives the shared
+	## banking/rotation pass below, so the whole group banks as one unit.
+	if delta > 0.0:
+		_vel = (_anchor - _anchor_prev) / delta
+		_anchor_prev = _anchor
+	global_position = _anchor + _slot
+
+
 func _loop_move(delta: float, speed: float) -> void:
+	## Side entry → one big readable circle in the middle → tangential exit.
 	var vp := get_viewport_rect().size
-	var entry_speed := speed * 1.65 + scroll_speed * 0.35
-	var circle_speed := speed * 1.05
-	var exit_speed := speed * 1.55 + scroll_speed * 0.85
+	var center := Vector2(vp.x * 0.5, vp.y * 0.54)
+	var radius := maxf(_pass_radius, 80.0)
+	var top := Vector2(center.x, center.y - radius)
+	var entry_speed := speed * 2.2 + scroll_speed * 0.4
+	var loop_speed := speed * 1.9 + 130.0
+	var exit_speed := speed * 2.3 + scroll_speed * 0.9
 	match _loop_state:
 		0:
-			var target := Vector2(vp.x * 0.5, vp.y * 0.42)
-			var desired := (target - global_position).normalized() * entry_speed
-			if desired.length_squared() < 1.0:
-				desired = Vector2(-_loop_dir * 0.15, 1.0).normalized() * entry_speed
-			global_position += _steer(delta, desired)
-			if global_position.distance_to(target) < 26.0 or global_position.y >= target.y:
+			# Fly in level from off-screen to the top of the circle, which merges
+			# tangentially so there is no sudden turn.
+			var to := top - _anchor
+			var dist := to.length()
+			var step := entry_speed * delta
+			if dist <= step:
+				_anchor = top
 				_loop_state = 1
 				_loop_t = 0.0
-				_loop_center = target
-				_loop_base_angle = (global_position - _loop_center).angle()
-				_loop_exit = Vector2(-_loop_dir * randf_range(0.35, 0.75), 1.0).normalized()
+				_loop_base_angle = -PI * 0.5
+				_loop_dir = _pass_dir
+			else:
+				_anchor += to / dist * step
 		1:
-			_loop_t += delta * (circle_speed / maxf(_loop_radius, 1.0))
+			_loop_t += delta * (loop_speed / radius)
 			var ang := _loop_base_angle + _loop_t * _loop_dir
-			var orbit_pos := _loop_center + Vector2(cos(ang), sin(ang)) * _loop_radius
-			orbit_pos.y += entry_speed * 0.08 * delta * (_loop_t / TAU)
-			var orbit_vel := (orbit_pos - global_position) / maxf(delta, 0.0001)
-			var capped := orbit_vel.normalized() * minf(orbit_vel.length(), circle_speed * 1.4)
-			global_position += _steer(delta, capped)
+			_anchor = center + Vector2(cos(ang), sin(ang)) * radius
 			if _loop_t >= TAU:
 				_loop_state = 2
 				_loop_t = 0.0
+				# Leave along the circle tangent, biased down-screen.
+				var tangent := Vector2(-sin(ang), cos(ang)) * _loop_dir
+				_loop_exit = (tangent + Vector2(0.0, 0.6)).normalized()
 		2:
-			global_position += _steer(delta, _loop_exit * exit_speed)
+			_anchor += _loop_exit * exit_speed * delta
+	_sync_anchor(delta)
 
 
 func _sweep_move(delta: float, speed: float) -> void:
+	## Side entry → fast horizontal pass through centre → diagonal exit.
 	var vp := get_viewport_rect().size
-	var entry_speed := speed * 1.75 + scroll_speed * 0.3
-	var sweep_speed := speed * 1.45
-	var exit_speed := speed * 1.6 + scroll_speed * 0.9
+	var center := Vector2(vp.x * 0.5, _pass_base_y)
+	var stage := Vector2(center.x - _pass_dir * vp.x * 0.30, center.y)
+	var entry_speed := speed * 2.3 + scroll_speed * 0.4
+	var sweep_speed := speed * 2.1 + 130.0
+	var exit_speed := speed * 2.4 + scroll_speed * 0.9
 	match _loop_state:
 		0:
-			var target := Vector2(vp.x * 0.5, vp.y * 0.38)
-			var desired := (target - global_position).normalized() * entry_speed
-			if desired.length_squared() < 1.0:
-				desired = Vector2(-_loop_dir * 0.4, 0.85).normalized() * entry_speed
-			global_position += _steer(delta, desired)
-			if global_position.distance_to(target) < 28.0 or global_position.y >= target.y:
+			var to := stage - _anchor
+			var dist := to.length()
+			var step := entry_speed * delta
+			if dist <= step:
+				_anchor = stage
 				_loop_state = 1
-				_sweep_t = global_position.x
-				_loop_exit = Vector2(_loop_dir * randf_range(0.25, 0.55), 1.0).normalized()
+			else:
+				_anchor += to / dist * step
 		1:
-			var sweep_desired := Vector2(_loop_dir * sweep_speed, speed * 0.18 + scroll_speed * 0.55)
-			global_position += _steer(delta, sweep_desired)
-			_sweep_t = global_position.x
-			if (_loop_dir > 0.0 and global_position.x > vp.x - 34.0) \
-					or (_loop_dir < 0.0 and global_position.x < 34.0):
+			_anchor.x += _pass_dir * sweep_speed * delta
+			_anchor.y += 26.0 * delta
+			if (_pass_dir > 0.0 and _anchor.x > center.x + vp.x * 0.34) \
+					or (_pass_dir < 0.0 and _anchor.x < center.x - vp.x * 0.34):
 				_loop_state = 2
+				_loop_exit = Vector2(_pass_dir * 0.5, 1.0).normalized()
 		2:
-			global_position += _steer(delta, _loop_exit * exit_speed)
+			_anchor += _loop_exit * exit_speed * delta
+	_sync_anchor(delta)
+
+
+func _arc_move(delta: float, speed: float) -> void:
+	## Side entry → one wide, smooth arc over the middle → exits the far side.
+	var vp := get_viewport_rect().size
+	var margin := 70.0 + _slot_extent
+	var start_x := -margin if _pass_dir > 0.0 else vp.x + margin
+	var end_x := vp.x + margin if _pass_dir > 0.0 else -margin
+	var span := maxf(absf(end_x - start_x), 1.0)
+	var arc_speed := speed * 2.0 + 120.0
+	if _loop_state == 0:
+		_arc_t = minf(_arc_t + delta * (arc_speed / span), 1.0)
+		_anchor = Vector2(
+			lerpf(start_x, end_x, _arc_t),
+			_pass_base_y - _pass_radius * sin(_arc_t * PI)
+		)
+		if _arc_t >= 1.0:
+			_loop_state = 1
+	else:
+		# Keep travelling until the whole formation clears the cull bounds.
+		_anchor += Vector2(_pass_dir, 0.35).normalized() * arc_speed * delta
+	_sync_anchor(delta)
+
+
+func _on_screen(margin: float = 24.0) -> bool:
+	var vp := get_viewport_rect().size
+	return global_position.x > -margin and global_position.x < vp.x + margin \
+		and global_position.y > -margin and global_position.y < vp.y + margin
 
 
 func _try_fire(delta: float) -> void:
 	if stats == null or stats.fire_interval <= 0.0 or projectile_pool == null:
 		return
 	if stats.is_hazard:
+		return
+	# Only fire once visible, so side-entry passes read clearly before shooting.
+	if not _on_screen():
+		_fire_timer = maxf(_fire_timer, 0.2)
 		return
 	_fire_timer -= delta
 	if _fire_timer > 0.0:
@@ -695,44 +775,59 @@ func _fodder_fire() -> void:
 
 
 func _side_spawn_setup() -> void:
-	if pattern != Pattern.LOOP and pattern != Pattern.SWEEP:
+	## Places side-entry passes fully off-screen at a visible mid-height and
+	## locks in the shared line/radius/arc so the whole formation flies together.
+	if not _is_side_entry():
 		return
 	var vp := get_viewport_rect().size
-	var side := 1.0 if _loop_dir > 0 else -1.0
-	var edge_x := -24.0 if side < 0 else vp.x + 24.0
-	global_position.x = edge_x + side * randf_range(10.0, 26.0)
-	global_position.y = vp.y * 0.22 + randf_range(-28.0, 28.0)
+	var center_x := vp.x * 0.5
+	var authored := _anchor.x - center_x
+	if absf(authored) > vp.x * 0.16:
+		# Authored entry side wins (left-hand spawns enter from the left, etc.).
+		_pass_dir = 1.0 if authored > 0.0 else -1.0
+	var margin := 70.0 + _slot_extent
+	var spawn_x := -margin if _pass_dir > 0.0 else vp.x + margin
+	match pattern:
+		Pattern.LOOP:
+			_pass_radius = vp.y * (0.20 + 0.05 * (0.5 + 0.5 * sin(_pass_seed * 1.7)))
+			_anchor = Vector2(spawn_x, vp.y * 0.54 - _pass_radius)
+		Pattern.SWEEP:
+			_pass_base_y = vp.y * (0.42 + 0.12 * (0.5 + 0.5 * cos(_pass_seed * 2.1)))
+			_anchor = Vector2(spawn_x, _pass_base_y)
+		Pattern.ARC:
+			_pass_radius = vp.y * (0.16 + 0.05 * (0.5 + 0.5 * sin(_pass_seed)))
+			_pass_base_y = vp.y * (0.44 + 0.10 * (0.5 + 0.5 * cos(_pass_seed * 1.3)))
+			_anchor = Vector2(spawn_x, _pass_base_y)
+	global_position = _anchor + _slot
+	_anchor_prev = _anchor
+	_pass_ready = true
 
 
 func _default_flight_pattern() -> String:
+	## Legible, large-scale passes only — the era of errant jitter/wobble picks.
 	if stats == null:
 		return "dive"
 	match String(stats.enemy_id):
 		"strafer":
-			var strafer_picks := ["zigzag", "weave", "pendulum", "s_curve"]
-			return strafer_picks[randi() % strafer_picks.size()]
+			return "sweep" if randf() < 0.6 else "loop"
 		"drone":
-			var drone_picks := ["spiral", "hover_dart", "orbit", "jitter"]
-			return drone_picks[randi() % drone_picks.size()]
+			return "loop" if randf() < 0.6 else "arc"
 		"dasher":
-			return "charge" if randf() < 0.6 else "figure8"
+			return "charge" if randf() < 0.6 else "dive"
 		"weaver":
-			var weaver_picks := ["figure8", "s_curve", "pendulum"]
-			return weaver_picks[randi() % weaver_picks.size()]
+			return "sweep"
 		"heavy":
-			return "orbit" if randf() < 0.5 else "jitter"
+			return "arc" if randf() < 0.6 else "loop"
 		"bomber":
-			return "drift" if randf() < 0.5 else "jitter"
+			return "sweep" if randf() < 0.5 else "arc"
 		"support":
-			return "hover_dart" if randf() < 0.5 else "orbit"
+			return "hover_dart"
 		"sniper":
-			return "hover_dart" if randf() < 0.6 else "jitter"
+			return "hover_dart"
 		"swarmer":
-			var swarm_picks := ["dive", "arc", "chase", "s_curve"]
-			return swarm_picks[randi() % swarm_picks.size()]
+			return "sweep" if randf() < 0.5 else "loop"
 		_:
-			var scout_picks := ["dive", "arc", "weave", "s_curve", "chase"]
-			return scout_picks[randi() % scout_picks.size()]
+			return "loop" if randf() < 0.5 else "sweep"
 
 func _default_fodder_pattern() -> String:
 	if stats == null:

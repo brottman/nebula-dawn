@@ -54,14 +54,33 @@ if [[ -z "$JAVA_BIN" ]]; then
 fi
 JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$JAVA_BIN")")")}"
 
-# Godot reads Java/SDK paths from its editor settings, not env vars. Patch them
-# so a stale (garbage-collected) Nix store path can't break the export.
-EDITOR_SETTINGS="${EDITOR_SETTINGS:-$HOME/.config/godot/editor_settings-4.7.tres}"
-if [[ -f "$EDITOR_SETTINGS" ]]; then
-  sed -i "s|export/android/java_sdk_path = \".*\"|export/android/java_sdk_path = \"$JAVA_HOME\"|" "$EDITOR_SETTINGS"
-else
-  echo "Editor settings not found at $EDITOR_SETTINGS — set EDITOR_SETTINGS or fix the Java SDK path manually." >&2
+# Godot reads Java/SDK paths from its editor settings, not env vars. The settings
+# filename is versioned (editor_settings-4.6.tres, -4.7.tres, ...) and the godot
+# on PATH may be a different minor than the one used to set them up, so patch
+# every versioned settings file. Also guards against a stale/GC'd Nix store path.
+EDITOR_SETTINGS_GLOB="${EDITOR_SETTINGS_GLOB:-$HOME/.config/godot/editor_settings-4.*.tres}"
+if [[ -n "${EDITOR_SETTINGS:-}" ]]; then
+  EDITOR_SETTINGS_GLOB="$EDITOR_SETTINGS"
 fi
+shopt -s nullglob
+EDITOR_SETTINGS_FILES=($EDITOR_SETTINGS_GLOB)
+shopt -u nullglob
+if [[ ${#EDITOR_SETTINGS_FILES[@]} -eq 0 ]]; then
+  echo "Editor settings not found ($EDITOR_SETTINGS_GLOB) — set EDITOR_SETTINGS/EDITOR_SETTINGS_GLOB or fix the Java SDK path manually." >&2
+fi
+
+set_editor_setting() {
+  local key="$1" value="$2" file
+  for file in "${EDITOR_SETTINGS_FILES[@]}"; do
+    if grep -q "$key" "$file"; then
+      sed -i "s|$key = \".*\"|$key = \"$value\"|" "$file"
+    else
+      printf '%s = "%s"\n' "$key" "$value" >>"$file"
+    fi
+  done
+}
+
+set_editor_setting "export/android/java_sdk_path" "$JAVA_HOME"
 
 # Editor settings use $HOME/Android; also accept common SDK layouts.
 if [[ -z "${ANDROID_HOME:-}" ]]; then
@@ -77,8 +96,8 @@ ANDROID_SDK_ROOT="$ANDROID_HOME"
 BUILD_TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/*/ 2>/dev/null | sort -V | tail -1)"
 BUILD_TOOLS="${BUILD_TOOLS:?No build-tools under $ANDROID_HOME}"
 
-if [[ -f "$EDITOR_SETTINGS" ]]; then
-  sed -i "s|export/android/android_sdk_path = \".*\"|export/android/android_sdk_path = \"$ANDROID_HOME\"|" "$EDITOR_SETTINGS"
+if [[ -n "${ANDROID_HOME:-}" ]]; then
+  set_editor_setting "export/android/android_sdk_path" "$ANDROID_HOME"
 fi
 
 export ANDROID_HOME ANDROID_SDK_ROOT JAVA_HOME

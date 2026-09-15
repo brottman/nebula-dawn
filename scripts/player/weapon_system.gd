@@ -427,28 +427,28 @@ func _shoot_homing(origin: Vector2) -> void:
 		1:
 			for i in 2:
 				var dir := Vector2((-0.28 if i == 0 else 0.28), -1.0).normalized()
-				ship.projectile_pool.spawn_player(origin, dir * 620.0, 1.35 * ship.damage_mult, {
-					"homing": 10.0, "scale": 1.08, "color": Color(0.32, 0.82, 0.42), "lifetime": 2.7})
+				ship.projectile_pool.spawn_player(origin, dir * 1860.0, 1.35 * ship.damage_mult, {
+					"homing": 30.0, "scale": 1.08, "color": Color(0.32, 0.82, 0.42), "lifetime": 2.7})
 		2:
 			for i in 3:
 				var dir := Vector2((float(i) - 1.0) * 0.28, -1.0).normalized()
-				ship.projectile_pool.spawn_player(origin, dir * 720.0, 1.15 * ship.damage_mult, {
-					"homing": 13.0, "scale": 1.00, "color": Color(0.36, 0.90, 0.48), "lifetime": 2.6})
+				ship.projectile_pool.spawn_player(origin, dir * 2160.0, 1.15 * ship.damage_mult, {
+					"homing": 39.0, "scale": 1.00, "color": Color(0.36, 0.90, 0.48), "lifetime": 2.6})
 		3:
 			for i in 4:
 				var dir := Vector2((float(i) - 1.5) * 0.28, -1.0).normalized()
-				ship.projectile_pool.spawn_player(origin, dir * 850.0, 0.95 * ship.damage_mult, {
-					"homing": 16.0, "scale": 0.95, "color": Color(0.42, 0.96, 0.55), "lifetime": 2.4})
+				ship.projectile_pool.spawn_player(origin, dir * 2550.0, 0.95 * ship.damage_mult, {
+					"homing": 48.0, "scale": 0.95, "color": Color(0.42, 0.96, 0.55), "lifetime": 2.4})
 		4:
 			for i in 5:
 				var dir := Vector2((float(i) - 2.0) * 0.24, -1.0).normalized()
-				ship.projectile_pool.spawn_player(origin, dir * 850.0, 1.0 * ship.damage_mult, {
-					"homing": 18.0, "scale": 1.08, "color": Color(0.48, 1.0, 0.62), "lifetime": 2.5})
+				ship.projectile_pool.spawn_player(origin, dir * 2550.0, 1.0 * ship.damage_mult, {
+					"homing": 54.0, "scale": 1.08, "color": Color(0.48, 1.0, 0.62), "lifetime": 2.5})
 		_:
 			for i in 6:
 				var dir := Vector2((float(i) - 2.5) * 0.22, -1.0).normalized()
-				ship.projectile_pool.spawn_player(origin, dir * 900.0, 1.05 * ship.damage_mult, {
-					"homing": 20.0,
+				ship.projectile_pool.spawn_player(origin, dir * 2700.0, 1.05 * ship.damage_mult, {
+					"homing": 60.0,
 					"scale": 1.22,
 					"color": Color(0.58, 1.0, 0.68),
 					"lifetime": 2.7,

@@ -76,12 +76,17 @@ Player bullets hit enemies + hazards. Enemy bullets hit player + hazards (rocks 
 
 `enemy_base.gd` + shared scene. Behavior from `EnemyStats`:
 
-- Patterns: `DIVE`, `STRAFE`, `DRIFT`, `BOSS`
+- **Pass choreography:** `LOOP`, `SWEEP`, `ARC` side-entry maneuvers define the enemy's identity. Each draws a big, legible move through centre screen, then exits in another direction; orientation is velocity-aligned with smooth banked turns.
+- **Formation flight:** every member of a `SpawnEntry` shares one `pass_seed` and one anchor path, and applies its own slot offset. Formations therefore fly as rigid, bank-together units instead of scattering into random blobs. `WaveSpawner` passes the slot, the shared seed, and the formation's x-extent so side entries spawn fully off-screen.
+- **Firing** is suppressed until the ship is on screen, so entries read before shots appear. Projectiles stay straight lines.
+- Other patterns: `DIVE`, `STRAFE`, `DRIFT`, `HOVER_DART`, `CHASE`, `CHARGE`, plus legacy sinusoidal styles (kept deterministic per entry).
 - Boss fire is dispatched by `BossPatterns` using `EnemyStats.boss_archetype` (never `display_name`)
 - Mid-boss: `is_boss` + `is_mid_boss` — uses boss HUD, does **not** end the mission
 - Asteroids: split into smaller tiers on death; `absorb_bullet` for blocked enemy shots
 - Sprites from `assets/sprites/` with light color modulate for variants
 - `_sprite_path_for` prefers `BOSS_SPRITE_PATHS` / `MID_SPRITE_PATHS` by archetype; Sector 1 stage bosses fall back to generic `enemy_boss.svg`
+
+Flight patterns are set per enemy type in `generate_resources.gd`; never mutate a shared `EnemyStats` inside a mission builder, as that leaks across every stage that reuses the type. Use `SpawnEntry.flight_pattern` for per-entry overrides.
 
 Stage bosses: `orbital`, `megalith`, `leviathan`, `fabrication`, `omega`, `kaleidoscope`, `tempest`, `choir`, `junkyard`, `dawn`.
 
