@@ -4,7 +4,7 @@
 # Usage: ./tools/capture_bg.sh <style> <out.png> [warmup_s]
 set -euo pipefail
 STYLE="${1:-city}"
-OUT="${2:-/tmp/opencode/bg.png}"
+OUT="${2:-build/previews/bg.png}"
 WARM="${3:-5}"
 
 MESA_JSON="$(find /nix/store -path '*mesa-*/share/glvnd/egl_vendor.d/50_mesa.json' 2>/dev/null | head -1)"
