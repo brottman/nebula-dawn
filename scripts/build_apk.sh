@@ -33,16 +33,22 @@ PRESETS="$ROOT/export_presets.cfg"
 PACKAGE_UNIQUE_NAME="com.nebuladawn.game"
 PACKAGE_NAME="Nebula Dawn"
 
-# Prefer Godot from PATH; on NixOS hosts fall back to nix shell nixpkgs#godot.
+# Build against Godot 4.7.2 to match project.godot's "4.7" features and the
+# installed 4.7.x Android export templates. nixpkgs' default `godot` is older
+# (4.6.x) and mismatches the project, so pin a nixpkgs revision that ships
+# 4.7.2. Override with GODOT_FLAKE or GODOT as needed.
+GODOT_FLAKE="${GODOT_FLAKE:-github:NixOS/nixpkgs/c7def046b9a883d46974757852106483d741586f}"
+
+# Prefer Godot from PATH; on NixOS hosts fall back to the pinned nix shell.
 if [[ -z "${GODOT:-}" ]]; then
   if command -v godot >/dev/null 2>&1; then
     GODOT="$(command -v godot)"
   elif [[ -z "${SYSMGR_GODOT_REEXEC:-}" ]] && command -v nix >/dev/null 2>&1; then
     export SYSMGR_GODOT_REEXEC=1
-    exec nix shell nixpkgs#godot --command \
+    exec nix shell "${GODOT_FLAKE}#godot" --command \
       env SYSMGR_APK_LOCKED=1 SYSMGR_BUILD_WAIT="${SYSMGR_BUILD_WAIT:-0}" bash "$0" "$@"
   else
-    echo "godot not found on PATH. Try: nix shell nixpkgs#godot --command $0" >&2
+    echo "godot not found on PATH. Try: nix shell ${GODOT_FLAKE}#godot --command $0" >&2
     exit 1
   fi
 fi
