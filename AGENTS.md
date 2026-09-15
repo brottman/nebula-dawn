@@ -26,9 +26,10 @@ APK: `bash scripts/build_apk.sh` (signed release APK). It builds against a
 targets `4.7` and nixpkgs' default `godot` is older (4.6.x). Set `GODOT=` to
 override.
 
-Visual previews (offscreen render) land in `build/previews/` — `build/` is
-gitignored and carries a `.gdignore`, so Godot neither imports nor ships them:
-`nix shell nixpkgs#weston nixpkgs#godot nixpkgs#mesa --command ./tools/capture_bg.sh city build/previews/bg.png 5`
+Visual previews (offscreen render) live in `docs/previews/` (tracked, visible
+in the Godot File System dock). The export preset excludes `docs/previews/*`
+so they never ship in the APK:
+`nix shell nixpkgs#weston nixpkgs#godot nixpkgs#mesa --command ./tools/capture_bg.sh city docs/previews/bg.png 5`
 and `tools/capture_game.gd` for a live gameplay frame.
 
 ## Project Notes
