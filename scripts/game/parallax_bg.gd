@@ -154,6 +154,21 @@ class _GroundBase extends Node2D:
 		&"mirror", &"storm", &"wake", &"scrap", &"flare",
 	]
 
+	## Ground/structure flavour per style so the ten sectors read as different
+	## places, not just different tints.
+	const LAYOUTS := {
+		&"city": &"grid",
+		&"mines": &"quarry",
+		&"biolum": &"grove",
+		&"factory": &"industrial",
+		&"fleet": &"airbase",
+		&"mirror": &"plaza",
+		&"storm": &"grid",
+		&"wake": &"ruins",
+		&"scrap": &"junkyard",
+		&"flare": &"industrial",
+	}
+
 	const STYLES := {
 		&"city": {
 			"kinds": [&"block", &"warehouse", &"hangar", &"control", &"pad", &"tanks", &"turret"],
@@ -226,14 +241,15 @@ class _GroundBase extends Node2D:
 
 	static func palette_for(s: StringName, t: Color) -> Dictionary:
 		var p: Dictionary = STYLES.get(s, STYLES[&"city"])
-		var ground: Color = Color(p["ground"]).lerp(t.darkened(0.42), 0.18).lightened(0.03)
-		var road: Color = Color(p["road"]).lerp(t.darkened(0.58), 0.14)
-		var roof: Color = Color(p["roof"]).lerp(t.darkened(0.06), 0.14).lightened(0.05)
+		var ground: Color = Color(p["ground"]).lerp(t.darkened(0.40), 0.16).lightened(0.05)
+		var road: Color = Color(p["road"]).lerp(t.darkened(0.55), 0.12)
+		var roof: Color = Color(p["roof"]).lerp(t.darkened(0.02), 0.12).lightened(0.10)
 		var accent: Color = Color(p["accent"]).lerp(t.lightened(0.25), 0.10)
 		return {
 			"ground": ground, "road": road, "roof": roof,
-			"wall": roof.darkened(0.48), "accent": accent,
+			"wall": roof.darkened(0.58), "accent": accent,
 			"detail": p.get("detail", &"none"), "kinds": p.get("kinds", [&"block"]),
+			"layout": LAYOUTS.get(s, &"grid"),
 		}
 
 	func setup(_vp: Vector2, t: Color, rng: RandomNumberGenerator) -> void:
@@ -367,6 +383,7 @@ class _GroundBase extends Node2D:
 			return
 		var seed := idx * 7919
 		_draw_cross_road(by, vp, pal)
+		_draw_style_decor(seed, by, vp, pal)
 		var avail := BLOCK_H - CROSS_W
 		var lot_ax := vp.x * (LANES[0] + LANES[1]) * 0.5
 		var lot_bx := vp.x * (LANES[1] + LANES[2]) * 0.5
@@ -448,45 +465,157 @@ class _GroundBase extends Node2D:
 		var d := maxf(46.0, row_h * _lerp_h(seed, cid * 11 + 6, 0.42, 0.82))
 		var x := cx + _lerp_h(seed, cid * 11 + 8, -10.0, 10.0)
 		var y := cy + _lerp_h(seed, cid * 11 + 9, -8.0, 8.0)
-		# concrete pad under every structure + a couple of parked vehicles
-		var pad: Color = pal["ground"].lightened(0.07)
-		draw_rect(Rect2(x - w * 0.64, y - d * 0.64, w * 1.28, d * 1.28), pad)
-		draw_rect(Rect2(x - w * 0.64, y - d * 0.64, w * 1.28, d * 1.28), Color(1, 1, 1, 0.02))
+		# concrete pad under every structure
+		var pad: Color = pal["ground"].lightened(0.08)
+		var phw := w * 0.68
+		var phd := d * 0.68
+		draw_rect(Rect2(x - phw, y - phd, phw * 2.0, phd * 2.0), pad)
+		draw_rect(Rect2(x - phw, y - phd, phw * 2.0, phd * 2.0), Color(1, 1, 1, 0.02))
 		# pad corner markings
-		var pw := w * 0.64
-		var pd := d * 0.64
 		for sx in [-1.0, 1.0]:
 			for sy in [-1.0, 1.0]:
-				draw_line(Vector2(x + sx * pw, y + sy * pd), Vector2(x + sx * (pw - 10.0), y + sy * pd), Color(1, 1, 1, 0.10), 1.5)
-				draw_line(Vector2(x + sx * pw, y + sy * pd), Vector2(x + sx * pw, y + sy * (pd - 10.0)), Color(1, 1, 1, 0.10), 1.5)
+				draw_line(Vector2(x + sx * phw, y + sy * phd), Vector2(x + sx * (phw - 10.0), y + sy * phd), Color(1, 1, 1, 0.10), 1.5)
+				draw_line(Vector2(x + sx * phw, y + sy * phd), Vector2(x + sx * phw, y + sy * (phd - 10.0)), Color(1, 1, 1, 0.10), 1.5)
 		# per-building roof tint so lots don't read as one flat gray
 		var rpal := pal.duplicate()
 		rpal["roof"] = pal["roof"].lightened(_lerp_h(seed, cid * 11 + 20, -0.06, 0.14))
 		rpal["wall"] = rpal["roof"].darkened(0.42)
 		_paint(kind, x, y, w, d, seed + cid * 97, rpal)
-		if _h(seed, cid * 11 + 10) > 0.55:
-			_draw_parking(x - w * 0.64, y + d * 0.64 + 5.0, w * 1.28, 26.0, seed + cid)
-		# scattered crates / barrels / light poles in the pad margins
-		for i in 3:
-			if _h(seed, cid * 11 + 30 + i) < 0.45:
+		# yard density: containers, sheds, barrels, barriers, light poles
+		for i in 7:
+			if _h(seed, cid * 11 + 100 + i) < 0.30:
 				continue
-			var px := x + _lerp_h(seed, cid * 11 + 40 + i, -w * 0.62, w * 0.62)
-			var py := y + _lerp_h(seed, cid * 11 + 50 + i, -d * 0.60, d * 0.60)
-			if i == 2:
-				# light pole with a warm pool
-				draw_circle(Vector2(px, py), 10.0, Color(pal["accent"].r, pal["accent"].g, pal["accent"].b, 0.05))
-				draw_circle(Vector2(px, py), 1.8, Color(1.0, 0.92, 0.65, 0.85))
-				continue
-			var s := _lerp_h(seed, cid * 11 + 60 + i, 3.0, 6.0)
-			draw_rect(Rect2(px - s * 0.5, py - s * 0.5, s, s), pal["roof"].darkened(0.25))
-			draw_rect(Rect2(px - s * 0.5, py - s * 0.5, s, 1.5), pal["roof"].lightened(0.15))
+			var px := x + _lerp_h(seed, cid * 11 + 200 + i, -1.0, 1.0) * (phw - 8.0)
+			var py := y + _lerp_h(seed, cid * 11 + 300 + i, -1.0, 1.0) * (phd - 8.0)
+			# keep clutter out of the building footprint
+			if absf(px - x) < w * 0.54 and absf(py - y) < d * 0.54:
+				py = y + (d * 0.60 if py >= y else -d * 0.60)
+			_draw_yard_prop(seed + cid * 13 + i, px, py, pal)
+		# parked vehicle row along the near edge of the pad
+		if _h(seed, cid * 11 + 400) > 0.45:
+			var vy := y + phd - 7.0
+			for i in 3:
+				var vk: String = ["tank", "apc", "truck", "jeep"][int(_h(seed, cid * 11 + 410 + i) * 4.0) % 4]
+				_draw_vehicle(vk, x - w * 0.30 + float(i) * 15.0, vy, 13.0, 1.0, seed + cid + i, pal)
+		if _h(seed, cid * 11 + 10) > 0.6:
+			_draw_parking(x - phw, y + phd + 5.0, phw * 2.0, 24.0, seed + cid)
+
+	func _draw_yard_prop(seed: int, x: float, y: float, pal: Dictionary) -> void:
+		var roof: Color = pal["roof"]
+		var accent: Color = pal["accent"]
+		match int(_h(seed, 1) * 6.0) % 6:
+			0: # crate stack
+				draw_rect(Rect2(x - 4.0, y - 4.0, 8.0, 8.0), roof.darkened(0.22))
+				draw_rect(Rect2(x - 4.0, y - 4.0, 8.0, 2.0), roof.lightened(0.22))
+			1: # barrel pair
+				for i in 2:
+					draw_circle(Vector2(x + float(i) * 5.0 - 2.5, y), 2.6, roof.darkened(0.16))
+					draw_circle(Vector2(x + float(i) * 5.0 - 2.5, y - 0.6), 1.2, roof.lightened(0.18))
+			2: # shipping container
+				var col: Color = Color(0.55, 0.36, 0.26) if _h(seed, 2) > 0.5 else Color(0.28, 0.44, 0.55)
+				col = col.lerp(accent, 0.12)
+				draw_rect(Rect2(x - 9.0, y - 4.0, 18.0, 8.0), col.darkened(0.3))
+				draw_rect(Rect2(x - 9.0, y - 4.0, 18.0, 3.0), col)
+				for r in 3:
+					draw_line(Vector2(x - 6.0 + float(r) * 6.0, y - 4.0), Vector2(x - 6.0 + float(r) * 6.0, y + 4.0), col.darkened(0.4), 0.8)
+			3: # small shed
+				draw_rect(Rect2(x - 7.0, y - 5.0, 14.0, 10.0), roof.darkened(0.12))
+				draw_rect(Rect2(x - 7.0, y - 5.0, 14.0, 2.5), roof.lightened(0.26))
+				draw_rect(Rect2(x - 7.0, y + 3.0, 14.0, 2.0), roof.darkened(0.5))
+			4: # light pole
+				draw_circle(Vector2(x, y), 9.0, Color(accent.r, accent.g, accent.b, 0.06))
+				draw_circle(Vector2(x, y), 1.8, Color(1.0, 0.92, 0.65, 0.85))
+			5: # sandbag / barrier
+				draw_rect(Rect2(x - 7.0, y - 3.0, 14.0, 6.0), roof.darkened(0.34))
+				draw_rect(Rect2(x - 7.0, y - 3.0, 14.0, 1.5), roof.lightened(0.12))
+
+	func _draw_style_decor(seed: int, by: float, vp: Vector2, pal: Dictionary) -> void:
+		## Ground-level flavour drawn under the lots so each style reads as a
+		## different kind of installation, not just a different tint.
+		var accent: Color = pal["accent"]
+		var ground: Color = pal["ground"]
+		match String(pal.get("layout", "grid")):
+			"quarry":
+				for i in 5:
+					var cx := vp.x * _lerp_h(seed, i * 5 + 1, 0.06, 0.94)
+					var cy := by + _lerp_h(seed, i * 5 + 2, 0.06, 0.94) * BLOCK_H
+					var r := _lerp_h(seed, i * 5 + 3, 12.0, 30.0)
+					draw_circle(Vector2(cx, cy), r, ground.darkened(0.28))
+					draw_arc(Vector2(cx, cy), r, 0, TAU, 16, ground.lightened(0.12), 1.5)
+				for i in 4:
+					var ox := vp.x * _lerp_h(seed, i * 7 + 40, 0.08, 0.92)
+					var oy := by + _lerp_h(seed, i * 7 + 41, 0.1, 0.9) * BLOCK_H
+					var s := _lerp_h(seed, i * 7 + 42, 5.0, 11.0)
+					draw_colored_polygon(PackedVector2Array([
+						Vector2(ox - s, oy + s * 0.6), Vector2(ox + s, oy + s * 0.6), Vector2(ox, oy - s * 0.8),
+					]), ground.lightened(0.10).lerp(accent, 0.12))
+			"junkyard":
+				for i in 7:
+					var jx := vp.x * _lerp_h(seed, i * 6 + 1, 0.05, 0.95)
+					var jy := by + _lerp_h(seed, i * 6 + 2, 0.05, 0.95) * BLOCK_H
+					var s := _lerp_h(seed, i * 6 + 3, 8.0, 20.0)
+					var pts := PackedVector2Array()
+					var rot := _h(seed, i * 6 + 4) * TAU
+					for k in 5:
+						var a := rot + TAU * float(k) / 5.0
+						pts.append(Vector2(jx + cos(a) * s, jy + sin(a) * s * 0.65))
+					draw_colored_polygon(pts, ground.lightened(0.06).lerp(accent, 0.10))
+					draw_polyline(pts + PackedVector2Array([pts[0]]), ground.darkened(0.3), 1.0)
+			"ruins":
+				for i in 6:
+					var rx := vp.x * _lerp_h(seed, i * 6 + 1, 0.05, 0.95)
+					var ry := by + _lerp_h(seed, i * 6 + 2, 0.05, 0.95) * BLOCK_H
+					var rw := _lerp_h(seed, i * 6 + 3, 14.0, 40.0)
+					var rh := _lerp_h(seed, i * 6 + 4, 8.0, 22.0)
+					draw_rect(Rect2(rx, ry, rw, rh), ground.darkened(0.18))
+					draw_rect(Rect2(rx, ry, rw, 2.0), ground.lightened(0.10))
+					for k in 3:
+						draw_circle(Vector2(rx + _h(seed, i * 9 + k) * rw, ry + rh + 3.0), 2.0, ground.darkened(0.3))
+			"grove":
+				for i in 6:
+					var gx := vp.x * _lerp_h(seed, i * 6 + 1, 0.05, 0.95)
+					var gy := by + _lerp_h(seed, i * 6 + 2, 0.05, 0.95) * BLOCK_H
+					var gx2 := gx + _lerp_h(seed, i * 6 + 3, -60.0, 60.0)
+					var gy2 := gy + _lerp_h(seed, i * 6 + 4, -50.0, 50.0)
+					draw_line(Vector2(gx, gy), Vector2(gx2, gy2), Color(accent.r, accent.g, accent.b, 0.20), 2.0)
+					draw_circle(Vector2(gx2, gy2), 2.5, Color(accent.r, accent.g, accent.b, 0.5))
+			"plaza":
+				var tile := 60.0
+				var off := fmod(scroll, tile)
+				var ty := -tile + off
+				while ty < vp.y + tile:
+					draw_line(Vector2(0, ty), Vector2(vp.x, ty), Color(1, 1, 1, 0.045), 1.0)
+					ty += tile
+				var tx := 0.0
+				while tx < vp.x:
+					draw_line(Vector2(tx, 0), Vector2(tx, vp.y), Color(1, 1, 1, 0.045), 1.0)
+					tx += tile
+			"industrial":
+				for i in 3:
+					var py := by + BLOCK_H * (0.2 + 0.3 * float(i))
+					draw_line(Vector2(0, py), Vector2(vp.x, py), ground.darkened(0.25), 3.0)
+					draw_line(Vector2(0, py - 1.5), Vector2(vp.x, py - 1.5), ground.lightened(0.10), 1.0)
+					for k in 5:
+						draw_circle(Vector2(vp.x * (float(k) + 0.5) / 5.0, py), 3.0, ground.lightened(0.12))
+			"airbase":
+				for i in 8:
+					var ax := vp.x * (float(i) + 0.5) / 8.0
+					draw_line(Vector2(ax, by), Vector2(ax, by + BLOCK_H), Color(1, 1, 1, 0.02))
+			_:
+				pass
 
 	func _draw_edges(seed: int, by: float, vp: Vector2, pal: Dictionary) -> void:
-		# Perimeter wall + posts down both screen edges.
+		# Perimeter wall + fence posts down both screen edges.
 		var wall := 7.0
 		for side in [0.0, 1.0]:
 			var x := wall * 0.5 if side == 0.0 else vp.x - wall * 0.5
 			draw_rect(Rect2(x - wall * 0.5, by, wall, BLOCK_H), pal["roof"].darkened(0.25))
+			var py := by
+			while py < by + BLOCK_H:
+				var fx := x + (8.0 if side == 0.0 else -12.0)
+				draw_rect(Rect2(fx, py, 4.0, 2.0), pal["roof"].darkened(0.05))
+				draw_line(Vector2(fx + 2.0, py + 1.0), Vector2(fx + 2.0, py + 18.0), pal["roof"].darkened(0.18), 0.8)
+				py += 18.0
 		# Watch towers on alternating blocks.
 		if int(seed) % 3 == 0:
 			_draw_watchtower(14.0, by + BLOCK_H * 0.5, seed, pal)
@@ -494,10 +623,15 @@ class _GroundBase extends Node2D:
 		# Yard clutter in the narrow edge strips.
 		for side in 2:
 			var bx := 30.0 if side == 0 else vp.x - 46.0
-			if _h(seed, side * 5 + 1) > 0.5:
+			var hv := _h(seed, side * 5 + 1)
+			if hv > 0.6:
 				_paint(&"tanks", bx, by + BLOCK_H * 0.5, 26.0, 60.0, seed + side, pal)
-			elif _h(seed, side * 5 + 2) > 0.5:
+			elif hv > 0.3:
 				_paint(&"junk", bx, by + BLOCK_H * 0.5, 34.0, 44.0, seed + side + 9, pal)
+			else:
+				for i in 4:
+					_draw_yard_prop(seed + side * 31 + i, bx + float(i % 2) * 11.0 - 5.0,
+						by + BLOCK_H * 0.30 + float(i) * 17.0, pal)
 
 	func _draw_vehicles(vp: Vector2, pal: Dictionary) -> void:
 		for raw in _vehicles:
@@ -598,41 +732,54 @@ class _GroundBase extends Node2D:
 	func _footprint(x: float, y: float, w: float, d: float, roof: Color, pal: Dictionary, tall: float = 7.0) -> void:
 		## Shared shadow + near/side wall + roof slab for every building.
 		var wall: Color = pal["wall"]
-		draw_rect(Rect2(x - w * 0.5 + 4.0, y - d * 0.5 + 4.0, w, d + tall), Color(0, 0, 0, 0.34))
+		draw_rect(Rect2(x - w * 0.5 + 5.0, y - d * 0.5 + 5.0, w, d + tall), Color(0, 0, 0, 0.40))
 		draw_rect(Rect2(x - w * 0.5, y + d * 0.5, w, tall), wall)
-		draw_rect(Rect2(x + w * 0.5, y - d * 0.5, tall * 0.55, d), wall.darkened(0.22))
+		draw_rect(Rect2(x + w * 0.5, y - d * 0.5, tall * 0.55, d), wall.darkened(0.28))
 		draw_rect(Rect2(x - w * 0.5, y - d * 0.5, w, d), roof)
-		draw_rect(Rect2(x - w * 0.5, y - d * 0.5, w, 2.0), roof.lightened(0.18))
-		draw_rect(Rect2(x - w * 0.5, y - d * 0.5, 2.0, d), roof.lightened(0.10))
-		draw_rect(Rect2(x - w * 0.5, y + d * 0.5 - 2.0, w, 2.0), roof.darkened(0.25))
+		# crisp lit top/left edges and shaded bottom/right edges for depth
+		draw_rect(Rect2(x - w * 0.5, y - d * 0.5, w, 2.5), roof.lightened(0.30))
+		draw_rect(Rect2(x - w * 0.5, y - d * 0.5, 2.5, d), roof.lightened(0.18))
+		draw_rect(Rect2(x - w * 0.5, y + d * 0.5 - 2.5, w, 2.5), roof.darkened(0.34))
+		draw_rect(Rect2(x + w * 0.5 - 2.5, y - d * 0.5, 2.5, d), roof.darkened(0.22))
+		# inner panel seam
+		if w > 44.0 and d > 30.0:
+			var inset := 4.0
+			draw_rect(Rect2(x - w * 0.5 + inset, y - d * 0.5 + inset, w - inset * 2.0, 1.0), roof.lightened(0.10))
+			draw_rect(Rect2(x - w * 0.5 + inset, y + d * 0.5 - inset - 1.0, w - inset * 2.0, 1.0), roof.darkened(0.18))
 
 	func _roof_detail(seed: int, x: float, y: float, w: float, d: float, pal: Dictionary, dens: float = 1.0) -> void:
 		## AC units, vents, skylights, hatches and painted markings.
 		var accent: Color = pal["accent"]
-		var count := int(3.0 * dens + _h(seed, 1) * 4.0)
+		# roof panel seams for larger slabs
+		if w > 70.0 and _h(seed, 66) > 0.4:
+			var cols := 2 + int(_h(seed, 67) * 2.0)
+			for i in cols:
+				var lx := x - w * 0.42 + w * 0.84 * (float(i) + 1.0) / float(cols + 1)
+				draw_rect(Rect2(lx, y - d * 0.46, 1.0, d * 0.92), pal["roof"].darkened(0.14))
+		var count := int(4.0 * dens + _h(seed, 1) * 5.0)
 		for i in count:
-			var ux := x + _lerp_h(seed, i * 5 + 2, -w * 0.34, w * 0.34)
-			var uy := y + _lerp_h(seed, i * 5 + 3, -d * 0.32, d * 0.32)
-			var s := _lerp_h(seed, i * 5 + 4, 3.0, 7.0)
-			draw_rect(Rect2(ux - s * 0.5 + 1.5, uy - s * 0.5 + 1.5, s, s), Color(0, 0, 0, 0.25))
-			draw_rect(Rect2(ux - s * 0.5, uy - s * 0.5, s, s), pal["roof"].darkened(0.28))
-			draw_rect(Rect2(ux - s * 0.5, uy - s * 0.5, s, s * 0.35), pal["roof"].lightened(0.14))
-			if _h(seed, i * 5 + 5) > 0.7:
-				draw_circle(Vector2(ux, uy), s * 0.28, Color(accent.r, accent.g, accent.b, 0.5))
+			var ux := x + _lerp_h(seed, i * 5 + 2, -w * 0.36, w * 0.36)
+			var uy := y + _lerp_h(seed, i * 5 + 3, -d * 0.34, d * 0.34)
+			var s := _lerp_h(seed, i * 5 + 4, 3.0, 7.5)
+			draw_rect(Rect2(ux - s * 0.5 + 2.0, uy - s * 0.5 + 2.0, s, s), Color(0, 0, 0, 0.30))
+			draw_rect(Rect2(ux - s * 0.5, uy - s * 0.5, s, s), pal["roof"].darkened(0.34))
+			draw_rect(Rect2(ux - s * 0.5, uy - s * 0.5, s, s * 0.38), pal["roof"].lightened(0.24))
+			if _h(seed, i * 5 + 5) > 0.65:
+				draw_circle(Vector2(ux, uy), s * 0.30, Color(accent.r, accent.g, accent.b, 0.65))
 		# skylight strip
 		if w > 60.0 and _h(seed, 31) > 0.4:
 			var sw := w * 0.5
-			draw_rect(Rect2(x - sw * 0.5, y - d * 0.42, sw, d * 0.12), pal["roof"].lightened(0.24))
-			draw_rect(Rect2(x - sw * 0.5, y - d * 0.42, sw, d * 0.12), Color(accent.r, accent.g, accent.b, 0.10))
+			draw_rect(Rect2(x - sw * 0.5, y - d * 0.42, sw, d * 0.12), pal["roof"].lightened(0.32))
+			draw_rect(Rect2(x - sw * 0.5, y - d * 0.42, sw, d * 0.12), Color(accent.r, accent.g, accent.b, 0.16))
 		# lit perimeter trim on some roofs (night airbase feel, restrained)
-		if _h(seed, 77) > 0.45:
-			var trim := Color(accent.r, accent.g, accent.b, 0.22)
+		if _h(seed, 77) > 0.4:
+			var trim := Color(accent.r, accent.g, accent.b, 0.32)
 			draw_rect(Rect2(x - w * 0.5, y - d * 0.5, w, 1.5), trim)
 			draw_rect(Rect2(x - w * 0.5, y - d * 0.5, 1.5, d), trim)
 		# painted roof code / hazard square
 		if _h(seed, 88) > 0.6:
-			draw_rect(Rect2(x + w * 0.26, y + d * 0.26, 9.0, 9.0), Color(accent.r, accent.g, accent.b, 0.35))
-			draw_rect(Rect2(x + w * 0.28, y + d * 0.28, 5.0, 5.0), pal["roof"].darkened(0.3))
+			draw_rect(Rect2(x + w * 0.26, y + d * 0.26, 9.0, 9.0), Color(accent.r, accent.g, accent.b, 0.40))
+			draw_rect(Rect2(x + w * 0.28, y + d * 0.28, 5.0, 5.0), pal["roof"].darkened(0.34))
 
 	func _paint_block(x: float, y: float, w: float, d: float, seed: int, roof: Color, pal: Dictionary) -> void:
 		_footprint(x, y, w, d, roof, pal, 8.0)
