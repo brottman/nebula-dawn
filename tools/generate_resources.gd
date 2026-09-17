@@ -135,7 +135,9 @@ func _ensure_dirs() -> void:
 func _enemy_scaled(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2, factor: float = 1.55) -> EnemyStats:
 	# Fodder only (bosses use _boss). Trim HP so the extra bodies stay clearable.
 	var tuned_hp := maxf(1.0, roundf(hp * FODDER_HP_MULT))
-	var e := _enemy(id, display, tuned_hp, speed * factor, score, fire, color, size)
+	var tuned_speed := speed * factor * FODDER_SPEED_MULT / 1.55
+	var tuned_fire := fire * FODDER_FIRE_INTERVAL_MULT if fire > 0.0 else fire
+	var e := _enemy(id, display, tuned_hp, tuned_speed, score, tuned_fire, color, size)
 	return e
 
 func _enemy(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2) -> EnemyStats:
@@ -179,7 +181,7 @@ func _entry(
 ) -> SpawnEntry:
 	var s := SpawnEntry.new()
 	s.enemy = enemy
-	s.delay = delay
+	s.delay = delay * ENTRY_DELAY_MULT
 	s.position = pos
 	# More bodies per formation, packed into the same footprint (spread and
 	# spacing scale inversely) so waves get busier without overflowing.
@@ -201,7 +203,7 @@ func _entry(
 func _wave(label: String, start: float, entries: Array[SpawnEntry], clear := true, max_clear: float = 8.0) -> WaveDef:
 	var w := WaveDef.new()
 	w.label = label
-	w.start_delay = start
+	w.start_delay = start * WAVE_START_DELAY_MULT
 	w.entries = entries
 	w.clear_required = clear
 	w.max_clear_time = max_clear
@@ -210,11 +212,16 @@ func _wave(label: String, start: float, entries: Array[SpawnEntry], clear := tru
 
 const PLAYFIELD_WIDTH := 480.0
 
-## Balance knobs: more enemies per wave, but fodder dies faster so waves clear in
-## about the same time. Formation spread is scaled inversely so a 7-ship V keeps
-## the same on-screen footprint as the old 5-ship V.
-const ENEMY_COUNT_MULT := 1.4
-const FODDER_HP_MULT := 0.7
+## Balance knobs: denser formations and tighter timing keep the campaign lively.
+## Formation spread is scaled inversely so added bodies preserve each pattern's
+## readable footprint. Fodder is softened so the increased volume is not a
+## proportional difficulty spike.
+const ENEMY_COUNT_MULT := 1.65
+const FODDER_HP_MULT := 0.6
+const FODDER_SPEED_MULT := 1.35
+const FODDER_FIRE_INTERVAL_MULT := 1.25
+const ENTRY_DELAY_MULT := 0.72
+const WAVE_START_DELAY_MULT := 0.8
 
 
 func _long_stage(m: MissionData) -> MissionData:

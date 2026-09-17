@@ -6,9 +6,9 @@
 script = ExtResource("1_oggcu")
 enemy_id = &"drone"
 display_name = "Mining Drone"
-move_speed = 100.75
+move_speed = 87.75000000000001
 score_value = 200
-fire_interval = 2.9
+fire_interval = 3.625
 projectile_speed = 170.0
 fire_pattern = &"spiral"
 flight_pattern = &"loop"
