@@ -12,3 +12,4 @@ score_value = 60
 color = Color(0.62, 0.52, 0.42, 1)
 size = Vector2(64, 64)
 is_hazard = true
+weak_against = &"laser"

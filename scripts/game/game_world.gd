@@ -5,6 +5,7 @@ extends Control
 
 const HUD_TOP_HEIGHT := 72.0
 const HUD_BOTTOM_HEIGHT := 84.0
+const BalanceTrackerScript := preload("res://scripts/mission/balance_tracker.gd")
 
 @onready var playfield_host: SubViewportContainer = $PlayfieldHost
 @onready var playfield: SubViewport = $PlayfieldHost/Playfield
@@ -22,6 +23,7 @@ const HUD_BOTTOM_HEIGHT := 84.0
 @onready var stage_director: Node = $PlayfieldHost/Playfield/StageDirector
 @onready var intro_card: CanvasLayer = $StageIntro
 
+var balance_tracker: Node
 var _shake_time: float = 0.0
 var _shake_amount: float = 0.0
 var _ending: bool = false
@@ -37,6 +39,10 @@ func _ready() -> void:
 	stage_director.setup(player, pool, entities, formation_tracker)
 	spawner.setup(pool, entities)
 	runner.setup(spawner, player)
+	balance_tracker = BalanceTrackerScript.new()
+	balance_tracker.name = "BalanceTracker"
+	add_child(balance_tracker)
+	balance_tracker.setup(spawner, pool, runner, player)
 	runner.mission_complete.connect(_on_mission_complete)
 	EventBus.screen_shake.connect(_on_shake)
 	EventBus.hitstop_requested.connect(_on_hitstop)

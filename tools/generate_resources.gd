@@ -143,6 +143,7 @@ func _enemy_scaled(id: StringName, display: String, hp: float, speed: float, sco
 func _enemy(id: StringName, display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2) -> EnemyStats:
 	var e := EnemyStats.new()
 	e.enemy_id = id
+	e.weak_against = _weakness_for(id)
 	e.display_name = display
 	e.max_hp = hp
 	e.move_speed = speed
@@ -154,9 +155,22 @@ func _enemy(id: StringName, display: String, hp: float, speed: float, score: int
 	return e
 
 
+func _weakness_for(id: StringName) -> StringName:
+	match String(id):
+		"scout":
+			return &"spread"
+		"strafer":
+			return &"homing"
+		"asteroid":
+			return &"laser"
+		_:
+			return &""
+
+
 func _boss(display: String, hp: float, speed: float, score: int, fire: float, color: Color, size: Vector2, proj: float) -> EnemyStats:
 	var e := _enemy(&"boss", display, hp, speed, score, fire, color, size)
 	e.is_boss = true
+	e.weak_against = &"laser"
 	e.projectile_speed = proj
 	e.contact_damage = 2
 	return e
@@ -207,7 +221,34 @@ func _wave(label: String, start: float, entries: Array[SpawnEntry], clear := tru
 	w.entries = entries
 	w.clear_required = clear
 	w.max_clear_time = max_clear
+	w.rhythm_role = _rhythm_for_label(label)
+	w.recovery_delay = _recovery_for_role(w.rhythm_role)
 	return w
+
+
+func _rhythm_for_label(label: String) -> StringName:
+	var lower := label.to_lower()
+	if lower.contains("mid-boss"):
+		return &"elite"
+	if lower.contains("climax"):
+		return &"climax"
+	if lower.contains("opener") or lower.contains("drift") or lower.contains("build"):
+		return &"buildup"
+	return &"pressure"
+
+
+func _recovery_for_role(role: StringName) -> float:
+	match role:
+		&"buildup":
+			return 0.25
+		&"pressure":
+			return 0.55
+		&"elite":
+			return 1.10
+		&"climax":
+			return 0.80
+		_:
+			return 0.40
 
 
 const PLAYFIELD_WIDTH := 480.0

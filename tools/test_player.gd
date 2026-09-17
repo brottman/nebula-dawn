@@ -15,6 +15,15 @@ func _run() -> void:
 		return
 	gs.call("reset_hangar")
 	gs.call("start_campaign_mission", 0)
+	var striker_spec: Dictionary = gs.call("get_loadout_for", "striker")
+	var interceptor_spec: Dictionary = gs.call("get_loadout_for", "interceptor")
+	var aegis_spec: Dictionary = gs.call("get_loadout_for", "aegis")
+	if int(striker_spec.get("max_hp", 0)) != 4 \
+			or int(interceptor_spec.get("max_hp", 0)) != 3 \
+			or int(aegis_spec.get("max_hp", 0)) != 5:
+		push_error("ship hull health tradeoffs did not resolve correctly")
+		quit(1)
+		return
 	var packed: PackedScene = load("res://scenes/entities/player.tscn")
 	if packed == null:
 		push_error("player.tscn missing")
@@ -96,7 +105,9 @@ func _run() -> void:
 		return
 	var enemy: Node = enemy_scene.instantiate()
 	root.add_child(enemy)
-	enemy.call("setup", stats, null, 0.0)
+	var test_stats := stats.duplicate() as EnemyStats
+	test_stats.max_hp = 20.0
+	enemy.call("setup", test_stats, null, 0.0)
 	enemy.global_position = Vector2(240, 220)
 	await process_frame
 	var hp_before := float(enemy.get("hp"))

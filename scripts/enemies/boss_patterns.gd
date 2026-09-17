@@ -727,7 +727,13 @@ static func armor_mult(stats: EnemyStats, armor_angle: float) -> float:
 static func spawn_shot(boss: Node, muzzle: Vector2, velocity: Vector2, dmg: float, opts: Dictionary = {}) -> void:
 	var pool: ProjectilePool = boss.get("projectile_pool")
 	if pool:
-		pool.spawn_enemy(muzzle, velocity, dmg, opts)
+		var shot_opts := opts.duplicate()
+		if not shot_opts.has("color"):
+			var stats: EnemyStats = boss.get("stats") as EnemyStats
+			if stats:
+				var tint := stats.color.lightened(0.22)
+				shot_opts["color"] = Color(tint.r, tint.g, tint.b, 1.0)
+		pool.spawn_enemy(muzzle, velocity, dmg, shot_opts)
 
 
 static func spread_fan(boss: Node, muzzle: Vector2, spd: float, dmg: float, count: int, width: float, opts: Dictionary = {}) -> void:

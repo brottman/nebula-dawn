@@ -47,7 +47,7 @@ func extinguish() -> void:
 	_melt_cd.clear()
 
 
-func fire(delta: float, origin: Vector2, half_width: float, dps: float, armor_pierce: bool, melt_dps: float, cancel_bullets: bool, level: int = 1) -> void:
+func fire(delta: float, origin: Vector2, half_width: float, dps: float, armor_pierce: bool, melt_dps: float, cancel_bullets: bool, level: int = 1, weapon_kind: StringName = &"laser") -> void:
 	global_position = origin
 	_level = clampi(level, 1, 5)
 	_age += delta
@@ -59,7 +59,7 @@ func fire(delta: float, origin: Vector2, half_width: float, dps: float, armor_pi
 	_draw_beam(half_width, length)
 	visible = true
 	set_process(true)
-	var struck := _strike_targets(delta, origin, half_width, dps, armor_pierce, melt_dps)
+	var struck := _strike_targets(delta, origin, half_width, dps, armor_pierce, melt_dps, weapon_kind)
 	if cancel_bullets:
 		_eat_bullets(origin, half_width)
 	if struck and _hit_sfx_cd <= 0.0:
@@ -119,7 +119,7 @@ func _set_rect(poly: Polygon2D, half_w: float, top: float) -> void:
 	])
 
 
-func _strike_targets(delta: float, origin: Vector2, half_width: float, dps: float, armor_pierce: bool, melt_dps: float) -> bool:
+func _strike_targets(delta: float, origin: Vector2, half_width: float, dps: float, armor_pierce: bool, melt_dps: float, weapon_kind: StringName) -> bool:
 	var tree := get_tree()
 	if tree == null:
 		return false
@@ -128,17 +128,17 @@ func _strike_targets(delta: float, origin: Vector2, half_width: float, dps: floa
 		return false
 	var hit := false
 	for node in tree.get_nodes_in_group("enemies"):
-		if _try_hit_node(node, origin, half_width, amount, armor_pierce, melt_dps):
+		if _try_hit_node(node, origin, half_width, amount, armor_pierce, melt_dps, weapon_kind):
 			hit = true
 	for node in tree.get_nodes_in_group("hazards"):
 		if node != null and node.is_in_group("barriers"):
 			continue
-		if _try_hit_node(node, origin, half_width, amount, armor_pierce, melt_dps):
+		if _try_hit_node(node, origin, half_width, amount, armor_pierce, melt_dps, weapon_kind):
 			hit = true
 	return hit
 
 
-func _try_hit_node(node: Node, origin: Vector2, half_width: float, amount: float, armor_pierce: bool, melt_dps: float) -> bool:
+func _try_hit_node(node: Node, origin: Vector2, half_width: float, amount: float, armor_pierce: bool, melt_dps: float, weapon_kind: StringName) -> bool:
 	if node == null or not is_instance_valid(node) or node is not Node2D:
 		return false
 	if node.get("alive") == false:
@@ -148,7 +148,10 @@ func _try_hit_node(node: Node, origin: Vector2, half_width: float, amount: float
 	var target := node as Node2D
 	if not _overlaps(target, origin, half_width):
 		return false
-	target.take_damage(amount, armor_pierce)
+	if target.get("stats") != null:
+		target.take_damage(amount, armor_pierce, weapon_kind)
+	else:
+		target.take_damage(amount, armor_pierce)
 	if melt_dps > 0.0 and target.has_method("apply_melt"):
 		var id := target.get_instance_id()
 		if float(_melt_cd.get(id, 0.0)) <= _age:

@@ -3,6 +3,32 @@ extends RefCounted
 ## Lightweight one-shot VFX helpers (no scenes required).
 
 
+static func spawn_entry_telegraph(parent: Node, positions: Array[Vector2], color: Color, duration: float = 0.34) -> void:
+	if parent == null or not is_instance_valid(parent) or positions.is_empty():
+		return
+	var root := Node2D.new()
+	root.z_as_relative = false
+	root.z_index = 38
+	parent.add_child(root)
+	for pos in positions:
+		var marker := Line2D.new()
+		marker.width = 2.0
+		marker.default_color = Color(color.r, color.g, color.b, 0.82)
+		marker.antialiased = true
+		marker.points = PackedVector2Array([
+			Vector2(0, -8), Vector2(7, 0), Vector2(0, 8),
+			Vector2(-7, 0), Vector2(0, -8),
+		])
+		marker.global_position = pos
+		root.add_child(marker)
+	var tw := root.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(root, "scale", Vector2(1.55, 1.55), duration) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(root, "modulate:a", 0.0, duration)
+	tw.chain().tween_callback(root.queue_free)
+
+
 static func spawn_burst(parent: Node, pos: Vector2, color: Color = Color(1.0, 0.7, 0.35), count: int = 10, radius: float = 28.0) -> void:
 	if parent == null or not is_instance_valid(parent):
 		return

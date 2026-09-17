@@ -6,13 +6,18 @@ extends Node
 @export var enemy_projectile_scene: PackedScene
 @export var initial_size: int = 32
 
+const MIN_ACTIVE_ENEMY_PROJECTILES := 32
+const MAX_ACTIVE_ENEMY_PROJECTILES := 64
+
 var _player_pool: Array[Node] = []
 var _enemy_pool: Array[Node] = []
 var _container: Node2D
+var _enemy_projectile_cap: int = MAX_ACTIVE_ENEMY_PROJECTILES
 
 
 func setup(container: Node2D) -> void:
 	_container = container
+	_enemy_projectile_cap = MAX_ACTIVE_ENEMY_PROJECTILES
 	_warm(_player_pool, player_projectile_scene, initial_size)
 	_warm(_enemy_pool, enemy_projectile_scene, initial_size)
 
@@ -36,7 +41,21 @@ func spawn_player(pos: Vector2, velocity: Vector2, damage: float = 1.0, opts: Di
 
 
 func spawn_enemy(pos: Vector2, velocity: Vector2, damage: float = 1.0, opts: Dictionary = {}) -> Node:
+	_trim_enemy_projectiles()
 	return _spawn(_enemy_pool, enemy_projectile_scene, pos, velocity, damage, false, opts)
+
+
+func set_enemy_projectile_pressure(pressure: float) -> void:
+	## The intensity director narrows this cap when the player is struggling.
+	_enemy_projectile_cap = clampi(
+		int(roundf(lerpf(
+			float(MIN_ACTIVE_ENEMY_PROJECTILES),
+			float(MAX_ACTIVE_ENEMY_PROJECTILES),
+			clampf(pressure, 0.0, 1.0)
+		))),
+		MIN_ACTIVE_ENEMY_PROJECTILES,
+		MAX_ACTIVE_ENEMY_PROJECTILES
+	)
 
 
 ## Cancel enemy bullets inside a radius (formation chain-reaction / terminal reward).
@@ -59,6 +78,23 @@ func get_active_enemy_projectiles() -> Array[Node]:
 		if p != null and p.has_method("is_active") and p.is_active():
 			out.append(p)
 	return out
+
+
+func _trim_enemy_projectiles() -> void:
+	var active := get_active_enemy_projectiles()
+	if active.size() < _enemy_projectile_cap:
+		return
+	var oldest: Node = active[0]
+	var oldest_age := float(oldest.get_age()) if oldest.has_method("get_age") else 0.0
+	for projectile in active:
+		if not projectile.has_method("get_age"):
+			continue
+		var age := float(projectile.get_age())
+		if age > oldest_age:
+			oldest = projectile
+			oldest_age = age
+	if oldest.has_method("deactivate"):
+		oldest.deactivate()
 
 
 func _spawn(pool: Array[Node], scene: PackedScene, pos: Vector2, velocity: Vector2, damage: float, from_player: bool, opts: Dictionary) -> Node:

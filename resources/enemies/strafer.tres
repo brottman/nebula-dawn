@@ -15,3 +15,4 @@ fire_pattern = &"helix"
 flight_pattern = &"loop"
 color = Color(1, 0.7, 0.35, 1)
 size = Vector2(46, 38)
+weak_against = &"homing"

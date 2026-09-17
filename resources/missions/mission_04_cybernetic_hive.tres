@@ -18,6 +18,7 @@ contact_damage = 2
 color = Color(0.5, 1, 0.7, 1)
 size = Vector2(124, 96)
 is_boss = true
+weak_against = &"laser"
 boss_archetype = &"fabrication"
 
 [sub_resource type="Resource" id="Resource_ys75u"]
@@ -49,6 +50,7 @@ max_hp = 1.0
 move_speed = 175.50000000000003
 flight_pattern = &"sweep"
 size = Vector2(40, 40)
+weak_against = &"spread"
 
 [sub_resource type="Resource" id="Resource_p18a4"]
 script = ExtResource("4_ufb2g")
@@ -70,6 +72,7 @@ fire_pattern = &"spiral"
 flight_pattern = &"hover_dart"
 color = Color(1, 0.4, 0.5, 1)
 size = Vector2(52, 44)
+weak_against = &"homing"
 
 [sub_resource type="Resource" id="Resource_fgouo"]
 script = ExtResource("4_ufb2g")
@@ -106,6 +109,8 @@ label = "Act 1 — Opener"
 start_delay = 0.8
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_mu0mt"), SubResource("Resource_p18a4"), SubResource("Resource_fgouo"), SubResource("Resource_vnlig"), SubResource("Resource_wrkn4")])
 max_clear_time = 14.0
+rhythm_role = &"buildup"
+recovery_delay = 0.25
 
 [sub_resource type="Resource" id="Resource_ns2cw"]
 script = ExtResource("4_ufb2g")
@@ -224,6 +229,7 @@ label = "Act 1 — Sweep"
 start_delay = 1.1199999999999999
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_bfvkh"), SubResource("Resource_cqxkq"), SubResource("Resource_t31vk"), SubResource("Resource_fexku"), SubResource("Resource_urjph"), SubResource("Resource_f2jno")])
 max_clear_time = 14.0
+recovery_delay = 0.55
 
 [sub_resource type="Resource" id="Resource_p77gm"]
 script = ExtResource("4_ufb2g")
@@ -353,6 +359,7 @@ label = "Act 2 — Escalation"
 start_delay = 1.2000000000000002
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_smijf"), SubResource("Resource_mxffi"), SubResource("Resource_wkkrj"), SubResource("Resource_a6n8t"), SubResource("Resource_o1r6g"), SubResource("Resource_gw53i")])
 max_clear_time = 16.0
+recovery_delay = 0.55
 
 [sub_resource type="Resource" id="Resource_27a8y"]
 script = ExtResource("4_ufb2g")
@@ -491,6 +498,7 @@ label = "Act 2 — Pressure"
 start_delay = 1.2000000000000002
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_r5oin"), SubResource("Resource_cxpwx"), SubResource("Resource_01hyh"), SubResource("Resource_t0tfm"), SubResource("Resource_bsaac"), SubResource("Resource_8fjkk"), SubResource("Resource_spy5s")])
 max_clear_time = 16.0
+recovery_delay = 0.55
 
 [sub_resource type="Resource" id="Resource_fpum4"]
 script = ExtResource("4_ufb2g")
@@ -578,6 +586,7 @@ color = Color(0.45, 1, 0.75, 1)
 size = Vector2(78, 78)
 is_boss = true
 is_mid_boss = true
+weak_against = &"laser"
 boss_archetype = &"overseer"
 
 [sub_resource type="Resource" id="Resource_qkm0e"]
@@ -593,6 +602,8 @@ label = "Act 3 — Mid-Boss"
 start_delay = 1.92
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_qkm0e")])
 max_clear_time = 0.0
+rhythm_role = &"elite"
+recovery_delay = 1.1
 
 [sub_resource type="Resource" id="Resource_2j5q3"]
 script = ExtResource("4_ufb2g")
@@ -656,6 +667,8 @@ label = "Act 4 — Build"
 start_delay = 1.7600000000000002
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_2j5q3"), SubResource("Resource_11xkf"), SubResource("Resource_worv0"), SubResource("Resource_vns6l"), SubResource("Resource_fh07s"), SubResource("Resource_pxkgj")])
 max_clear_time = 16.0
+rhythm_role = &"buildup"
+recovery_delay = 0.25
 
 [sub_resource type="Resource" id="Resource_mhen0"]
 script = ExtResource("4_ufb2g")
@@ -812,6 +825,8 @@ label = "Act 5 — Climax"
 start_delay = 2.08
 entries = Array[ExtResource("4_ufb2g")]([SubResource("Resource_xxl1i"), SubResource("Resource_4nyfj"), SubResource("Resource_2h5np"), SubResource("Resource_tu1s5"), SubResource("Resource_7vik8"), SubResource("Resource_d1d2m"), SubResource("Resource_8lgge"), SubResource("Resource_r0eni"), SubResource("Resource_5k2u8")])
 max_clear_time = 20.0
+rhythm_role = &"climax"
+recovery_delay = 0.8
 
 [sub_resource type="Resource" id="Resource_tklay"]
 script = ExtResource("4_ufb2g")

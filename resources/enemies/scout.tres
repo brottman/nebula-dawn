@@ -9,3 +9,4 @@ max_hp = 1.0
 move_speed = 175.50000000000003
 flight_pattern = &"sweep"
 size = Vector2(40, 40)
+weak_against = &"spread"

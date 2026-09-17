@@ -53,6 +53,12 @@ func _die() -> void:
 	EventBus.screen_shake.emit(4.0, 0.1)
 	if projectile_pool:
 		projectile_pool.clear_enemy_in_radius(global_position, 160.0)
+	for conductor in get_tree().get_nodes_in_group("barrier_conductors"):
+		if conductor != null and is_instance_valid(conductor) \
+				and conductor is Node2D \
+				and global_position.distance_to((conductor as Node2D).global_position) < 220.0 \
+				and conductor.has_method("take_damage"):
+			conductor.take_damage(999.0)
 	queue_free()
 
 

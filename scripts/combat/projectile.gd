@@ -28,6 +28,7 @@ var splash_radius: float = 0.0
 var splash_damage: float = 0.0
 var melt_ticks: int = 0
 var melt_dps: float = 0.0
+var weapon_kind: StringName = &""
 var cancel_bullets: bool = false
 var armor_pierce: bool = false
 var curve: float = 0.0
@@ -63,6 +64,10 @@ func is_active() -> bool:
 	return _active
 
 
+func get_age() -> float:
+	return _age
+
+
 func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: Dictionary = {}) -> void:
 	global_position = pos
 	_base_pos = pos
@@ -87,6 +92,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, player_shot: bool, opts: D
 	splash_damage = float(opts.get("splash_damage", 0.0))
 	melt_ticks = int(opts.get("melt_ticks", 0))
 	melt_dps = float(opts.get("melt_dps", 0.0))
+	weapon_kind = opts.get("weapon_kind", &"")
 	cancel_bullets = bool(opts.get("cancel_bullets", false))
 	armor_pierce = bool(opts.get("armor_pierce", false))
 	curve = 0.0
@@ -252,7 +258,10 @@ func _try_hit(target: Node) -> void:
 			if _hit_ids.has(id):
 				return
 			_hit_ids[id] = true
-			target.take_damage(damage, armor_pierce)
+			if target.get("stats") != null:
+				target.take_damage(damage, armor_pierce, weapon_kind)
+			else:
+				target.take_damage(damage, armor_pierce)
 			if melt_ticks > 0 and melt_dps > 0.0 and target.has_method("apply_melt"):
 				target.apply_melt(melt_ticks, melt_dps)
 			_apply_splash(global_position, target)

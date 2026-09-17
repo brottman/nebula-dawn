@@ -15,4 +15,5 @@ contact_damage = 2
 color = Color(0.4, 0.75, 1, 1)
 size = Vector2(120, 92)
 is_boss = true
+weak_against = &"laser"
 boss_archetype = &"orbital"

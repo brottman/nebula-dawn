@@ -121,7 +121,23 @@ func _fill_rank() -> void:
 	if rank_detail:
 		rank_detail.visible = true
 		var bonus := GameState.last_rank_bonus
-		rank_detail.text = "Clear bonus  +%d" % bonus if bonus > 0 else ""
+		var rank_info := GameState.compute_clear_rank()
+		var objective: Dictionary = GameState.get_run_objective()
+		var objective_state := "COMPLETE" if bool(objective.get("complete", false)) else "IN PROGRESS"
+		var lines := PackedStringArray([
+			"Rank points  %d/100" % int(rank_info.get("points", 0)),
+			"%s  %d/%d  %s" % [
+				String(objective.get("label", "OBJECTIVE")),
+				int(objective.get("current", 0)),
+				int(objective.get("target", 0)),
+				objective_state,
+			],
+		])
+		if bonus > 0:
+			lines.append("Clear bonus  +%d" % bonus)
+		if GameState.last_objective_bonus > 0:
+			lines.append("Objective rewards  +%d" % GameState.last_objective_bonus)
+		rank_detail.text = "\n".join(lines)
 
 
 func _configure_buttons() -> void:

@@ -13,7 +13,9 @@ func tick(_delta: float) -> void:
 	super.tick(_delta)
 	if pulse <= 0.0 and get_tree().get_nodes_in_group("boss").is_empty():
 		pulse = rng.randf_range(6.5, 10.0)
-		_spawn_barrier_pair()
+		var gap_x := _spawn_barrier_pair()
+		if gap_x >= 0.0:
+			_spawn_terminal(gap_x)
 
 
 func on_boss_spawned(_boss: Node) -> void:
@@ -37,11 +39,11 @@ func _clear_barriers() -> void:
 	_barriers.clear()
 
 
-func _spawn_barrier_pair() -> void:
+func _spawn_barrier_pair() -> float:
 	var scene: PackedScene = load("res://scenes/stage/barrier.tscn")
 	var connector_scene: PackedScene = load("res://scenes/stage/barrier_connector.tscn")
 	if scene == null or entities == null:
-		return
+		return -1.0
 	var vp := vp_size()
 	var gap_x := rng.randf_range(vp.x * 0.25, vp.x * 0.75)
 	var gap_w := 120.0
@@ -68,9 +70,10 @@ func _spawn_barrier_pair() -> void:
 			var gap_from := Vector2(gap_x - gap_w * 0.5 + 4.0, -20.0)
 			var gap_to := Vector2(gap_x + gap_w * 0.5 - 4.0, -20.0)
 			conn.setup(gap_from, gap_to, scroll_speed(), left_barrier, right_barrier)
+	return gap_x
 
 
-func _spawn_terminal() -> void:
+func _spawn_terminal(gap_x: float) -> void:
 	var scene: PackedScene = load("res://scenes/stage/terminal.tscn")
 	if scene == null or entities == null:
 		return
@@ -78,6 +81,6 @@ func _spawn_terminal() -> void:
 	entities.add_child(t)
 	track(t)
 	var vp := vp_size()
-	t.global_position = Vector2(rng.randf_range(80.0, vp.x - 80.0), -30.0)
+	t.global_position = Vector2(clampf(gap_x, 80.0, vp.x - 80.0), -30.0)
 	if t.has_method("setup"):
 		t.setup(pool, scroll_speed())

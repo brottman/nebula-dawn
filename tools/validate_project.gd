@@ -260,7 +260,7 @@ func _check_hangar() -> bool:
 	if String(Ships.STARTER_ID) != "striker":
 		_fail("ShipCatalog.STARTER_ID")
 		ok = false
-	if Ships.all_ids().size() != 5:
+	if Ships.all_ids().size() != 9:
 		_fail("ShipCatalog roster size %d" % Ships.all_ids().size())
 		ok = false
 	var hangar: Node = load("res://scenes/ui/hangar.tscn").instantiate()

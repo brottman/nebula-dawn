@@ -18,6 +18,7 @@ contact_damage = 2
 color = Color(0.75, 0.55, 0.4, 1)
 size = Vector2(136, 98)
 is_boss = true
+weak_against = &"laser"
 boss_archetype = &"megalith"
 
 [sub_resource type="Resource" id="Resource_6d1ea"]
@@ -30,6 +31,7 @@ score_value = 60
 color = Color(0.62, 0.52, 0.42, 1)
 size = Vector2(64, 64)
 is_hazard = true
+weak_against = &"laser"
 
 [sub_resource type="Resource" id="Resource_doyjq"]
 script = ExtResource("4_rhg3f")
@@ -47,6 +49,7 @@ max_hp = 1.0
 move_speed = 175.50000000000003
 flight_pattern = &"sweep"
 size = Vector2(40, 40)
+weak_against = &"spread"
 
 [sub_resource type="Resource" id="Resource_i3qac"]
 script = ExtResource("4_rhg3f")
@@ -101,6 +104,8 @@ label = "Act 1 — Opener"
 start_delay = 0.8
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_doyjq"), SubResource("Resource_i3qac"), SubResource("Resource_etlxw"), SubResource("Resource_1pl7r"), SubResource("Resource_guxct"), SubResource("Resource_46bv0")])
 max_clear_time = 14.0
+rhythm_role = &"buildup"
+recovery_delay = 0.25
 
 [sub_resource type="Resource" id="Resource_xwx7u"]
 script = ExtResource("4_rhg3f")
@@ -220,6 +225,8 @@ label = "Act 1 — Drift"
 start_delay = 1.1199999999999999
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_gf8un"), SubResource("Resource_u600g"), SubResource("Resource_66vmb"), SubResource("Resource_bd47u"), SubResource("Resource_kllg2")])
 max_clear_time = 14.0
+rhythm_role = &"buildup"
+recovery_delay = 0.25
 
 [sub_resource type="Resource" id="Resource_5pyfo"]
 script = ExtResource("4_rhg3f")
@@ -299,6 +306,7 @@ fire_pattern = &"helix"
 flight_pattern = &"loop"
 color = Color(1, 0.7, 0.35, 1)
 size = Vector2(46, 38)
+weak_against = &"homing"
 
 [sub_resource type="Resource" id="Resource_h36ic"]
 script = ExtResource("4_rhg3f")
@@ -354,6 +362,7 @@ fire_pattern = &"arc"
 flight_pattern = &"arc"
 color = Color(0.85, 0.45, 0.3, 1)
 size = Vector2(58, 42)
+weak_against = &"homing"
 
 [sub_resource type="Resource" id="Resource_ild7v"]
 script = ExtResource("4_rhg3f")
@@ -380,6 +389,7 @@ label = "Act 2 — Escalation"
 start_delay = 1.2000000000000002
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_7c5ja"), SubResource("Resource_h36ic"), SubResource("Resource_36h5b"), SubResource("Resource_c5v1h"), SubResource("Resource_ild7v"), SubResource("Resource_11gak")])
 max_clear_time = 16.0
+recovery_delay = 0.55
 
 [sub_resource type="Resource" id="Resource_0jgvx"]
 script = ExtResource("4_rhg3f")
@@ -509,6 +519,7 @@ label = "Act 2 — Pressure"
 start_delay = 1.2000000000000002
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_jw2gs"), SubResource("Resource_kh4sk"), SubResource("Resource_stuke"), SubResource("Resource_w133v"), SubResource("Resource_bip6m"), SubResource("Resource_1r8ip")])
 max_clear_time = 16.0
+recovery_delay = 0.55
 
 [sub_resource type="Resource" id="Resource_pu37p"]
 script = ExtResource("4_rhg3f")
@@ -588,6 +599,7 @@ color = Color(0.8, 0.6, 0.4, 1)
 size = Vector2(88, 70)
 is_boss = true
 is_mid_boss = true
+weak_against = &"laser"
 boss_archetype = &"drill"
 
 [sub_resource type="Resource" id="Resource_e0851"]
@@ -603,6 +615,8 @@ label = "Act 3 — Mid-Boss"
 start_delay = 1.92
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_e0851")])
 max_clear_time = 0.0
+rhythm_role = &"elite"
+recovery_delay = 1.1
 
 [sub_resource type="Resource" id="Resource_tvqij"]
 script = ExtResource("4_rhg3f")
@@ -666,6 +680,8 @@ label = "Act 4 — Build"
 start_delay = 1.7600000000000002
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_tvqij"), SubResource("Resource_f2s52"), SubResource("Resource_ybj7b"), SubResource("Resource_ua5vw"), SubResource("Resource_s4sxl"), SubResource("Resource_rl7s0")])
 max_clear_time = 16.0
+rhythm_role = &"buildup"
+recovery_delay = 0.25
 
 [sub_resource type="Resource" id="Resource_hlic1"]
 script = ExtResource("4_rhg3f")
@@ -814,6 +830,8 @@ label = "Act 5 — Climax"
 start_delay = 2.08
 entries = Array[ExtResource("4_rhg3f")]([SubResource("Resource_nvvcn"), SubResource("Resource_xfxgm"), SubResource("Resource_al647"), SubResource("Resource_yrsgg"), SubResource("Resource_7l5ox"), SubResource("Resource_y38n1"), SubResource("Resource_3vnqm"), SubResource("Resource_2a2gx")])
 max_clear_time = 20.0
+rhythm_role = &"climax"
+recovery_delay = 0.8
 
 [sub_resource type="Resource" id="Resource_iyw52"]
 script = ExtResource("4_rhg3f")

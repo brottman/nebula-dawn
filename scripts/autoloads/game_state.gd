@@ -74,6 +74,7 @@ var run_grazes: int = 0
 ## Letter rank from the last finished run ("" while in progress).
 var last_rank: String = ""
 var last_rank_bonus: int = 0
+var last_objective_bonus: int = 0
 ## Graze + combo chain bonus from the last finished run.
 var last_chain_bonus: int = 0
 
@@ -314,6 +315,7 @@ func start_campaign_mission(index: int) -> void:
 	last_won = false
 	last_rank = ""
 	last_rank_bonus = 0
+	last_objective_bonus = 0
 	last_chain_bonus = 0
 	last_credits_earned = 0
 	_reset_run_stats()
@@ -371,6 +373,7 @@ func record_mission_result(won: bool) -> void:
 	last_won = won
 	last_rank = ""
 	last_rank_bonus = 0
+	last_objective_bonus = 0
 	last_chain_bonus = 0
 	# Graze + combo chain bonus applies to any finished run.
 	var chain_bonus := run_grazes * 30 + run_max_combo * 10
@@ -378,6 +381,7 @@ func record_mission_result(won: bool) -> void:
 		session_score += chain_bonus
 		last_chain_bonus = chain_bonus
 	if won:
+		_award_run_objective()
 		var rank_info := compute_clear_rank()
 		last_rank = String(rank_info.get("rank", "C"))
 		last_rank_bonus = int(rank_info.get("bonus", 0))
@@ -393,6 +397,32 @@ func record_mission_result(won: bool) -> void:
 	last_score = session_score
 	_award_run_credits()
 	save_progress()
+
+
+func get_run_objective() -> Dictionary:
+	if current_mission_index == 0 or current_mission_index == 5:
+		return {
+			"label": "CHAIN FORMATIONS",
+			"current": run_formations,
+			"target": 4,
+			"complete": run_formations >= 4,
+		}
+	return {
+		"label": "DESTROY ENEMIES",
+		"current": run_kills,
+		"target": 80,
+		"complete": run_kills >= 80,
+	}
+
+
+func _award_run_objective() -> void:
+	var objective := get_run_objective()
+	if bool(objective.get("complete", false)):
+		last_objective_bonus += 1000
+	if run_hits_taken <= 0:
+		last_objective_bonus += 750
+	if last_objective_bonus > 0:
+		session_score += last_objective_bonus
 
 
 func _record_best_rank(index: int, rank: String) -> void:
@@ -559,6 +589,8 @@ func _on_graze() -> void:
 	run_grazes += 1
 	_combo_gain()
 	add_score(GRAZE_SCORE)
+	if run_grazes == 1 or run_grazes % 5 == 0:
+		EventBus.gimmick_toast.emit("GRAZE ×%d  +%d" % [run_grazes, GRAZE_SCORE])
 
 
 ## Kills and grazes both bank one chain step; the chain multiplies returns.

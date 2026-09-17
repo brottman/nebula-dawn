@@ -22,6 +22,9 @@ extends Resource
 @export var is_boss: bool = false
 ## Mid-boss: uses boss HUD/pattern but does not end the mission when defeated.
 @export var is_mid_boss: bool = false
+## Optional weapon matchup: spread | laser | homing | blaster.
+## Matching shots deal a small bonus and show a one-time hit ring.
+@export var weak_against: StringName = &""
 ## Boss attack routine key. Stage bosses: orbital, megalith, leviathan,
 ## fabrication, omega, kaleidoscope, tempest, choir, junkyard, dawn.
 ## Mid-bosses: transport, drill, stalker, overseer, ace, prism,

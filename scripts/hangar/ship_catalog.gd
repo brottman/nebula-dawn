@@ -21,8 +21,8 @@ const UPGRADE_HINTS := {
 	"core": "+4% fire rate per rank",
 }
 
-## Every ship has the same 3 hearts; the Hull upgrade buys longer i-frames
-## after a hit instead of extra hearts.
+## Hull health is part of each craft's identity; the Hull upgrade buys longer
+## i-frames after a hit instead of flattening those ship-specific tradeoffs.
 const PLAYER_MAX_HP := 3
 const BASE_HURT_INVULN := 1.35
 const HURT_INVULN_PER_RANK := 0.15
@@ -123,7 +123,7 @@ static func resolve(ship_id: String, ranks: Dictionary = {}) -> Dictionary:
 		"cost": int(def["cost"]),
 		"sprite": String(def["sprite"]),
 		"tint": def["tint"],
-		"max_hp": PLAYER_MAX_HP,
+		"max_hp": maxi(1, int(def.get("max_hp", PLAYER_MAX_HP))),
 		"hurt_invuln": BASE_HURT_INVULN + float(hull) * HURT_INVULN_PER_RANK,
 		"move_speed": float(def["move_speed"]) * (1.0 + THRUST_PER_RANK * float(thrust)),
 		"fire_cooldown": maxf(MIN_FIRE_COOLDOWN, cooldown),

@@ -10,6 +10,7 @@ var pattern: Pattern = Pattern.DIVE
 var scroll_speed: float = 40.0
 var projectile_pool: ProjectilePool
 var alive: bool = true
+var _weakness_fx_shown: bool = false
 var formation_id: String = ""
 var asteroid_tier: int = 0 ## 0=small 1=med 2=large
 
@@ -117,6 +118,7 @@ func setup(s: EnemyStats, pool: ProjectilePool, world_scroll: float, form_id: St
 	_pass_seed = pass_seed
 	_slot_extent = slot_extent
 	hp = s.max_hp
+	_weakness_fx_shown = false
 	if s.is_hazard and String(s.enemy_id) == "asteroid":
 		asteroid_tier = 2 if s.size.x >= 48.0 else (1 if s.size.x >= 30.0 else 0)
 	_apply_visuals()
@@ -869,9 +871,10 @@ func _boss_fire() -> void:
 	BossPatterns.fire(self)
 
 
-func take_damage(amount: float, armor_pierce: bool = false) -> void:
+func take_damage(amount: float, armor_pierce: bool = false, weapon_kind: StringName = &"") -> void:
 	if not alive:
 		return
+	amount *= _weapon_matchup_multiplier(weapon_kind)
 	# Orbital Defense Platform: rotating plating reduces frontal hits
 	# unless the shot has armor pierce (Focused Laser Lv2+).
 	if not armor_pierce and stats and stats.is_boss and not stats.is_mid_boss:
@@ -895,6 +898,28 @@ func take_damage(amount: float, armor_pierce: bool = false) -> void:
 		EventBus.boss_hp_changed.emit(maxi(0.0, hp), stats.max_hp)
 	if hp <= 0.0:
 		_die()
+
+
+func _weapon_matchup_multiplier(weapon_kind: StringName) -> float:
+	if stats == null or weapon_kind == &"" or stats.weak_against != weapon_kind:
+		return 1.0
+	if not _weakness_fx_shown:
+		_weakness_fx_shown = true
+		var tint := Color(0.85, 0.95, 1.0)
+		match String(weapon_kind):
+			"spread":
+				tint = Color(1.0, 0.45, 0.30)
+			"laser":
+				tint = Color(0.45, 0.82, 1.0)
+			"homing":
+				tint = Color(0.45, 1.0, 0.58)
+			"blaster":
+				tint = Color(0.85, 0.9, 1.0)
+		if get_parent():
+			CombatFX.spawn_ring(get_parent(), global_position, tint, 12.0)
+	if weapon_kind == &"laser":
+		return 1.12 if stats.is_boss else 1.15
+	return 1.18 if stats.is_boss else 1.28
 
 
 func _flash_hit() -> void:
