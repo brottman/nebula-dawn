@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
+[resource]
+script = ExtResource("1_oggcu")
+enemy_id = &"sniper"
+display_name = "Sniper"
+max_hp = 1.0
+move_speed = 88.0
+score_value = 200
+fire_interval = 2.8
+projectile_speed = 320.0
+fire_pattern = &"snipe"
+flight_pattern = &"hover_dart"
+color = Color(0.9, 0.9, 0.4, 1)
+size = Vector2(40, 32)

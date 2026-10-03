@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ece8e2"/>
+      <stop offset="1" stop-color="#6e6860"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4beb6"/>
+      <stop offset="1" stop-color="#7a746c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M8 38 L18 22 L52 14 L86 28 L92 50 L78 82 L22 86 L6 62 Z" fill="url(#hull)" stroke="#17171e" stroke-width="2.4"/>
+  <path d="M18 22 L28 36 L52 28 L52 14 Z" fill="#b8b2aa"/>
+  <rect x="24" y="40" width="28" height="22" rx="1" fill="url(#plate)" stroke="#17171e" stroke-width="1.8" transform="rotate(-8 38 51)"/>
+  <rect x="50" y="34" width="26" height="18" rx="1" fill="#9a948c" stroke="#17171e" stroke-width="1.8" transform="rotate(12 63 43)"/>
+  <rect x="34" y="58" width="32" height="14" rx="1" fill="#8a847c" stroke="#17171e" stroke-width="1.6"/>
+  <circle cx="30" cy="46" r="2.2" fill="#3c3c46"/>
+  <circle cx="46" cy="52" r="2.2" fill="#3c3c46"/>
+  <circle cx="62" cy="40" r="2.2" fill="#3c3c46"/>
+  <circle cx="58" cy="64" r="2" fill="#3c3c46"/>
+  <rect x="4" y="48" width="14" height="20" rx="2" fill="#7a746c" stroke="#17171e" stroke-width="1.8"/>
+  <rect x="80" y="42" width="14" height="24" rx="2" fill="#7a746c" stroke="#17171e" stroke-width="1.8"/>
+  <line x1="8" y1="54" x2="0" y2="50" stroke="#3c3c46" stroke-width="2"/>
+  <line x1="88" y1="50" x2="96" y2="44" stroke="#3c3c46" stroke-width="2"/>
+  <polygon points="52,14 60,6 70,18 58,22" fill="#a8a298" stroke="#17171e" stroke-width="1.6"/>
+  <rect x="38" y="74" width="28" height="10" rx="2" fill="#6a645c" stroke="#17171e" stroke-width="1.6"/>
+  <circle cx="46" cy="79" r="1.8" fill="#ffe9a8"/>
+  <circle cx="54" cy="79" r="1.8" fill="#ffe9a8"/>
+  <circle cx="62" cy="79" r="1.8" fill="#ffe9a8"/>
+  <ellipse cx="22" cy="92" rx="6" ry="2.2" fill="url(#glow)"/>
+  <ellipse cx="48" cy="92" rx="7" ry="2.4" fill="url(#glow)"/>
+  <ellipse cx="76" cy="92" rx="6" ry="2.2" fill="url(#glow)"/>
+  <circle cx="22" cy="92" r="1.8" fill="#fffbe8"/>
+  <circle cx="48" cy="92" r="2" fill="#fffbe8"/>
+  <circle cx="76" cy="92" r="1.8" fill="#fffbe8"/>
+</svg>

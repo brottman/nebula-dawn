@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="hull_d" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3c4"/>
+      <stop offset="0.55" stop-color="#f2c94c"/>
+      <stop offset="1" stop-color="#c98f1e"/>
+    </linearGradient>
+    <linearGradient id="wing_d" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe9a0"/>
+      <stop offset="1" stop-color="#d4a63c"/>
+    </linearGradient>
+    <radialGradient id="glow_d" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9a0" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M16 1 L11 12 L3 22 L9 19 L12 14 L12 24 L16 29 L20 24 L20 14 L23 19 L29 22 L21 12 Z" fill="url(#wing_d)" stroke="#1b2c40" stroke-width="1.6"/>
+  <path d="M16 1 L11 12 L3 22 L9 19 L12 14 Z" fill="#e8c96a" opacity="0.9"/>
+  <path d="M16 1 L21 12 L29 22 L23 19 L20 14 Z" fill="#f7e7b0" opacity="0.9"/>
+  <path d="M13 4 L19 4 L20 24 L16 28 L12 24 Z" fill="url(#hull_d)" stroke="#1b2c40" stroke-width="1.6"/>
+  <path d="M16 2 L13.5 8 L16 7 L18.5 8 Z" fill="#ffffff"/>
+  <ellipse cx="16" cy="13" rx="2.2" ry="3.2" fill="#8a6a20" stroke="#1b2c40" stroke-width="0.8"/>
+  <line x1="14" y1="18" x2="18" y2="18" stroke="#a8862f" stroke-width="0.9"/>
+  <line x1="14" y1="21" x2="18" y2="21" stroke="#a8862f" stroke-width="0.9"/>
+  <ellipse cx="16" cy="30.5" rx="4.5" ry="1.6" fill="url(#glow_d)"/>
+  <circle cx="16" cy="30.5" r="1.3" fill="#ffe9a0"/>
+  <circle cx="3.5" cy="22.5" r="1" fill="#ffd27a" opacity="0.9"/>
+  <circle cx="28.5" cy="22.5" r="1" fill="#ffd27a" opacity="0.9"/>
+</svg>

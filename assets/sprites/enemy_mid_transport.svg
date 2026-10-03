@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0f4f8"/>
+      <stop offset="1" stop-color="#6e7882"/>
+    </linearGradient>
+    <linearGradient id="cargo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c8d0d8"/>
+      <stop offset="1" stop-color="#828a94"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="10" y="22" width="52" height="32" rx="4" fill="url(#hull)" stroke="#17171e" stroke-width="2"/>
+  <rect x="16" y="28" width="40" height="20" rx="2" fill="url(#cargo)" stroke="#17171e" stroke-width="1.6"/>
+  <line x1="24" y1="30" x2="24" y2="46" stroke="#5c646e" stroke-width="1.4"/>
+  <line x1="36" y1="30" x2="36" y2="46" stroke="#5c646e" stroke-width="1.4"/>
+  <line x1="48" y1="30" x2="48" y2="46" stroke="#5c646e" stroke-width="1.4"/>
+  <rect x="28" y="10" width="16" height="14" rx="2" fill="#a8b0b8" stroke="#17171e" stroke-width="1.8"/>
+  <rect x="31" y="13" width="10" height="5" rx="1.5" fill="#14141b"/>
+  <rect x="0" y="30" width="12" height="16" rx="3" fill="#8c949c" stroke="#17171e" stroke-width="1.6"/>
+  <rect x="60" y="30" width="12" height="16" rx="3" fill="#8c949c" stroke="#17171e" stroke-width="1.6"/>
+  <line x1="4" y1="34" x2="-2" y2="34" stroke="#3c3c46" stroke-width="1.6"/>
+  <line x1="68" y1="34" x2="74" y2="34" stroke="#3c3c46" stroke-width="1.6"/>
+  <rect x="24" y="52" width="24" height="8" rx="2" fill="#707880" stroke="#17171e" stroke-width="1.5"/>
+  <circle cx="30" cy="56" r="1.6" fill="#ffe9a8"/>
+  <circle cx="36" cy="56" r="1.6" fill="#ffe9a8"/>
+  <circle cx="42" cy="56" r="1.6" fill="#ffe9a8"/>
+  <ellipse cx="16" cy="68" rx="5" ry="2" fill="url(#glow)"/>
+  <ellipse cx="36" cy="68" rx="6" ry="2" fill="url(#glow)"/>
+  <ellipse cx="56" cy="68" rx="5" ry="2" fill="url(#glow)"/>
+  <circle cx="16" cy="68" r="1.6" fill="#fffbe8"/>
+  <circle cx="36" cy="68" r="1.8" fill="#fffbe8"/>
+  <circle cx="56" cy="68" r="1.6" fill="#fffbe8"/>
+</svg>

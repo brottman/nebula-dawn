@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f4f8"/>
+      <stop offset="1" stop-color="#7c7c86"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M26 4 L8 30 L14 44 L26 38 L38 44 L44 30 Z" fill="#c9c9d2" stroke="#17171e" stroke-width="1.5"/>
+  <path d="M26 4 L8 30 L26 22 Z" fill="#9c9ca6"/>
+  <path d="M26 4 L44 30 L26 22 Z" fill="#b0b0ba"/>
+  <path d="M21 6 L31 6 L31 44 L21 44 Z" fill="url(#hull)" stroke="#17171e" stroke-width="1.5"/>
+  <circle cx="26" cy="13" r="4.5" fill="#14141b" stroke="#3c3c46" stroke-width="0.8"/>
+  <line x1="22" y1="26" x2="30" y2="26" stroke="#5c5c66" stroke-width="1.2"/>
+  <line x1="22" y1="31" x2="30" y2="31" stroke="#5c5c66" stroke-width="1.2"/>
+  <line x1="22" y1="36" x2="30" y2="36" stroke="#5c5c66" stroke-width="1.2"/>
+  <path d="M10 42 L6 48 L13 48 Z" fill="#8e8e98" stroke="#17171e" stroke-width="1.5"/>
+  <path d="M42 42 L46 48 L39 48 Z" fill="#8e8e98" stroke="#17171e" stroke-width="1.5"/>
+  <rect x="5" y="27" width="7" height="5" rx="2.5" fill="#61616b" stroke="#17171e" stroke-width="1.2"/>
+  <rect x="40" y="27" width="7" height="5" rx="2.5" fill="#61616b" stroke="#17171e" stroke-width="1.2"/>
+  <circle cx="8.5" cy="29.5" r="1.6" fill="#e8e8ee"/>
+  <circle cx="43.5" cy="29.5" r="1.6" fill="#e8e8ee"/>
+  <ellipse cx="26" cy="47" rx="8" ry="2.6" fill="url(#glow)"/>
+  <circle cx="26" cy="47" r="2.4" fill="#fffbe8"/>
+</svg>

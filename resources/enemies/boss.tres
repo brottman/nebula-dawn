@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_jlmjw"]
+
+[resource]
+script = ExtResource("1_jlmjw")
+enemy_id = &"boss"
+display_name = "Orbital Defense Platform"
+max_hp = 100.0
+move_speed = 42.0
+score_value = 6500
+fire_interval = 1.4
+projectile_speed = 200.0
+contact_damage = 2
+color = Color(0.4, 0.75, 1, 1)
+size = Vector2(120, 92)
+is_boss = true
+weak_against = &"laser"
+boss_archetype = &"orbital"

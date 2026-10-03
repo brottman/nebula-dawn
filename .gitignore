@@ -1,0 +1,19 @@
+# Godot 4
+.godot/
+*.translation
+export_presets.cfg
+*.apk
+*.aab
+*.zip
+*.pck
+*.exe
+*.x86_64
+*.app
+.import/
+*.idsig
+*.tmp
+*~
+.DS_Store
+
+# Local build artifacts / previews
+build/

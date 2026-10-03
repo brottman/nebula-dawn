@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
+
+[resource]
+script = ExtResource("1_oggcu")
+enemy_id = &"dasher"
+display_name = "Dasher"
+max_hp = 2.0
+move_speed = 165.0
+score_value = 175
+fire_interval = 2.2
+projectile_speed = 210.0
+fire_pattern = &"shotgun"
+flight_pattern = &"charge"
+color = Color(1, 0.35, 0.35, 1)
+size = Vector2(42, 36)

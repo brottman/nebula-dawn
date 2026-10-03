@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
+
+[resource]
+script = ExtResource("1_oggcu")
+enemy_id = &"drone"
+display_name = "Mining Drone"
+move_speed = 87.75000000000001
+score_value = 200
+fire_interval = 3.625
+projectile_speed = 170.0
+fire_pattern = &"spiral"
+flight_pattern = &"loop"
+color = Color(0.7, 0.4, 1, 1)
+size = Vector2(50, 50)

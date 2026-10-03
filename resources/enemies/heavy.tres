@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
+[resource]
+script = ExtResource("1_oggcu")
+enemy_id = &"heavy"
+display_name = "Heavy"
+max_hp = 5.0
+move_speed = 78.0
+score_value = 300
+fire_interval = 2.0
+projectile_speed = 185.0
+fire_pattern = &"volley"
+flight_pattern = &"orbit"
+color = Color(0.95, 0.6, 0.2, 1)
+size = Vector2(56, 48)

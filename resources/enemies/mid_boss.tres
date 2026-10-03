@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_ncofv"]
+
+[resource]
+script = ExtResource("1_ncofv")
+enemy_id = &"boss"
+display_name = "Heavy Transport"
+max_hp = 36.0
+move_speed = 60.0
+score_value = 1600
+fire_interval = 1.55
+projectile_speed = 190.0
+color = Color(0.55, 0.8, 1, 1)
+size = Vector2(84, 64)
+is_boss = true
+is_mid_boss = true
+weak_against = &"laser"
+boss_archetype = &"transport"

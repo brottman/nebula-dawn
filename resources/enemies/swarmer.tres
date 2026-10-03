@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyStats" format=3]
+[ext_resource type="Script" path="res://scripts/mission/enemy_stats.gd" id="1_oggcu"]
+[resource]
+script = ExtResource("1_oggcu")
+enemy_id = &"swarmer"
+display_name = "Swarmer"
+max_hp = 1.0
+move_speed = 175.0
+score_value = 75
+fire_interval = 0.0
+projectile_speed = 200.0
+color = Color(1, 0.6, 0.6, 1)
+size = Vector2(28, 28)
